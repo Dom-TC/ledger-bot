@@ -1,0 +1,44 @@
+[tool.poetry]
+name = "ledger-bot"
+version = "0.1.0"
+description = "A Discord bot for tracking sales"
+authors = ["Dom Chester <dom.chester@me.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "ledger_bot"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+discord-py = "^2.3.2"
+airtable-python-wrapper = "^0.15.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.black]
+line-length = 88
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  # The following are specific to Black, you probably don't want those.
+  | blib2to3
+  | tests/data
+  | profiling
+)/
+'''
