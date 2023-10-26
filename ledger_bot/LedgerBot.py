@@ -1,3 +1,5 @@
+"""The LedgerBot class is the actual implimentation of the Discord bot.  Extends discord.Client."""
+
 import asyncio
 import logging
 
@@ -29,7 +31,21 @@ class LedgerBot(discord.Client):
         )
 
     async def on_message(self, message):
+        channel_name = message.channel.name
+
+        if (
+            self.config["channels"].get("include")
+            and channel_name not in self.config["channels"]["include"]
+        ):
+            return
+        else:
+            if channel_name in self.config["channels"].get("exclude", []):
+                return
+
         print(f"Message from {message.author}: {message.content}")
 
         if message.content == "hello":
             await message.channel.send("howdy")
+
+    async def on_disconnect(self):
+        log.warning("Bot disconnected")
