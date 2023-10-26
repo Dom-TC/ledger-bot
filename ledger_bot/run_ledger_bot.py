@@ -12,6 +12,7 @@ import os
 
 from config import parse
 from dotenv import load_dotenv
+from LedgerBot import LedgerBot
 
 # Load environment variables from .env
 load_dotenv()
@@ -43,3 +44,6 @@ try:
 except (OSError, ValueError) as err:
     log.error(f"Config file invalid: {err}")
     exit(1)
+
+client = LedgerBot(config)
+client.run(config["authentication"]["discord"])

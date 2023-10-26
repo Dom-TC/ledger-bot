@@ -30,6 +30,7 @@ def parse(config):
         "triggers": {
             "new_transaction": [],
         },
+        "watching_status": "for empty glasses",
         "maintainer_ids": [],
     }
 
