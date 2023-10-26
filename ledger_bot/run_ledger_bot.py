@@ -21,6 +21,8 @@ load_dotenv()
 logging.config.fileConfig(fname="log.conf", disable_existing_loggers=False)
 logging.getLogger("discord").setLevel(logging.CRITICAL)
 logging.getLogger("discord.gateway").setLevel(logging.INFO)
+logging.getLogger("asyncio").setLevel(logging.CRITICAL)
+logging.getLogger("urllib").setLevel(logging.CRITICAL)
 if os.getenv("LOG_TO_FILE") == "false":
     logging.info("LOG_TO_FILE is false, removing FileHandlers")
     file_handlers = (
@@ -30,7 +32,7 @@ if os.getenv("LOG_TO_FILE") == "false":
     )
     for handler in file_handlers:
         logging.root.removeHandler(handler)
-log = logging.getLogger("ledger_bot")
+log = logging.getLogger(__name__)
 
 # Get configs
 try:
@@ -46,4 +48,4 @@ except (OSError, ValueError) as err:
     exit(1)
 
 client = LedgerBot(config)
-client.run(config["authentication"]["discord"])
+client.run(config["authentication"]["discord"], log_handler=None)
