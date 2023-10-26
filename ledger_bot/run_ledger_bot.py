@@ -1,6 +1,7 @@
-"""ledger_bot.
+"""run_ledger_bot.
 
-ledger_bot is a Discord bot that allows users to track sales.
+This is the entry point for ledger_bot.
+Ledger_bot is a Discord bot that allows users to track sales.
 
 """
 
