@@ -4,10 +4,12 @@ ledger_bot is a Discord bot that allows users to track sales.
 
 """
 
+import json
 import logging
 import logging.config
 import os
 
+from config import parse
 from dotenv import load_dotenv
 
 # Load environment variables from .env
@@ -27,3 +29,16 @@ if os.getenv("LOG_TO_FILE") == "false":
     for handler in file_handlers:
         logging.root.removeHandler(handler)
 log = logging.getLogger("ledger_bot")
+
+# Get configs
+try:
+    config_path = os.getenv("BOT_CONFIG", "config.json")
+    log.debug(f"Config path: {config_path}")
+    config_to_parse = {}
+    if os.path.isfile(config_path):
+        with open(config_path, mode="r") as config_file:
+            config_to_parse = json.load(config_file)
+    config = parse(config_to_parse)
+except (OSError, ValueError) as err:
+    log.error(f"Config file invalid: {err}")
+    exit(1)
