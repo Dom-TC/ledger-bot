@@ -1,8 +1,7 @@
-def handle_response(message) -> str:
+def get_response(message: str) -> str:
     
     p_message = message.lower()
     
-    print(message)
     
     if p_message == "hello":
         return "hey, I'm the wine bot"
