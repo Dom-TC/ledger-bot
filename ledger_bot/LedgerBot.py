@@ -5,7 +5,6 @@ import logging
 import discord
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
 
 
 class LedgerBot(discord.Client):
