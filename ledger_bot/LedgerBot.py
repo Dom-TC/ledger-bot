@@ -1,6 +1,5 @@
 """The LedgerBot class is the actual implimentation of the Discord bot.  Extends discord.Client."""
 
-import asyncio
 import logging
 
 import discord
@@ -46,6 +45,9 @@ class LedgerBot(discord.Client):
 
         if message.content == "hello":
             await message.channel.send("howdy")
+
+        if message.content == "reaction":
+            await message.add_reaction("👋")
 
     async def on_disconnect(self):
         log.warning("Bot disconnected")
