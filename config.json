@@ -1,0 +1,10 @@
+{
+  "authentication": {
+    "discord": "",
+    "airtable_key": "",
+    "airtable_base": ""
+  },
+  "channels": {
+    "exclude": ["ignore-this-channel"]
+  }
+}
