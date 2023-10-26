@@ -10,7 +10,6 @@ packages = [{include = "ledger_bot"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 discord-py = "^2.3.2"
-airtable-python-wrapper = "^0.15.3"
 python-dotenv = "^1.0.0"
 
 
