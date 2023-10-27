@@ -13,6 +13,7 @@ import os
 from config import parse
 from dotenv import load_dotenv
 from LedgerBot import LedgerBot
+from storage import AirtableStorage
 
 # Load environment variables from .env
 load_dotenv()
@@ -47,5 +48,11 @@ except (OSError, ValueError) as err:
     log.error(f"Config file invalid: {err}")
     exit(1)
 
-client = LedgerBot(config)
+storage = AirtableStorage(
+    config["authentication"]["airtable_base"],
+    config["authentication"]["airtable_key"],
+    config["id"],
+)
+
+client = LedgerBot(config, storage)
 client.run(config["authentication"]["discord"], log_handler=None)

@@ -8,8 +8,9 @@ log = logging.getLogger(__name__)
 
 
 class LedgerBot(discord.Client):
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, storage):
         self.config = config
+        self.storage = storage
 
         log.debug("Watching channels: %s", self.config["channels"])
 
@@ -40,13 +41,11 @@ class LedgerBot(discord.Client):
             if channel_name in self.config["channels"].get("exclude", []):
                 return
 
-        print(f"Message from {message.author}: {message.content}")
+        log.debug(f"Message from {message.author}: {message.content}")
 
-        if message.content == "hello":
-            await message.channel.send("howdy")
-
-        if message.content == "reaction":
-            await message.add_reaction("👋")
+        if message.content == "add_member":
+            log.debug(f"Adding member: {message.author}")
+            await self.storage.get_or_add_member(message.author)
 
     async def on_disconnect(self):
         log.warning("Bot disconnected")
