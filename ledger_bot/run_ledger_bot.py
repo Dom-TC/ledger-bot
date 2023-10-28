@@ -13,6 +13,7 @@ import os
 from config import parse
 from dotenv import load_dotenv
 from LedgerBot import LedgerBot
+from slash_commands import setup_slash
 from storage import AirtableStorage
 
 # Load environment variables from .env
@@ -48,11 +49,18 @@ except (OSError, ValueError) as err:
     log.error(f"Config file invalid: {err}")
     exit(1)
 
+# Create storage
 storage = AirtableStorage(
     config["authentication"]["airtable_base"],
     config["authentication"]["airtable_key"],
     config["id"],
 )
 
+# Create client
 client = LedgerBot(config, storage)
+
+# Build slash commands
+slash = setup_slash(client, config, storage)
+
+# Run bot
 client.run(config["authentication"]["discord"], log_handler=None)
