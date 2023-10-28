@@ -29,6 +29,7 @@ def parse(config):
         "triggers": {
             "new_transaction": [],
         },
+        "guild": None,
         "watching_status": "for empty glasses",
         "maintainer_ids": [],
     }
