@@ -19,19 +19,22 @@ class Model:
 
 class Member(Model):
     attributes = [
-        "primary_key",
+        "id",
+        "row_id",
         "discord_id",
         "username",
         "nickname",
         "sell_transactions",
-        "buy_transactions" "bot_id",
+        "buy_transactions",
+        "bot_id",
     ]
 
     @classmethod
     def from_airtable(cls, data: dict) -> "Member":
         fields = data["fields"]
         return cls(
-            primary_key=data["id"],
+            id=data["id"],
+            row_id=data["row_id"],
             username=fields.get("username"),
             discord_id=fields.get("discord_id"),
             nickname=fields.get("nickname"),
@@ -44,6 +47,101 @@ class Member(Model):
     def display_name(self):
         name = self.nickname if self.nickname else self.username
         return f"{name}"
+
+
+class Transaction(Model):
+    attributes = [
+        "id",
+        "row_id",
+        "seller_id",
+        "buyer_id",
+        "wine",
+        "price",
+        "sale_approved",
+        "delivered",
+        "paid",
+        "cancelled",
+        "creation_date",
+        "approved_date",
+        "paid_date",
+        "delivered_date",
+        "cancelled_date",
+        "sale_message_id",
+        "bot_message_id",
+        "bot_id",
+    ]
+
+    @classmethod
+    def from_airtable(cls, data: dict) -> "Member":
+        fields = data["fields"]
+        return cls(
+            id=data["id"],
+            row_id=fields.get("row_id"),
+            seller_id=fields.get("seller_id"),
+            buyer_id=fields.get("buyer_id"),
+            wine=fields.get("wine"),
+            price=fields.get("price"),
+            sale_approved=fields.get("sale_approved"),
+            delivered=fields.get("delivered"),
+            paid=fields.get("paid"),
+            cancelled=fields.get("cancelled"),
+            creation_date=fields.get("creation_date"),
+            approved_date=fields.get("approved_date"),
+            paid_date=fields.get("paid_date"),
+            delivered_date=fields.get("delivered_date"),
+            cancelled_date=fields.get("cancelled_date"),
+            sale_message_id=fields.get("sale_message_id"),
+            bot_message_id=fields.get("bot_message_id"),
+            bot_id=fields.get("bot_id"),
+        )
+
+    def to_airtable(self, fields=None) -> dict:
+        fields = fields if fields else self.attributes
+        data = {}
+
+        if "seller_id" in fields:
+            data["seller_id"] = [
+                self.seller_id.id
+                if isinstance(self.seller_id, Member)
+                else self.seller_id
+            ]
+        if "buyer_id" in fields:
+            data["buyer_id"] = [
+                self.buyer_id.id if isinstance(self.buyer_id, Member) else self.buyer_id
+            ]
+        if "wine" in fields:
+            data["wine"] = self.wine
+        if "price" in fields:
+            data["price"] = self.price
+        if "sale_approved" in fields:
+            data["sale_approved"] = self.sale_approved
+        if "delivered" in fields:
+            data["delivered"] = self.delivered
+        if "paid" in fields:
+            data["paid"] = self.paid
+        if "cancelled" in fields:
+            data["cancelled"] = self.cancelled
+        if "creation_date" in fields:
+            data["creation_date"] = self.creation_date
+        if "approved_date" in fields:
+            data["approved_date"] = self.approved_date()
+        if "paid_date" in fields:
+            data["paid_date"] = self.paid_date()
+        if "delivered_date" in fields:
+            data["delivered_date"] = self.delivered_date()
+        if "cancelled_date" in fields:
+            data["cancelled_date"] = self.cancelled_date()
+        if "sale_message_id" in fields:
+            data["sale_message_id"] = self.sale_message_id
+        if "bot_message_id" in fields:
+            data["bot_message_id"] = self.bot_message_id
+        if "bot_id" in fields:
+            data["bot_id"] = self.bot_id
+
+        return {
+            "id": self.id,
+            "fields": data,
+        }
 
 
 class AirTableError(Exception):
