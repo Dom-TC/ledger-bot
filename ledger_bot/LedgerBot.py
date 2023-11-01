@@ -66,8 +66,6 @@ class LedgerBot(discord.Client):
             if channel_name in self.config["channels"].get("exclude", []):
                 return
 
-        log.debug(f"Message from {message.author}: {message.content}")
-
         if message.content == "add_member":
             log.debug(f"Adding member: {message.author}")
             await self.storage.get_or_add_member(message.author)

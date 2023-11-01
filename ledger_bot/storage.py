@@ -7,7 +7,7 @@ from typing import Awaitable, Callable, Literal, Optional, Union
 
 from aiohttp import ClientSession
 from discord import Member as DiscordMember
-from models import AirTableError, Member
+from models import AirTableError, Member, Transaction
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +27,6 @@ async def run_request(
     session : ClientSession, optional
         The session to use, if provided
     """
-    log.debug(f"Running request {action_to_run}")
     if not session:
         async with ClientSession() as new_session:
             return await action_to_run(new_session)
@@ -65,6 +64,8 @@ class AirtableStorage:
     get_or_add_member(member)
         Either returns the record for the given member, or creates an entry and returns that
 
+    insert_transaction(record, session)
+        Creates a new transaction entry
 
     """
 
@@ -183,6 +184,7 @@ class AirtableStorage:
     ):
         async def run_insert(session_to_use: ClientSession):
             data = {"fields": record}
+            log.debug(f"Payload:  {data}")
             async with session_to_use.request(
                 method,
                 url,
@@ -207,12 +209,12 @@ class AirtableStorage:
     async def _update(
         self, url: str, record: dict, session: Optional[ClientSession] = None
     ):
-        await self._modify(url, "patch", record, session)
+        log.debug(f"Update URL: {url}")
+        return await self._modify(url, "patch", record, session)
 
     async def _list_members(
         self, filter_by_formula: str, session: Optional[ClientSession] = None
     ):
-        log.debug("_list_members")
         return await self._list(self.members_url, filter_by_formula, session)
 
     def _list_all_members(
@@ -294,6 +296,104 @@ class AirtableStorage:
             }
             member_record = await self.insert_member(data)
             log.debug(
-                f"Added {member_record['fields']['username']} ({member_record['fields']['primary_key']}) to AirTable"
+                f"Added {member_record['fields']['username']} ({member_record['fields']['id']}) to AirTable"
             )
         return Member.from_airtable(member_record)
+
+    async def insert_transaction(
+        self, record: dict, session: Optional[ClientSession] = None
+    ) -> dict:
+        """
+        Inserts a transaction into the table.
+
+        Paramaters
+        ----------
+        record : dict
+            The record to insert
+
+        session : ClientSession, optional
+            The ClientSession to use
+
+        Returns
+        -------
+        dict
+            A Dictionary containing the inserted record
+        """
+        return await self._insert(self.wines_url, record, session)
+
+    async def update_transaction(
+        self,
+        record_id: str,
+        transaction_record: dict,
+        session: Optional[ClientSession] = None,
+    ):
+        """
+        Updates a specific transaction record.
+
+        Paramaters
+        ----------
+        record_id : str
+            The primary key of the transaction to update
+
+        transaction_record : dict
+            The records to update
+
+        session : ClientSession, optional
+            The ClientSession to use
+
+        """
+        log.debug(f"update_transaction record_id: {record_id}")
+        log.debug(f"update_transaction transaction_record {transaction_record}")
+        return await self._update(
+            self.wines_url + "/" + record_id, transaction_record, session
+        )
+
+    async def save_transaction(self, transaction: Transaction, fields=None):
+        """
+        Saves the provided Transaction.
+
+        If it has no primary key, inserts a new instance, otherwise updates the old instance.
+        If a list of fields are specified, only saves/updates those fields.
+
+        Paramaters
+        ----------
+        transaction : Transaction
+            The transaction to insert
+
+        fields : Optional
+            The fields to save / update
+
+        """
+        fields = fields or [
+            "seller_id",
+            "buyer_id",
+            "wine",
+            "price",
+            "sale_approved",
+            "delivered",
+            "paid",
+            "cancelled",
+            "creation_date",
+            "approved_date",
+            "paid_date",
+            "delivered_date",
+            "cancelled_date",
+            "sale_message_id",
+            "bot_message_id",
+        ]
+
+        # Always store bot_id
+        setattr(transaction, "bot_id", self.bot_id or "")
+        if "bot_id" not in fields:
+            fields.append("bot_id")
+
+        transaction_data = transaction.to_airtable(fields=fields)
+        log.info(f"Adding transaction data: {transaction_data['fields']}")
+        if transaction.id:
+            log.info(f"Updating transaction with id: {transaction_data['id']}")
+            return await self.update_transaction(
+                transaction_data["id"], transaction_data["fields"]
+            )
+        else:
+            log.info("Adding transaction to Airtable")
+            return await self.insert_transaction(transaction_data["fields"])

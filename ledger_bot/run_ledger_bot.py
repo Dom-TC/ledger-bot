@@ -11,11 +11,9 @@ import logging.config
 import os
 
 from dotenv import load_dotenv
-
-from .config import parse
-from .LedgerBot import LedgerBot
-from .slash_commands import setup_slash
-from .storage import AirtableStorage
+from LedgerBot import LedgerBot
+from slash_commands import setup_slash
+from storage import AirtableStorage
 
 # Load environment variables from .env
 load_dotenv()
