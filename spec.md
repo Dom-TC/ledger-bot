@@ -42,9 +42,11 @@ ledger_bot: Deletes previous <bot_post>, updates AirTable, creates new <bot_post
 
 ## DM Commands
 
-list - List all open transactions, linking to each <bot_post>
-list sales - List all open sales, linking to each <bot_post>
-list purchases - List all open purchases, linking to each <bot_post>
+`!list` - List all open transactions, linking to each <bot_post>
+`!list sales` - List all open sales, linking to each <bot_post>
+`!list purchases` - List all open purchases, linking to each <bot_post>
+`!help` - Returns the help documentation
+`!version` - Returns the version / bot_id of the running bot
 
 ## Bot Post Format:
 
