@@ -1,0 +1,11 @@
+{
+  "authentication": {
+    "discord": "",
+    "airtable_key": "",
+    "airtable_base": ""
+  },
+  "channels": {
+    "exclude": ["general"]
+  },
+  "guild": 1161957958587007047
+}
