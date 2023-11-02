@@ -66,7 +66,8 @@ class Transaction(Model):
         "paid_date",
         "delivered_date",
         "cancelled_date",
-        "sale_message_id",
+        "guild_id",
+        "channel_id",
         "bot_message_id",
         "bot_id",
     ]
@@ -90,7 +91,8 @@ class Transaction(Model):
             paid_date=fields.get("paid_date"),
             delivered_date=fields.get("delivered_date"),
             cancelled_date=fields.get("cancelled_date"),
-            sale_message_id=fields.get("sale_message_id"),
+            guild_id=fields.get("guild_id"),
+            channel_id=fields.get("channel_id"),
             bot_message_id=fields.get("bot_message_id"),
             bot_id=fields.get("bot_id"),
         )
@@ -124,7 +126,8 @@ class Transaction(Model):
             "paid_date",
             "delivered_date",
             "cancelled_date",
-            "sale_message_id",
+            "guild_id",
+            "channel_id",
             "bot_message_id",
             "bot_id",
         ]

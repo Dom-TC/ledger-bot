@@ -17,6 +17,7 @@ def parse(config):
     """
     defaults = {
         "id": None,
+        "name": "Ledger-Bot",
         "authentication": {
             "discord": "",
             "airtable_key": "",

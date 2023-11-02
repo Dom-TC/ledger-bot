@@ -184,7 +184,6 @@ class AirtableStorage:
     ):
         async def run_insert(session_to_use: ClientSession):
             data = {"fields": record}
-            log.debug(f"Payload:  {data}")
             async with session_to_use.request(
                 method,
                 url,
@@ -209,7 +208,6 @@ class AirtableStorage:
     async def _update(
         self, url: str, record: dict, session: Optional[ClientSession] = None
     ):
-        log.debug(f"Update URL: {url}")
         return await self._modify(url, "patch", record, session)
 
     async def _list_members(
@@ -342,8 +340,6 @@ class AirtableStorage:
             The ClientSession to use
 
         """
-        log.debug(f"update_transaction record_id: {record_id}")
-        log.debug(f"update_transaction transaction_record {transaction_record}")
         return await self._update(
             self.wines_url + "/" + record_id, transaction_record, session
         )
@@ -378,7 +374,8 @@ class AirtableStorage:
             "paid_date",
             "delivered_date",
             "cancelled_date",
-            "sale_message_id",
+            "guild_id",
+            "channel_id",
             "bot_message_id",
         ]
 
