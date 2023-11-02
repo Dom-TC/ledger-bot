@@ -6,6 +6,7 @@ import logging
 import discord
 from discord import app_commands
 from LedgerBot import LedgerBot
+from message_generator import generate_transaction_status_message
 from models import Transaction
 from storage import AirtableStorage
 
@@ -59,6 +60,9 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
         price: float,
     ):
         """Add transaction to Airtable."""
+        # Discord Interactions need to be responded to in <3s or they time out.  We take longer, so defer the interaction.
+        await interaction.response.defer()
+
         log.info("Processing new sale...")
         log.info(f"Getting / adding seller: {interaction.user}")
         seller_record = await storage.get_or_add_member(interaction.user)
@@ -97,10 +101,15 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
         # Convert response in dict form to Transaction object for future use
         transaction_record = Transaction.from_airtable(transaction_response)
 
-        response_contents = f"*New Sale Listed*\n**{interaction.user.mention} sold {wine_name} to {buyer.mention}**\nPrice: £{price}\n\n**Status**\nApproved: No\nPaid: No\nDelivered: No"
-
+        response_contents = generate_transaction_status_message(
+            seller=interaction.user,
+            buyer=buyer,
+            wine_name=wine_name,
+            wine_price=price,
+            config=config,
+        )
         try:
-            await interaction.response.send_message(response_contents)
+            await interaction.followup.send(response_contents)
 
             # We have to call a different command to get the message we just posted
             bot_message = await interaction.original_response()

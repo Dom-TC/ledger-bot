@@ -29,6 +29,15 @@ def parse(config):
         "triggers": {
             "new_transaction": [],
         },
+        "emojis": {
+            "approval": "👍",
+            "paid": "💸",
+            "delivered": "🚚",
+            "unknown_version": "🤷",
+            "status_confirmed": "🟩",
+            "status_part_confirmed": "🟨",
+            "status_unconfirmed": "🟥",
+        },
         "guild": None,
         "watching_status": "for empty glasses",
         "maintainer_ids": [],
