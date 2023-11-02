@@ -383,7 +383,7 @@ class AirtableStorage:
         ]
 
         # Always store bot_id
-        setattr(transaction, "bot_id", self.bot_id or "")
+        transaction.bot_id = self.bot_id or ""
         if "bot_id" not in fields:
             fields.append("bot_id")
 
