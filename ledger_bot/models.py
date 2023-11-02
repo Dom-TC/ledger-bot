@@ -109,34 +109,28 @@ class Transaction(Model):
             data["buyer_id"] = [
                 self.buyer_id.id if isinstance(self.buyer_id, Member) else self.buyer_id
             ]
-        if "wine" in fields:
-            data["wine"] = self.wine
-        if "price" in fields:
-            data["price"] = self.price
-        if "sale_approved" in fields:
-            data["sale_approved"] = self.sale_approved
-        if "delivered" in fields:
-            data["delivered"] = self.delivered
-        if "paid" in fields:
-            data["paid"] = self.paid
-        if "cancelled" in fields:
-            data["cancelled"] = self.cancelled
-        if "creation_date" in fields:
-            data["creation_date"] = self.creation_date
-        if "approved_date" in fields:
-            data["approved_date"] = self.approved_date
-        if "paid_date" in fields:
-            data["paid_date"] = self.paid_date
-        if "delivered_date" in fields:
-            data["delivered_date"] = self.delivered_date
-        if "cancelled_date" in fields:
-            data["cancelled_date"] = self.cancelled_date
-        if "sale_message_id" in fields:
-            data["sale_message_id"] = self.sale_message_id
-        if "bot_message_id" in fields:
-            data["bot_message_id"] = self.bot_message_id
-        if "bot_id" in fields:
-            data["bot_id"] = self.bot_id
+
+        # For any attribute which is just assigned, without alteration we can list it here and iterate through the list
+        # ie. anywhere we would do `data[attr] = self.attr`
+        standard_conversions = [
+            "wine",
+            "price",
+            "sale_approved",
+            "delivered",
+            "paid",
+            "cancelled",
+            "creation_date",
+            "approved_date",
+            "paid_date",
+            "delivered_date",
+            "cancelled_date",
+            "sale_message_id",
+            "bot_message_id",
+            "bot_id",
+        ]
+        for attr in standard_conversions:
+            if attr in fields:
+                data[attr] = getattr(self, attr)
 
         return {
             "id": self.id,
