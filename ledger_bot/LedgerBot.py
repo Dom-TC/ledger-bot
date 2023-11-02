@@ -4,6 +4,7 @@ import logging
 
 import discord
 from discord import app_commands
+from process_dm import is_dm, process_dm
 
 log = logging.getLogger(__name__)
 
@@ -55,6 +56,11 @@ class LedgerBot(discord.Client):
         await self.tree.sync(guild=self.guild)
 
     async def on_message(self, message):
+        # Process DMs
+        if is_dm(message):
+            await process_dm(self, message)
+            return
+
         channel_name = message.channel.name
 
         if (

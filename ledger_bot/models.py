@@ -34,7 +34,7 @@ class Member(Model):
         fields = data["fields"]
         return cls(
             id=data["id"],
-            row_id=data["row_id"],
+            row_id=fields.get("row_id"),
             username=fields.get("username"),
             discord_id=fields.get("discord_id"),
             nickname=fields.get("nickname"),
