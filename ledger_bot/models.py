@@ -124,13 +124,13 @@ class Transaction(Model):
         if "creation_date" in fields:
             data["creation_date"] = self.creation_date
         if "approved_date" in fields:
-            data["approved_date"] = self.approved_date()
+            data["approved_date"] = self.approved_date
         if "paid_date" in fields:
-            data["paid_date"] = self.paid_date()
+            data["paid_date"] = self.paid_date
         if "delivered_date" in fields:
-            data["delivered_date"] = self.delivered_date()
+            data["delivered_date"] = self.delivered_date
         if "cancelled_date" in fields:
-            data["cancelled_date"] = self.cancelled_date()
+            data["cancelled_date"] = self.cancelled_date
         if "sale_message_id" in fields:
             data["sale_message_id"] = self.sale_message_id
         if "bot_message_id" in fields:
