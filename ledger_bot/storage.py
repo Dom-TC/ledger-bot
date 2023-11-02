@@ -305,6 +305,12 @@ class AirtableStorage:
             )
         return Member.from_airtable(member_record)
 
+    async def get_member_from_record_id(self, record_id: int) -> Member:
+        """Returns the member object for the member with a given AirTable record id."""
+        log.info(f"Finding member with record {record_id}")
+        member_record = await self._retrieve_member(record_id)
+        return Member.from_airtable(member_record)
+
     async def insert_transaction(
         self, record: dict, session: Optional[ClientSession] = None
     ) -> dict:
@@ -436,3 +442,49 @@ class AirtableStorage:
         }
         log.info(f"Storing bot_message: {data}")
         return await self._insert_bot_message(record=data)
+
+    async def _list_bot_messages(
+        self, filter_by_formula: str, session: Optional[ClientSession] = None
+    ):
+        return await self._list(self.bot_messages_url, filter_by_formula, session)
+
+    async def find_bot_message_by_message_id(
+        self, bot_message_id: str, session: Optional[ClientSession] = None
+    ):
+        log.debug(f"Finding bot_message with id {bot_message_id}")
+        bot_messages = await self._list_bot_messages(
+            filter_by_formula="{{bot_message_id}}={value}".format(value=bot_message_id),
+            session=session,
+        )
+        return bot_messages[0] if bot_messages else None
+
+    async def _list_transactions(
+        self, filter_by_formula: str, session: Optional[ClientSession] = None
+    ):
+        return await self._list(self.wines_url, filter_by_formula, session)
+
+    async def _retrieve_transaction(
+        self, transaction_id: str, session: Optional[ClientSession] = None
+    ):
+        log.debug(f"Retrieving transaction with id {transaction_id}")
+        return await self._get(f"{self.wines_url}/{transaction_id}", session=session)
+
+    async def find_transaction_by_bot_message_id(self, message_id: str) -> Transaction:
+        """Takes a message and returns any associated Transactions, else returns None."""
+        log.info(f"Searching for transactions relating to bot message {message_id}")
+        bot_message_record = await self.find_bot_message_by_message_id(message_id)
+        if bot_message_record is None:
+            log.info("No matching records found")
+            return None
+        else:
+            bot_message = BotMessage.from_airtable(bot_message_record)
+            transaction_record = await self._retrieve_transaction(
+                bot_message.transaction_id
+            )
+            return Transaction.from_airtable(transaction_record) or None
+
+    async def delete_bot_message(self, record_id: str, session: ClientSession = None):
+        """Delete the specified bot_message record."""
+        records_to_delete = [record_id]
+        log.info(f"Deleting records {records_to_delete}")
+        await self._delete(self.bot_messages_url, records_to_delete, session)

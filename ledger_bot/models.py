@@ -36,7 +36,7 @@ class Member(Model):
             id=data["id"],
             row_id=fields.get("row_id"),
             username=fields.get("username"),
-            discord_id=fields.get("discord_id"),
+            discord_id=int(fields.get("discord_id")),
             nickname=fields.get("nickname"),
             sell_transactions=fields.get("sell_transactions"),
             buy_transactions=fields.get("buy_transactions"),
@@ -78,8 +78,8 @@ class Transaction(Model):
         return cls(
             id=data["id"],
             row_id=fields.get("row_id"),
-            seller_id=fields.get("seller_id"),
-            buyer_id=fields.get("buyer_id"),
+            seller_id=fields.get("seller_id")[0],
+            buyer_id=fields.get("buyer_id")[0],
             wine=fields.get("wine"),
             price=fields.get("price"),
             sale_approved=fields.get("sale_approved"),
@@ -161,7 +161,7 @@ class BotMessage(Model):
             bot_message_id=fields.get("bot_message_id"),
             channel_id=fields.get("channel_id"),
             guild_id=fields.get("guild_id"),
-            transaction_id=fields.get("transaction_id"),
+            transaction_id=fields.get("transaction_id")[0],
             message_creation_date=fields.get("message_creation_date"),
             bot_id=fields.get("bot_id"),
         )
