@@ -46,14 +46,14 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
         )
 
     @client.tree.command(
-        guild=client.guild, name="log_sale", description="List a transaction"
+        guild=client.guild, name="new_sale", description="Create a new transaction"
     )
     @app_commands.describe(
         wine_name="The wine you're selling.",
         buyer="The name of the user you're selling to.",
         price="The price of the wine",
     )
-    async def log_sale(
+    async def new_sale(
         interaction: discord.Interaction,
         wine_name: str,
         buyer: discord.Member,
