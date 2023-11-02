@@ -139,15 +139,10 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
             # We have to call a different command to get the message we just posted
             bot_message = await interaction.original_response()
 
-            # Update record to include the guild, channel and message ID
-            transaction_record.bot_message_id = str(bot_message.id)
-            transaction_record.channel_id = str(bot_message.channel.id)
-            transaction_record.guild_id = str(bot_message.guild.id)
-            transaction_fields = ["bot_message_id", "channel_id", "guild_id"]
-
-            await storage.save_transaction(
-                transaction=transaction_record, fields=transaction_fields
+            await storage.record_bot_message(
+                message=bot_message, transaction=transaction_record
             )
+
         except discord.HTTPException as error:
             log.error(f"An error occured sending the message: {error}")
         except discord.ClientException as error:

@@ -1,13 +1,15 @@
 """The various models used by ledger-bot."""
 
 import asyncio
+import datetime
 import logging
 from dataclasses import dataclass
 from typing import Awaitable, Callable, Literal, Optional, Union
 
+import discord
 from aiohttp import ClientSession
 from discord import Member as DiscordMember
-from models import AirTableError, Member, Transaction
+from models import AirTableError, BotMessage, Member, Transaction
 
 log = logging.getLogger(__name__)
 
@@ -51,8 +53,10 @@ class AirtableStorage:
         The id of ledger-bot
     users_url : str
         The endpoint for the users table
-    wines_url :
+    wines_url : str
         The endpoint for the wines table
+    bot_messages_url : str
+        The endpoint for the bot_messages table
     auth_header :
         The authentication header
 
@@ -79,6 +83,9 @@ class AirtableStorage:
         self.bot_id = bot_id
         self.members_url = f"https://api.airtable.com/v0/{airtable_base}/members"
         self.wines_url = f"https://api.airtable.com/v0/{airtable_base}/wines"
+        self.bot_messages_url = (
+            f"https://api.airtable.com/v0/{airtable_base}/bot_messages"
+        )
         self.auth_header = {"Authorization": f"Bearer {self.airtable_key}"}
         self._semaphore = asyncio.Semaphore(5)
 
@@ -394,3 +401,38 @@ class AirtableStorage:
         else:
             log.info("Adding transaction to Airtable")
             return await self.insert_transaction(transaction_data["fields"])
+
+    async def _insert_bot_message(
+        self, record: dict, session: Optional[ClientSession] = None
+    ) -> dict:
+        return await self._insert(self.bot_messages_url, record, session)
+
+    async def record_bot_message(
+        self,
+        message: Union[discord.Message, discord.interactions.InteractionMessage],
+        transaction: Transaction,
+    ):
+        """Create a record in bot_messages for a given bot_message.
+
+        Paramaters
+        ----------
+        message : Union[discord.Message, discord.interactions.InteractionMessage]
+            The message to store
+        transaction : Transaction
+            The transaction the message is referencing
+
+        Returns
+        -------
+        dict
+            A dictionary containing the inserted record
+        """
+        data = {
+            "bot_message_id": str(message.id),
+            "channel_id": str(message.channel.id),
+            "guild_id": str(message.guild.id),
+            "transaction_id": [transaction.id],
+            "message_creation_date": datetime.datetime.utcnow().isoformat(),
+            "bot_id": self.bot_id or "",
+        }
+        log.info(f"Storing bot_message: {data}")
+        return await self._insert_bot_message(record=data)
