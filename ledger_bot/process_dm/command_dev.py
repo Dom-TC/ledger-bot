@@ -23,7 +23,7 @@ async def command_dev(
     log.info(f"Processing dev mode request ({request}) from {message.author.name}")
 
     if request.startswith("add_reaction"):
-        message_id = request.split(" ")[1]
+        message_id = int(request.split(" ")[1])
         reaction = request.split(" ")[2]
 
         await add_reaction(client, message_id, reaction)

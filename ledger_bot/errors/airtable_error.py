@@ -9,9 +9,7 @@ log = logging.getLogger(__name__)
 
 
 class AirTableError(Exception):
-    def __init__(
-        self, url: URL, response_dict: Union[dict, str], *args: object
-    ) -> None:
+    def __init__(self, url: URL, response_dict: dict, *args: object) -> None:
         error_dict: dict = response_dict["error"]
         self.url = url
         if type(error_dict) is dict:

@@ -18,7 +18,7 @@ def generate_transaction_status_message(
     is_approved: Optional[bool] = False,
     is_buyer_paid: Optional[bool] = False,
     is_seller_paid: Optional[bool] = False,
-    is_buyer_delivered: Optional[list] = False,
+    is_buyer_delivered: Optional[bool] = False,
     is_seller_delivered: Optional[bool] = False,
     is_cancelled: Optional[bool] = False,
 ):
