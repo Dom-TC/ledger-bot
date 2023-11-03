@@ -10,7 +10,8 @@ import discord
 from aiohttp import ClientSession
 from discord import Member as DiscordMember
 
-from .models import AirTableError, BotMessage, Member, Transaction
+from .errors import AirTableError
+from .models import BotMessage, Member, Transaction
 
 log = logging.getLogger(__name__)
 

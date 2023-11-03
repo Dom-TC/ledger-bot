@@ -6,9 +6,10 @@ import logging
 import discord
 from discord import app_commands
 
+from .errors import AirTableError
 from .LedgerBot import LedgerBot
 from .message_generator import generate_transaction_status_message
-from .models import AirTableError, Transaction
+from .models import Transaction
 from .storage import AirtableStorage
 
 log = logging.getLogger(__name__)
