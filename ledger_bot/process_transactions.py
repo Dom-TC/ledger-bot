@@ -20,6 +20,7 @@ async def _send_message(
     config: dict,
 ):
     """Helper to send messages after updating transactions."""
+    log.info("Attempting to send message")
     try:
         sent_message = await channel.send(response_contents)
         await storage.record_bot_message(
@@ -206,7 +207,7 @@ async def mark_transaction_paid(
         is_buyer_paid=target_transaction.buyer_marked_paid,
         is_seller_paid=target_transaction.seller_marked_paid,
         is_buyer_delivered=target_transaction.buyer_marked_delivered,
-        is_sellerdeliveredd=target_transaction.seller_marked_delivered,
+        is_seller_delivered=target_transaction.seller_marked_delivered,
     )
 
     await _send_message(
@@ -301,7 +302,7 @@ async def mark_transaction_delivered(
         is_buyer_paid=target_transaction.buyer_marked_paid,
         is_seller_paid=target_transaction.seller_marked_paid,
         is_buyer_delivered=target_transaction.buyer_marked_delivered,
-        is_sellerdeliveredd=target_transaction.seller_marked_delivered,
+        is_seller_delivered=target_transaction.seller_marked_delivered,
     )
 
     await _send_message(
