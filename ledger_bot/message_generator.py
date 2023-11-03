@@ -90,7 +90,7 @@ def generate_transaction_status_message(
     elif is_approved is False:
         paid_decleration = f"Paid:           {config['emojis']['status_unconfirmed']}"
     else:
-        paid_decleration = f"Paid:           {config['emojis']['status_unconfirmed']}, to mark this as paid, please react with {config['emojis']['paid']}"
+        paid_decleration = f"Paid:           {config['emojis']['status_unconfirmed']} to mark this as paid, please react with {config['emojis']['paid']}"
 
     if is_marked_delivered_by_buyer and is_marked_delivered_by_seller:
         # Both confirmed delivered
@@ -104,7 +104,7 @@ def generate_transaction_status_message(
     elif is_approved is False:
         delivered_decleration = f"Delivered: {config['emojis']['status_unconfirmed']}"
     else:
-        delivered_decleration = f"Delivered: {config['emojis']['status_unconfirmed']}, to mark this as delivered, please react with {config['emojis']['delivered']}"
+        delivered_decleration = f"Delivered: {config['emojis']['status_unconfirmed']} to mark this as delivered, please react with {config['emojis']['delivered']}"
 
     # Build message_contents from components
     message_contents = (
