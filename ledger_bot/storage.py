@@ -4,7 +4,7 @@ import asyncio
 import datetime
 import logging
 from dataclasses import dataclass
-from typing import Awaitable, Callable, Literal, Optional, Union
+from typing import Awaitable, Callable, List, Literal, Optional, Union
 
 import discord
 from aiohttp import ClientSession
@@ -158,7 +158,7 @@ class AirtableStorage:
     async def _delete(
         self,
         base_url: str,
-        records_to_delete: [str],
+        records_to_delete: List[str],
         session: Optional[ClientSession] = None,
     ):
         async def run_delete(session_to_use: ClientSession):

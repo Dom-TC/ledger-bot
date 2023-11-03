@@ -41,7 +41,7 @@ async def _send_message(
             await old_message.delete()
             previous_message_id = old_message.id
             previous_bot_message_record = await storage.find_bot_message_by_message_id(
-                previous_message_id
+                str(previous_message_id)
             )
             previous_bot_message_record_id = previous_bot_message_record["id"]
             await storage.delete_bot_message(previous_bot_message_record_id)
