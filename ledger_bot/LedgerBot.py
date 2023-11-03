@@ -5,10 +5,12 @@ import logging
 
 import discord
 from discord import app_commands
-from message_generator import generate_transaction_status_message
-from models import AirTableError
 from process_dm import is_dm, process_dm
-from process_transactions import approve_transaction
+from process_transactions import (
+    approve_transaction,
+    mark_transaction_delivered,
+    mark_transaction_paid,
+)
 
 log = logging.getLogger(__name__)
 
@@ -142,7 +144,25 @@ class LedgerBot(discord.Client):
 
         if payload.emoji.name == self.config["emojis"]["approval"]:
             # Approval
+            log.info(
+                f"Processing approval reaction from {reactor.name} on message {payload.message_id}"
+            )
             await approve_transaction(
+                reactor=reactor,
+                buyer=buyer,
+                seller=seller,
+                payload=payload,
+                channel=channel,
+                target_transaction=target_transaction,
+                config=self.config,
+                storage=self.storage,
+            )
+        elif payload.emoji.name == self.config["emojis"]["paid"]:
+            # Paid
+            log.info(
+                f"Processing payment reaction from {reactor.name} on message {payload.message_id}"
+            )
+            await mark_transaction_paid(
                 reactor=reactor,
                 buyer=buyer,
                 seller=seller,
