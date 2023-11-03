@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING, Union
 
 import discord
 from discord import Message
-from reactions import add_reaction
+
+from .reactions import add_reaction
 
 if TYPE_CHECKING:
     from LedgerBot import LedgerBot

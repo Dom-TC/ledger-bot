@@ -9,7 +9,8 @@ from typing import Awaitable, Callable, Literal, Optional, Union
 import discord
 from aiohttp import ClientSession
 from discord import Member as DiscordMember
-from models import AirTableError, BotMessage, Member, Transaction
+
+from .models import AirTableError, BotMessage, Member, Transaction
 
 log = logging.getLogger(__name__)
 
