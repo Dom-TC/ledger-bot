@@ -1,10 +1,14 @@
 """The LedgerBot class is the actual implimentation of the Discord bot.  Extends discord.Client."""
 
+import datetime
 import logging
 
 import discord
 from discord import app_commands
+from message_generator import generate_transaction_status_message
+from models import AirTableError
 from process_dm import is_dm, process_dm
+from process_transactions import approve_transaction
 
 log = logging.getLogger(__name__)
 
@@ -75,6 +79,79 @@ class LedgerBot(discord.Client):
         if message.content == "add_member":
             log.debug(f"Adding member: {message.author}")
             await self.storage.get_or_add_member(message.author)
+
+    async def on_raw_reaction_add(self, payload):
+        # Check if valid reaction emoji
+        if payload.emoji.name not in [
+            self.config["emojis"]["approval"],
+            self.config["emojis"]["paid"],
+            self.config["emojis"]["delivered"],
+        ]:
+            return
+
+        channel = self.get_channel(payload.channel_id)
+        reactor = payload.member
+
+        # Check if in valid channel
+        if (
+            self.config["channels"].get("include")
+            and channel.name not in self.config["channels"]["include"]
+        ):
+            log.info(
+                f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Channel not included"
+            )
+            return
+        else:
+            if channel.name in self.config["channels"].get("exclude", []):
+                log.info(
+                    f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Channel excluded"
+                )
+                return
+
+        # Check if valid message
+        target_transaction = await self.storage.find_transaction_by_bot_message_id(
+            payload.message_id
+        )
+        if target_transaction is None:
+            log.info(
+                f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Invalid target message"
+            )
+            return
+
+        # Get buyer & seller discord.Member objects
+        buyer_id = await self.storage.get_member_from_record_id(
+            target_transaction.buyer_id
+        )
+        buyer = await self.fetch_user(buyer_id.discord_id)
+        seller_id = await self.storage.get_member_from_record_id(
+            target_transaction.seller_id
+        )
+        seller = await self.fetch_user(seller_id.discord_id)
+
+        # Check if buyer or seller
+        if reactor.id != buyer.id and reactor.id != seller.id:
+            log.info(
+                f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Reactor is neither buyer nor seller"
+            )
+            return
+
+        # Process reaction
+        log.info(
+            f"Processing {payload.emoji.name} from {reactor.name} on message {payload.message_id}"
+        )
+
+        if payload.emoji.name == self.config["emojis"]["approval"]:
+            # Approval
+            await approve_transaction(
+                reactor=reactor,
+                buyer=buyer,
+                seller=seller,
+                payload=payload,
+                channel=channel,
+                target_transaction=target_transaction,
+                config=self.config,
+                storage=self.storage,
+            )
 
     async def on_disconnect(self):
         log.warning("Bot disconnected")

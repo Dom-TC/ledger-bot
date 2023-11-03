@@ -1,13 +1,15 @@
 """The various models used by ledger-bot."""
 
 import asyncio
+import datetime
 import logging
 from dataclasses import dataclass
 from typing import Awaitable, Callable, Literal, Optional, Union
 
+import discord
 from aiohttp import ClientSession
 from discord import Member as DiscordMember
-from models import AirTableError, Member, Transaction
+from models import AirTableError, BotMessage, Member, Transaction
 
 log = logging.getLogger(__name__)
 
@@ -51,8 +53,10 @@ class AirtableStorage:
         The id of ledger-bot
     users_url : str
         The endpoint for the users table
-    wines_url :
+    wines_url : str
         The endpoint for the wines table
+    bot_messages_url : str
+        The endpoint for the bot_messages table
     auth_header :
         The authentication header
 
@@ -79,6 +83,9 @@ class AirtableStorage:
         self.bot_id = bot_id
         self.members_url = f"https://api.airtable.com/v0/{airtable_base}/members"
         self.wines_url = f"https://api.airtable.com/v0/{airtable_base}/wines"
+        self.bot_messages_url = (
+            f"https://api.airtable.com/v0/{airtable_base}/bot_messages"
+        )
         self.auth_header = {"Authorization": f"Bearer {self.airtable_key}"}
         self._semaphore = asyncio.Semaphore(5)
 
@@ -184,7 +191,6 @@ class AirtableStorage:
     ):
         async def run_insert(session_to_use: ClientSession):
             data = {"fields": record}
-            log.debug(f"Payload:  {data}")
             async with session_to_use.request(
                 method,
                 url,
@@ -209,7 +215,6 @@ class AirtableStorage:
     async def _update(
         self, url: str, record: dict, session: Optional[ClientSession] = None
     ):
-        log.debug(f"Update URL: {url}")
         return await self._modify(url, "patch", record, session)
 
     async def _list_members(
@@ -300,6 +305,12 @@ class AirtableStorage:
             )
         return Member.from_airtable(member_record)
 
+    async def get_member_from_record_id(self, record_id: int) -> Member:
+        """Returns the member object for the member with a given AirTable record id."""
+        log.info(f"Finding member with record {record_id}")
+        member_record = await self._retrieve_member(record_id)
+        return Member.from_airtable(member_record)
+
     async def insert_transaction(
         self, record: dict, session: Optional[ClientSession] = None
     ) -> dict:
@@ -342,8 +353,6 @@ class AirtableStorage:
             The ClientSession to use
 
         """
-        log.debug(f"update_transaction record_id: {record_id}")
-        log.debug(f"update_transaction transaction_record {transaction_record}")
         return await self._update(
             self.wines_url + "/" + record_id, transaction_record, session
         )
@@ -378,12 +387,13 @@ class AirtableStorage:
             "paid_date",
             "delivered_date",
             "cancelled_date",
-            "sale_message_id",
+            "guild_id",
+            "channel_id",
             "bot_message_id",
         ]
 
         # Always store bot_id
-        setattr(transaction, "bot_id", self.bot_id or "")
+        transaction.bot_id = self.bot_id or ""
         if "bot_id" not in fields:
             fields.append("bot_id")
 
@@ -397,3 +407,84 @@ class AirtableStorage:
         else:
             log.info("Adding transaction to Airtable")
             return await self.insert_transaction(transaction_data["fields"])
+
+    async def _insert_bot_message(
+        self, record: dict, session: Optional[ClientSession] = None
+    ) -> dict:
+        return await self._insert(self.bot_messages_url, record, session)
+
+    async def record_bot_message(
+        self,
+        message: Union[discord.Message, discord.interactions.InteractionMessage],
+        transaction: Transaction,
+    ):
+        """Create a record in bot_messages for a given bot_message.
+
+        Paramaters
+        ----------
+        message : Union[discord.Message, discord.interactions.InteractionMessage]
+            The message to store
+        transaction : Transaction
+            The transaction the message is referencing
+
+        Returns
+        -------
+        dict
+            A dictionary containing the inserted record
+        """
+        data = {
+            "bot_message_id": str(message.id),
+            "channel_id": str(message.channel.id),
+            "guild_id": str(message.guild.id),
+            "transaction_id": [transaction.id],
+            "message_creation_date": datetime.datetime.utcnow().isoformat(),
+            "bot_id": self.bot_id or "",
+        }
+        log.info(f"Storing bot_message: {data}")
+        return await self._insert_bot_message(record=data)
+
+    async def _list_bot_messages(
+        self, filter_by_formula: str, session: Optional[ClientSession] = None
+    ):
+        return await self._list(self.bot_messages_url, filter_by_formula, session)
+
+    async def find_bot_message_by_message_id(
+        self, bot_message_id: str, session: Optional[ClientSession] = None
+    ):
+        log.debug(f"Finding bot_message with id {bot_message_id}")
+        bot_messages = await self._list_bot_messages(
+            filter_by_formula="{{bot_message_id}}={value}".format(value=bot_message_id),
+            session=session,
+        )
+        return bot_messages[0] if bot_messages else None
+
+    async def _list_transactions(
+        self, filter_by_formula: str, session: Optional[ClientSession] = None
+    ):
+        return await self._list(self.wines_url, filter_by_formula, session)
+
+    async def _retrieve_transaction(
+        self, transaction_id: str, session: Optional[ClientSession] = None
+    ):
+        log.debug(f"Retrieving transaction with id {transaction_id}")
+        return await self._get(f"{self.wines_url}/{transaction_id}", session=session)
+
+    async def find_transaction_by_bot_message_id(self, message_id: str) -> Transaction:
+        """Takes a message and returns any associated Transactions, else returns None."""
+        log.info(f"Searching for transactions relating to bot message {message_id}")
+        bot_message_record = await self.find_bot_message_by_message_id(message_id)
+        if bot_message_record is None:
+            log.info("No matching records found")
+            return None
+        else:
+            bot_message = BotMessage.from_airtable(bot_message_record)
+            transaction_record = await self._retrieve_transaction(
+                bot_message.transaction_id
+            )
+            return Transaction.from_airtable(transaction_record) or None
+
+    async def delete_bot_message(self, record_id: str, session: ClientSession = None):
+        """Delete the specified bot_message record."""
+        records_to_delete = [record_id]
+        log.info(f"Deleting records {records_to_delete}")
+        await self._delete(self.bot_messages_url, records_to_delete, session)

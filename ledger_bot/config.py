@@ -17,6 +17,7 @@ def parse(config):
     """
     defaults = {
         "id": None,
+        "name": "Ledger-Bot",
         "authentication": {
             "discord": "",
             "airtable_key": "",
@@ -40,6 +41,7 @@ def parse(config):
         },
         "guild": None,
         "watching_status": "for empty glasses",
+        "delete_previous_bot_messages": True,
         "maintainer_ids": [],
     }
 

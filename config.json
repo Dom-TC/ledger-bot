@@ -1,4 +1,5 @@
 {
+  "name": "TrackerBot",
   "authentication": {
     "discord": "",
     "airtable_key": "",
