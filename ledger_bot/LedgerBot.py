@@ -172,6 +172,21 @@ class LedgerBot(discord.Client):
                 config=self.config,
                 storage=self.storage,
             )
+        elif payload.emoji.name == self.config["emojis"]["delivered"]:
+            # Delivered
+            log.info(
+                f"Processing delivered reaction from {reactor.name} on message {payload.message_id}"
+            )
+            await mark_transaction_delivered(
+                reactor=reactor,
+                buyer=buyer,
+                seller=seller,
+                payload=payload,
+                channel=channel,
+                target_transaction=target_transaction,
+                config=self.config,
+                storage=self.storage,
+            )
 
     async def on_disconnect(self):
         log.warning("Bot disconnected")
