@@ -4,9 +4,10 @@ import datetime
 import logging
 
 import discord
-from message_generator import generate_transaction_status_message
-from models import AirTableError, Transaction
-from storage import AirtableStorage
+
+from .message_generator import generate_transaction_status_message
+from .models import AirTableError, Transaction
+from .storage import AirtableStorage
 
 log = logging.getLogger(__name__)
 

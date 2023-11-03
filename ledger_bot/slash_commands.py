@@ -5,10 +5,11 @@ import logging
 
 import discord
 from discord import app_commands
-from LedgerBot import LedgerBot
-from message_generator import generate_transaction_status_message
-from models import AirTableError, Transaction
-from storage import AirtableStorage
+
+from .LedgerBot import LedgerBot
+from .message_generator import generate_transaction_status_message
+from .models import AirTableError, Transaction
+from .storage import AirtableStorage
 
 log = logging.getLogger(__name__)
 
