@@ -7,7 +7,7 @@ import discord
 
 from ledger_bot.errors import AirTableError
 from ledger_bot.LedgerBot import LedgerBot
-from ledger_bot.message_generator import generate_transaction_status_message
+from ledger_bot.message_generators import generate_transaction_status_message
 from ledger_bot.models import Transaction
 from ledger_bot.storage import AirtableStorage
 
