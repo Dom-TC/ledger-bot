@@ -11,6 +11,7 @@ packages = [{include = "ledger_bot"}]
 python = "^3.11"
 discord-py = "^2.3.2"
 python-dotenv = "^1.0.0"
+apscheduler = "^3.10.4"
 
 
 [tool.poetry.group.dev.dependencies]
