@@ -4,10 +4,13 @@ Ledger_bot is a Discord bot that allows users to track sales.
 
 """
 
+import asyncio
 import json
 import logging
 import logging.config
 import os
+
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from .config import parse
 from .LedgerBot import LedgerBot
@@ -17,8 +20,14 @@ from .storage import AirtableStorage
 log = logging.getLogger(__name__)
 
 
-def run():
+async def _run_bot(client: LedgerBot, config: dict):
     """Run ledger-bot."""
+    async with client:
+        await client.start(config["authentication"]["discord"])
+
+
+def start_bot():
+    """Start ledger-bot."""
     # Get configs
     try:
         config_path = os.getenv("BOT_CONFIG", "config.json")
@@ -39,11 +48,16 @@ def run():
         config["id"],
     )
 
+    # Create scheduler
+    scheduler = AsyncIOScheduler(timezone="utc")
+
     # Create client
-    client = LedgerBot(config, storage)
+    client = LedgerBot(config=config, storage=storage, scheduler=scheduler)
 
     # Build slash commands
     setup_slash(client, config, storage)
 
     # Run bot
-    client.run(config["authentication"]["discord"], log_handler=None)
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(_run_bot(client=client, config=config))
+    loop.close()
