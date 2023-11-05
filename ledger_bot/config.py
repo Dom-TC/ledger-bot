@@ -42,7 +42,12 @@ def parse(config):
         "guild": None,
         "watching_status": "for empty glasses",
         "delete_previous_bot_messages": True,
-        "maintainer_ids": [],
+        "maintainer_ids": [
+            760972696284299294,  # Dom_TC
+            699641132497371162,  # .henry_1
+            963548418385543188,  # OllyDS
+            881831177311387689,  # chilloutbar
+        ],
     }
 
     # Update defaults from config file

@@ -60,12 +60,22 @@ def generate_transaction_status_message(
     """
     log.info("Generating transaction status message...")
 
+    if is_update and is_cancelled:
+        # Cancel transaction
+        title_line = "*Sale Cancelled*"
+    elif (
+        is_update
+        and is_approved
+        and is_buyer_paid
+        and is_seller_paid
+        and is_buyer_delivered
+        and is_seller_delivered
+    ):
+        # Sale completed
+        title_line = "*Sale Completed*"
     if is_update:
         # Updated transaction
         title_line = "*Sale Updated*"
-    elif is_update and is_cancelled:
-        # Cancel transaction
-        title_line = "*Sale Cancelled*"
     else:
         # New transaction
         title_line = "*New Sale Listed*"
