@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Union
 
 import discord
 from discord import Message
+from reactions import add_reaction
 
 if TYPE_CHECKING:
     from LedgerBot import LedgerBot
@@ -84,3 +85,15 @@ async def process_dm(client: "LedgerBot", message: Message):
             response = f"{response} ({bot_id})"
         await dm_channel.send(response)
         return
+    elif (
+        message_content.startswith("!dev")
+        and message.author.id in client.config["maintainer_ids"]
+    ):
+        request = message_content.removeprefix("!dev ")
+        log.info(f"Processing dev mode request ({request}) from {message.author.name}")
+
+        if request.startswith("add_reaction"):
+            message_id = request.split(" ")[1]
+            reaction = request.split(" ")[2]
+
+            await add_reaction(client, message_id, reaction)
