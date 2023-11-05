@@ -1,16 +1,17 @@
 """The LedgerBot class is the actual implimentation of the Discord bot.  Extends discord.Client."""
 
-import datetime
 import logging
 
 import discord
 from discord import app_commands
-from process_dm import is_dm, process_dm
-from process_transactions import (
+
+from .process_dm import is_dm, process_dm
+from .process_transactions import (
     approve_transaction,
     mark_transaction_delivered,
     mark_transaction_paid,
 )
+from .processs_message import process_message
 
 log = logging.getLogger(__name__)
 
@@ -78,9 +79,8 @@ class LedgerBot(discord.Client):
             if channel_name in self.config["channels"].get("exclude", []):
                 return
 
-        if message.content == "add_member":
-            log.debug(f"Adding member: {message.author}")
-            await self.storage.get_or_add_member(message.author)
+        # Process messages
+        await process_message(self, message)
 
     async def on_raw_reaction_add(self, payload):
         # Check if valid reaction emoji
