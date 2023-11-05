@@ -92,10 +92,10 @@ async def mark_transaction_delivered(
         config=config,
         is_update=True,
         is_approved=target_transaction.sale_approved,
-        is_buyer_paid=target_transaction.buyer_marked_paid,
-        is_seller_paid=target_transaction.seller_marked_paid,
-        is_buyer_delivered=target_transaction.buyer_marked_delivered,
-        is_seller_delivered=target_transaction.seller_marked_delivered,
+        is_marked_paid_by_buyer=target_transaction.buyer_marked_paid,
+        is_marked_paid_by_seller=target_transaction.seller_marked_paid,
+        is_marked_delivered_by_buyer=target_transaction.buyer_marked_delivered,
+        is_marked_delivered_by_seller=target_transaction.seller_marked_delivered,
     )
 
     await _send_message(

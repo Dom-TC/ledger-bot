@@ -16,10 +16,10 @@ def generate_transaction_status_message(
     config: dict,
     is_update: Optional[bool] = False,
     is_approved: Optional[bool] = False,
-    is_buyer_paid: Optional[bool] = False,
-    is_seller_paid: Optional[bool] = False,
-    is_buyer_delivered: Optional[bool] = False,
-    is_seller_delivered: Optional[bool] = False,
+    is_marked_paid_by_buyer: Optional[bool] = False,
+    is_marked_paid_by_seller: Optional[bool] = False,
+    is_marked_delivered_by_buyer: Optional[bool] = False,
+    is_marked_delivered_by_seller: Optional[bool] = False,
     is_cancelled: Optional[bool] = False,
 ):
     """
@@ -41,14 +41,14 @@ def generate_transaction_status_message(
         Is this an update of an existing transaction?  If not, presume new transaction
     is_approved : bool, optional
         Has this transaction been confirmed by the buyer
-    is_buyer_paid : bool, optional
+    is_marked_paid_by_buyer : bool, optional
         Has the buyer marked the transaction as paid
-    is_seller_paid : bool, optional
-        Has the buyer marked the transaction as paid
-    is_buyer_delivered : bool, optional
+    is_marked_paid_by_seller : bool, optional
+        Has the seller marked the transaction as paid
+    is_marked_delivered_by_buyer : bool, optional
         Has the buyer marked the transaction as delivered
-    is_seller_delivered : bool, optional
-        Has the buyer marked the transaction as delivered
+    is_marked_delivered_by_seller : bool, optional
+        Has the seller marked the transaction as delivered
     is_cancelled : bool, optional
         Has the seller marked this transaction as cancelled?
 
@@ -66,10 +66,10 @@ def generate_transaction_status_message(
     elif (
         is_update
         and is_approved
-        and is_buyer_paid
-        and is_seller_paid
-        and is_buyer_delivered
-        and is_seller_delivered
+        and is_marked_paid_by_buyer
+        and is_marked_paid_by_seller
+        and is_marked_delivered_by_buyer
+        and is_marked_delivered_by_seller
     ):
         # Sale completed
         title_line = "*Sale Completed*"
@@ -88,13 +88,13 @@ def generate_transaction_status_message(
     else:
         approved_decleration = f"Approved: {config['emojis']['status_unconfirmed']} {buyer.mention} please approve this sale by reacting with {config['emojis']['approval']}"
 
-    if is_buyer_paid and is_seller_paid:
+    if is_marked_paid_by_buyer and is_marked_paid_by_seller:
         # Both confirmed paid
         paid_decleration = f"Paid:           {config['emojis']['status_confirmed']}"
-    elif is_buyer_paid:
+    elif is_marked_paid_by_buyer:
         # Buyer confirmed paid
         paid_decleration = f"Paid:           {config['emojis']['status_part_confirmed']} {seller.mention} please confirm this transaction has been paid by reacting with {config['emojis']['paid']}"
-    elif is_seller_paid:
+    elif is_marked_paid_by_seller:
         # Seller confirmed paid
         paid_decleration = f"Paid:           {config['emojis']['status_part_confirmed']} {buyer.mention} please confirm this transaction has been paid by reacting with {config['emojis']['paid']}"
     elif is_approved is False:
@@ -102,13 +102,13 @@ def generate_transaction_status_message(
     else:
         paid_decleration = f"Paid:           {config['emojis']['status_unconfirmed']} to mark this as paid, please react with {config['emojis']['paid']}"
 
-    if is_buyer_delivered and is_seller_delivered:
+    if is_marked_delivered_by_buyer and is_marked_delivered_by_seller:
         # Both confirmed delivered
         delivered_decleration = f"Delivered: {config['emojis']['status_confirmed']}"
-    elif is_buyer_delivered:
+    elif is_marked_delivered_by_buyer:
         # Buyer confirmed delivered
         delivered_decleration = f"Delivered: {config['emojis']['status_part_confirmed']} {seller.mention} please confirm this transaction has been delivered by reacting with {config['emojis']['delivered']}"
-    elif is_seller_delivered:
+    elif is_marked_delivered_by_seller:
         # Seller confirmed delivered
         delivered_decleration = f"Delivered: {config['emojis']['status_part_confirmed']} {buyer.mention} please confirm this transaction has been delivered by reacting with {config['emojis']['delivered']}"
     elif is_approved is False:
