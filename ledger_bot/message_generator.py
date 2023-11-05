@@ -18,7 +18,7 @@ def generate_transaction_status_message(
     is_approved: Optional[bool] = False,
     is_marked_paid_by_buyer: Optional[bool] = False,
     is_marked_paid_by_seller: Optional[bool] = False,
-    is_marked_delivered_by_buyer: Optional[list] = False,
+    is_marked_delivered_by_buyer: Optional[bool] = False,
     is_marked_delivered_by_seller: Optional[bool] = False,
     is_cancelled: Optional[bool] = False,
 ):
@@ -66,10 +66,10 @@ def generate_transaction_status_message(
     elif (
         is_update
         and is_approved
-        and is_buyer_paid
-        and is_seller_paid
-        and is_buyer_delivered
-        and is_seller_delivered
+        and is_marked_paid_by_buyer
+        and is_marked_paid_by_seller
+        and is_marked_delivered_by_buyer
+        and is_marked_delivered_by_seller
     ):
         # Sale completed
         title_line = "*Sale Completed*"

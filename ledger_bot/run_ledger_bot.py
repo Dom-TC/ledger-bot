@@ -1,6 +1,5 @@
 """run_ledger_bot.
 
-This is the entry point for ledger_bot.
 Ledger_bot is a Discord bot that allows users to track sales.
 
 """
@@ -10,56 +9,41 @@ import logging
 import logging.config
 import os
 
-from dotenv import load_dotenv
-from LedgerBot import LedgerBot
-from slash_commands import setup_slash
-from storage import AirtableStorage
+from .config import parse
+from .LedgerBot import LedgerBot
+from .slash_commands import setup_slash
+from .storage import AirtableStorage
 
-# Load environment variables from .env
-load_dotenv()
-
-# Configure logging
-logging.config.fileConfig(fname="log.conf", disable_existing_loggers=False)
-logging.getLogger("discord").setLevel(logging.CRITICAL)
-logging.getLogger("discord.gateway").setLevel(logging.INFO)
-logging.getLogger("asyncio").setLevel(logging.CRITICAL)
-logging.getLogger("urllib").setLevel(logging.CRITICAL)
-if os.getenv("LOG_TO_FILE") == "false":
-    logging.info("LOG_TO_FILE is false, removing FileHandlers")
-    file_handlers = (
-        handler
-        for handler in logging.root.handlers
-        if isinstance(handler, logging.FileHandler)
-    )
-    for handler in file_handlers:
-        logging.root.removeHandler(handler)
 log = logging.getLogger(__name__)
 
-# Get configs
-try:
-    config_path = os.getenv("BOT_CONFIG", "config.json")
-    log.debug(f"Config path: {config_path}")
-    config_to_parse = {}
-    if os.path.isfile(config_path):
-        with open(config_path, mode="r") as config_file:
-            config_to_parse = json.load(config_file)
-    config = parse(config_to_parse)
-except (OSError, ValueError) as err:
-    log.error(f"Config file invalid: {err}")
-    exit(1)
 
-# Create storage
-storage = AirtableStorage(
-    config["authentication"]["airtable_base"],
-    config["authentication"]["airtable_key"],
-    config["id"],
-)
+def run():
+    """Run ledger-bot."""
+    # Get configs
+    try:
+        config_path = os.getenv("BOT_CONFIG", "config.json")
+        log.debug(f"Config path: {config_path}")
+        config_to_parse = {}
+        if os.path.isfile(config_path):
+            with open(config_path, mode="r") as config_file:
+                config_to_parse = json.load(config_file)
+        config = parse(config_to_parse)
+    except (OSError, ValueError) as err:
+        log.error(f"Config file invalid: {err}")
+        exit(1)
 
-# Create client
-client = LedgerBot(config, storage)
+    # Create storage
+    storage = AirtableStorage(
+        config["authentication"]["airtable_base"],
+        config["authentication"]["airtable_key"],
+        config["id"],
+    )
 
-# Build slash commands
-slash = setup_slash(client, config, storage)
+    # Create client
+    client = LedgerBot(config, storage)
 
-# Run bot
-client.run(config["authentication"]["discord"], log_handler=None)
+    # Build slash commands
+    setup_slash(client, config, storage)
+
+    # Run bot
+    client.run(config["authentication"]["discord"], log_handler=None)
