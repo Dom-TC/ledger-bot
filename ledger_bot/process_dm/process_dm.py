@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from discord import Message
 
 from .command_dev import command_dev
+from .command_help import command_help
 from .command_version import command_version
 from .get_dm_channel import get_dm_channel
 
@@ -53,3 +54,6 @@ async def process_dm(client: "LedgerBot", message: Message):
         log.info("Recognised command: !dev")
         await command_dev(client=client, message=message, dm_channel=dm_channel)
         return
+    elif message_content == "!help":
+        log.info("Recognised command: !help")
+        await command_help(client=client, message=message, dm_channel=dm_channel)
