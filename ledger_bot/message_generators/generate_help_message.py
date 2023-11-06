@@ -92,6 +92,12 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
                 "description": "Returns this message",
                 "requires_dev": False,
             },
+            {
+                "command": "!dev get_jobs",
+                "args": [],
+                "description": "Returns a list of the currently scheduled jobs",
+                "requires_dev": True,
+            },
         ],
     }
 
