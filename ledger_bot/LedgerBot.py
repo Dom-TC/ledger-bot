@@ -3,6 +3,8 @@
 import logging
 
 import discord
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 from discord import app_commands
 
 from .process_dm import is_dm, process_dm
@@ -12,6 +14,8 @@ from .process_transactions import (
     mark_transaction_paid,
 )
 from .processs_message import process_message
+from .scheduled_commands import cleanup
+from .storage import AirtableStorage
 
 log = logging.getLogger(__name__)
 
@@ -31,12 +35,18 @@ class LedgerBot(discord.Client):
     guild : discord.Object
         The Discord Server the bot is running in
 
+    scheduler : apscheduler.schedulers.asyncio.AsyncIOScheduler
+        The scheduler object
+
     """
 
-    def __init__(self, config: dict, storage):
+    def __init__(
+        self, config: dict, storage: AirtableStorage, scheduler: AsyncIOScheduler
+    ):
         self.config = config
         self.storage = storage
         self.guild = discord.Object(id=self.config["guild"])
+        self.scheduler = scheduler
 
         log.info(f"Set guild: {self.config['guild']}")
         log.info(f"Watching channels: {self.config['channels']}")
@@ -44,6 +54,22 @@ class LedgerBot(discord.Client):
         intents = discord.Intents(
             messages=True, guilds=True, reactions=True, message_content=True
         )
+
+        log.info("Scheduling jobs...")
+        scheduler.add_job(
+            func=cleanup,
+            kwargs={"client": self, "storage": self.storage},
+            trigger="cron",
+            hour=config["run_cleanup_time"]["hour"],
+            minute=config["run_cleanup_time"]["minute"],
+            second=config["run_cleanup_time"]["second"],
+            timezone="UTC",
+        )
+
+        scheduler.start()
+
+        if not scheduler.running:
+            log.warning("The scheduler is not running")
 
         super().__init__(intents=intents)
 
