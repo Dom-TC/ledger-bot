@@ -528,3 +528,12 @@ class AirtableStorage:
     ):
         log.debug(f"Finding bot_message with record {record_id}")
         return await self._get(f"{self.bot_messages_url}/{record_id}", session=session)
+
+    async def get_users_transaction(self, user_id: str) -> Optional[List[Transaction]]:
+        filter_formula = f"OR(IF({{seller_discord_id}}={user_id},TRUE(),FALSE()),IF({{buyer_discord_id}}={user_id},TRUE(),FALSE()))"
+
+        transactions = await self._list_transactions(filter_formula)
+        if len(transactions) == 0:
+            return None
+        else:
+            return transactions

@@ -7,6 +7,7 @@ from discord import Message
 
 from .command_dev import command_dev
 from .command_help import command_help
+from .command_list import command_list
 from .command_version import command_version
 from .get_dm_channel import get_dm_channel
 
@@ -47,6 +48,9 @@ async def process_dm(client: "LedgerBot", message: Message):
         log.info("Recognised command: !version")
         await command_version(client=client, message=message, dm_channel=dm_channel)
         return
+    elif message_content == "!list":
+        log.info("Recognised command: !list")
+        await command_list(client=client, message=message, dm_channel=dm_channel)
     elif (
         message_content.startswith("!dev")
         and message.author.id in client.config["maintainer_ids"]
