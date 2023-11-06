@@ -11,6 +11,7 @@ from ledger_bot.storage import AirtableStorage
 from .command_add_user import command_add_user
 from .command_hello import command_hello
 from .command_help import command_help
+from .command_list import command_list
 from .command_new_sale import command_new_sale
 
 log = logging.getLogger(__name__)
@@ -78,5 +79,14 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
     async def slash_help(interaction: discord.Interaction):
         """Gets help information."""
         await command_help(
+            client=client, config=config, storage=storage, interaction=interaction
+        )
+
+    @client.tree.command(
+        guild=client.guild, name="list", description="List your transactions"
+    )
+    async def slash_list(interaction: discord.Interaction):
+        """Returns a list of the users transactions."""
+        await command_list(
             client=client, config=config, storage=storage, interaction=interaction
         )
