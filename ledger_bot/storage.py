@@ -490,3 +490,41 @@ class AirtableStorage:
         records_to_delete = [record_id]
         log.info(f"Deleting records {records_to_delete}")
         await self._delete(self.bot_messages_url, records_to_delete, session)
+
+    async def delete_transaction(self, record_id: str, session: ClientSession = None):
+        """Delete the specified bot_message record."""
+        records_to_delete = [record_id]
+        log.info(f"Deleting records {records_to_delete}")
+        await self._delete(self.wines_url, records_to_delete, session)
+
+    async def get_completed_transactions(
+        self, hours_completed: int = 0
+    ) -> Optional[List[Transaction]]:
+        """
+        Get a list of transactions that are completed.
+
+        A transaction is considered completed when sale_approved, buyer_marked_delivered, seller_marked_delivered, buyer_marked_paid, and seller_marked_paid are all true.
+
+        Parameters
+        ----------
+        hours_completed : int, optional
+            The minumum number of hours ago a transaction must have been completed for it to be included, by default 0
+
+        Returns
+        -------
+        Optional[List[Transaction]]
+            A list of Transactions, or None.
+        """
+        filter_formula = f"AND({{sale_approved}},{{buyer_marked_delivered}},{{buyer_marked_paid}},{{seller_marked_delivered}},{{seller_marked_paid}},IF(DATETIME_DIFF(TODAY(),{{delivered_date}},'hours')>{hours_completed},TRUE(),FALSE()),IF(DATETIME_DIFF(TODAY(),{{paid_date}},'hours')>{hours_completed},TRUE(),FALSE()))"
+
+        transactions = await self._list_transactions(filter_formula)
+        if len(transactions) == 0:
+            return None
+        else:
+            return transactions
+
+    async def find_bot_message_by_record_id(
+        self, record_id: str, session: Optional[ClientSession] = None
+    ):
+        log.debug(f"Finding bot_message with record {record_id}")
+        return await self._get(f"{self.bot_messages_url}/{record_id}", session=session)

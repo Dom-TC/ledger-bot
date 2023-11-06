@@ -2,6 +2,7 @@
 
 import logging
 
+from .bot_message import BotMessage
 from .member import Member
 from .model import Model
 
@@ -27,9 +28,7 @@ class Transaction(Model):
         "paid_date",
         "delivered_date",
         "cancelled_date",
-        "guild_id",
-        "channel_id",
-        "bot_message_id",
+        "bot_messages",
         "bot_id",
     ]
 
@@ -54,9 +53,7 @@ class Transaction(Model):
             paid_date=fields.get("paid_date"),
             delivered_date=fields.get("delivered_date"),
             cancelled_date=fields.get("cancelled_date"),
-            guild_id=fields.get("guild_id"),
-            channel_id=fields.get("channel_id"),
-            bot_message_id=fields.get("bot_message_id"),
+            bot_messages=fields.get("bot_messages"),
             bot_id=fields.get("bot_id"),
         )
 
@@ -75,6 +72,13 @@ class Transaction(Model):
                 self.buyer_id.id if isinstance(self.buyer_id, Member) else self.buyer_id
             ]
 
+        if "bot_messages" in fields:
+            data["bot_messages"] = [
+                self.bot_messages.id
+                if isinstance(self.buyer_id, BotMessage)
+                else self.bot_messages
+            ]
+
         # For any attribute which is just assigned, without alteration we can list it here and iterate through the list
         # ie. anywhere we would do `data[attr] = self.attr`
         standard_conversions = [
@@ -91,9 +95,6 @@ class Transaction(Model):
             "paid_date",
             "delivered_date",
             "cancelled_date",
-            "guild_id",
-            "channel_id",
-            "bot_message_id",
             "bot_id",
         ]
         for attr in standard_conversions:

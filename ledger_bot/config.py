@@ -5,6 +5,7 @@ module to process configs, defaults defined in the function, overwritten by prov
 
 import logging
 import os
+from datetime import datetime
 
 log = logging.getLogger(__name__)
 
@@ -48,6 +49,13 @@ def parse(config):
             963548418385543188,  # OllyDS
             881831177311387689,  # chilloutbar
         ],
+        "cleanup_delay_hours": 24,  # How many hours must have passed between a transaction being completed and it being cleaned
+        "run_cleanup_time": {
+            "hour": 1,
+            "minute": "0",
+            "second": "0",
+        },
+        "cleanup_removes_transaction_records": False,
     }
 
     # Update defaults from config file

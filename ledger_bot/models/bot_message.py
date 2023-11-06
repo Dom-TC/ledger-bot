@@ -24,9 +24,9 @@ class BotMessage(Model):
         return cls(
             id=data["id"],
             row_id=fields.get("row_id"),
-            bot_message_id=fields.get("bot_message_id"),
-            channel_id=fields.get("channel_id"),
-            guild_id=fields.get("guild_id"),
+            bot_message_id=int(fields.get("bot_message_id")),
+            channel_id=int(fields.get("channel_id")),
+            guild_id=int(fields.get("guild_id")),
             transaction_id=fields.get("transaction_id")[0],
             message_creation_date=fields.get("message_creation_date"),
             bot_id=fields.get("bot_id"),
