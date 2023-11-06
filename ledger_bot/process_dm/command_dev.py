@@ -27,3 +27,15 @@ async def command_dev(
         reaction = request.split(" ")[2]
 
         await add_reaction(client, message_id, reaction)
+
+    if request.startswith("get_jobs"):
+        jobs = client.scheduler.get_jobs()
+
+        if len(jobs) == 0:
+            result = "There are no jobs currently configured."
+        else:
+            result = "The following jobs are currently configured: \n"
+            for job in jobs:
+                result += f"- {job.id}: {job.name} - {job.trigger} {job.next_run_time}"
+
+        await dm_channel.send(result)
