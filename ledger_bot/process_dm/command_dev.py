@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 import discord
 
 from ledger_bot.reactions import add_reaction
+from ledger_bot.scheduled_commands import cleanup
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
@@ -28,7 +29,7 @@ async def command_dev(
 
         await add_reaction(client, message_id, reaction)
 
-    if request.startswith("get_jobs"):
+    elif request.startswith("get_jobs"):
         jobs = client.scheduler.get_jobs()
 
         if len(jobs) == 0:
@@ -39,3 +40,7 @@ async def command_dev(
                 result += f"- {job.id}: {job.name} - {job.trigger} {job.next_run_time}"
 
         await dm_channel.send(result)
+
+    elif request.startswith("clean"):
+        await dm_channel.send("Cleaning records")
+        await cleanup(client=client, storage=client.storage)

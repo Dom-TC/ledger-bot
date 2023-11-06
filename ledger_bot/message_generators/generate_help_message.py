@@ -98,6 +98,12 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
                 "description": "Returns a list of the currently scheduled jobs",
                 "requires_dev": True,
             },
+            {
+                "command": "!dev clean",
+                "args": [],
+                "description": f"Cleans completed transactions older than {config['cleanup_delay_hours']}",
+                "requires_dev": True,
+            },
         ],
     }
 
