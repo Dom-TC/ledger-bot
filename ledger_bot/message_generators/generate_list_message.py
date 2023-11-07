@@ -32,6 +32,7 @@ async def _build_transaction_lists(
     - other_party
     - last_message_link
     """
+    log.debug(f"Building transaction lists with {transactions}")
     transaction_lists = {
         "buying": {
             "awaiting_approval": [],
@@ -170,6 +171,7 @@ async def _build_transaction_lists(
                         ),
                     }
                 )
+    log.debug(f"Returning transaction_lists as {transaction_lists}")
     return transaction_lists
 
 
@@ -202,8 +204,10 @@ async def generate_list_message(
     if len(transactions) == 0:
         contents = "You don't have any open transactions."
     else:
-        transaction_lists = _build_transaction_lists(transactions, user_id)
-
+        log.debug("List has transactions")
+        transaction_lists = await _build_transaction_lists(
+            transactions=transactions, user_id=user_id, storage=storage
+        )
         # Produce Output
         has_purchases = False
         has_sales = False
