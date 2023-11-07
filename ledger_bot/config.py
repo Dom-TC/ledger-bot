@@ -78,7 +78,6 @@ def parse(config):
     if bot_id := os.getenv("BOT_ID"):
         defaults["id"] = bot_id
 
-    defaults["maintainer_ids"] = set(defaults["maintainer_ids"])
     log.info(f"Maintainer IDs: {defaults['maintainer_ids']}")
 
     return defaults
