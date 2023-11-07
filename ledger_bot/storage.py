@@ -303,7 +303,7 @@ class AirtableStorage:
             }
             member_record = await self.insert_member(data)
             log.debug(
-                f"Added {member_record['fields']['username']} ({member_record['fields']['id']}) to AirTable"
+                f"Added {member_record['fields']['username']} ({member_record['fields']['discord_id']}) to AirTable"
             )
         return Member.from_airtable(member_record)
 
