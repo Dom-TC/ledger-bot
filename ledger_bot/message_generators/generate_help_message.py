@@ -72,6 +72,12 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
                 "description": "Returns this message",
                 "requires_dev": False,
             },
+            {
+                "command": "/list",
+                "args": [],
+                "description": "Returns a list of your transactions",
+                "requires_dev": False,
+            },
         ],
         "DM Commands": [
             {
@@ -103,6 +109,12 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
                 "args": [],
                 "description": f"Cleans completed transactions older than {config['cleanup_delay_hours']}",
                 "requires_dev": True,
+            },
+            {
+                "command": "!list",
+                "args": [],
+                "description": "Returns a list of your transactions",
+                "requires_dev": False,
             },
         ],
     }
