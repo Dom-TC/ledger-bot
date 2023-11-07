@@ -8,9 +8,5 @@
   "channels": {
     "exclude": ["general"]
   },
-  "guild": 1161957958587007047,
-  "run_cleanup_time": {
-    "hour": "*",
-    "minute": "*"
-  }
+  "guild": 1161957958587007047
 }
