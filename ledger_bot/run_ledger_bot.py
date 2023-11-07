@@ -12,6 +12,7 @@ import os
 from asyncio.events import AbstractEventLoop
 from functools import partial
 from signal import SIGINT, SIGTERM, Signals
+from sys import platform
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -74,7 +75,10 @@ def start_bot():
     # Handle keyboard interrupts
     for signal_enum in [SIGINT, SIGTERM]:
         exit_func = partial(_stop_bot, signal_enum=signal_enum, loop=loop)
-        loop.add_signal_handler(signal_enum, exit_func)
+
+        # add_signal_hander() only works on UNIX platforms.  Therefore check if not windows before adding it.
+        if platform != "win32" and platform != "cygwin":
+            loop.add_signal_handler(signal_enum, exit_func)
 
     try:
         loop.run_until_complete(_run_bot(client=client, config=config))
