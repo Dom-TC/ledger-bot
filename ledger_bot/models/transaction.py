@@ -41,7 +41,7 @@ class Transaction(Model):
             seller_id=fields.get("seller_id")[0],
             buyer_id=fields.get("buyer_id")[0],
             wine=fields.get("wine"),
-            price=fields.get("price"),
+            price="{:.2f}".format(fields.get("price")),
             sale_approved=fields.get("sale_approved"),
             buyer_marked_delivered=fields.get("buyer_marked_delivered"),
             seller_marked_delivered=fields.get("seller_marked_delivered"),
