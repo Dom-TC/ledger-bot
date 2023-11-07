@@ -73,6 +73,10 @@ async def command_new_sale(
         creation_date=datetime.datetime.utcnow().isoformat(),
     )
 
+    # Format price to 2dp
+    price = float("{:.2f}".format(price))
+    log.debug(f"{price=}, {type(price)}")
+
     transaction_fields = [
         "seller_id",
         "buyer_id",
