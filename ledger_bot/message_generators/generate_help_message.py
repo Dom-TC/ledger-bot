@@ -75,7 +75,7 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
             {
                 "command": "/list",
                 "args": [],
-                "description": "Returns a list of your open transactions",
+                "description": "Returns a list of your transactions",
                 "requires_dev": False,
             },
         ],
@@ -113,7 +113,7 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
             {
                 "command": "!list",
                 "args": [],
-                "description": "Returns a list of your open transactions",
+                "description": "Returns a list of your transactions",
                 "requires_dev": False,
             },
         ],

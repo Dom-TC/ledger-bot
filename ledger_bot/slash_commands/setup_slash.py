@@ -87,6 +87,7 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
     )
     async def slash_list(interaction: discord.Interaction):
         """Returns a list of the users transactions."""
+        log.info(f"Recognised command: /list from {interaction.user.name}")
         await command_list(
             client=client, config=config, storage=storage, interaction=interaction
         )
