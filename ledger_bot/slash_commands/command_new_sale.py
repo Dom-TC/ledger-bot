@@ -48,6 +48,22 @@ async def command_new_sale(
         )
         return
 
+    # If user isn't a maintainer, they shouldn't be able to sell to either ledger-bot, or themselves.
+    if interaction.user.id not in client.config["maintainer_ids"]:
+        if buyer.id == interaction.user.id:
+            log.info(f"Rejecting sale to self from {interaction.user.name}")
+            await interaction.response.send_message(
+                content="You can't sell a wine to yourself!", ephemeral=True
+            )
+            return
+
+        if buyer.id == client.user.id:
+            log.info(f"Rejecting sale to ledger-bot from {interaction.user.name}")
+            await interaction.response.send_message(
+                content=f"You can't sell a wine to {config['name']}!", ephemeral=True
+            )
+            return
+
     # Discord Interactions need to be responded to in <3s or they time out.  We take longer, so defer the interaction.
     # We can't dynamically choose whether the response will be ephemeral or not, so this has to be after the above channel checks, or they can't be emphemeral.
     await interaction.response.defer()
