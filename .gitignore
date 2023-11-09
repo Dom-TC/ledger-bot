@@ -161,3 +161,7 @@ cython_debug/
 
 # Rolled log files
 log.*
+
+
+# Ignore file that previously contained token
+discord/bot.py
