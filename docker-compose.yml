@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  your-service:
+    image: ghcr.io/your_github_username/your_repository:latest
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+    ports:
+      - "8080:80"
+    volumes:
+      - ledger-bot:/etc/ledger-bot
+
+volumes:
+  ledger-bot:
