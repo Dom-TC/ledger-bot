@@ -165,3 +165,6 @@ log.*
 
 # Ignore file that previously contained token
 discord/bot.py
+
+# Ignore local config file
+config.json
