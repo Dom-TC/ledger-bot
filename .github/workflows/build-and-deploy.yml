@@ -76,4 +76,4 @@ jobs:
             export BOT_VERSION=${{ env.RELEASE_VERSION }}
             docker compose -f /opt/ledger-bot/docker-compose.yml down
             docker compose -f /opt/ledger-bot/docker-compose.yml pull
-            docker compose -f //opt/ledger-bot/docker-compose.yml up -d
+            docker compose -f /opt/ledger-bot/docker-compose.yml up -d
