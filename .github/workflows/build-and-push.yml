@@ -13,12 +13,6 @@ env:
   SERVER_USER: ledger-bot
   SERVER_HOST: ${{ vars.SERVER_IP }}
   SERVER_PORT: 22
-  # LOG_TO_FILE: ${{ vars.LOG_TO_FILE }}
-  # BOT_CONFIG: ${{ vars.BOT_CONFIG }}
-  # BOT_DISCORD_TOKEN: ${{ secrets.BOT_DISCORD_TOKEN }}
-  # BOT_AIRTABLE_KEY: ${{ secrets.BOT_AIRTABLE_KEY }}
-  # BOT_AIRTABLE_BASE: ${{ secrets.BOT_AIRTABLE_BASE }}
-  # BOT_ID: ${{ vars.BOT_ID }}
 
 jobs:
   build-and-push:
@@ -74,10 +68,12 @@ jobs:
           script: |
             export LOG_TO_FILE=${{ vars.LOG_TO_FILE }}
             export BOT_CONFIG=${{ vars.BOT_CONFIG }}
+            export DISCORD_TOKEN=${{ secrets.BOT_DISCORD_TOKEN }}
             export BOT_DISCORD_TOKEN=${{ secrets.BOT_DISCORD_TOKEN }}
             export BOT_AIRTABLE_KEY=${{ secrets.BOT_AIRTABLE_KEY }}
             export BOT_AIRTABLE_BASE=${{ secrets.BOT_AIRTABLE_BASE }}
             export BOT_ID=${{ vars.BOT_ID }}
+            export BOT_VERSION=${{ env.RELEASE_VERSION }}
             docker compose -f /opt/ledger-bot/docker-compose.yml down
             docker compose -f /opt/ledger-bot/docker-compose.yml pull
             docker compose -f //opt/ledger-bot/docker-compose.yml up -d
