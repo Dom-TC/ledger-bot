@@ -2,7 +2,7 @@ version: "3"
 
 services:
   your-service:
-    image: ghcr.io/dom-tc/ledgerbot:latest
+    image: ghcr.io/dom-tc/ledger-bot:latest
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
       - LOG_TO_FILE=${LOG_TO_FILE}

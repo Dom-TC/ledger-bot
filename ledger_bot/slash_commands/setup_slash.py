@@ -42,13 +42,6 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
             client=client, config=config, storage=storage, interaction=interaction
         )
 
-    @client.tree.command(guild=client.guild)
-    async def add_user(interaction: discord.Interaction):
-        """Add user to Airtable."""
-        await command_add_user(
-            client=client, config=config, storage=storage, interaction=interaction
-        )
-
     @client.tree.command(
         guild=client.guild, name="new_sale", description="Create a new transaction"
     )
