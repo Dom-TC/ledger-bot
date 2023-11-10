@@ -1,4 +1,4 @@
-name: Build and Push
+name: Build, Push and Deploy
 
 on:
   push:
@@ -10,6 +10,15 @@ on:
 
 env:
   IMAGE_NAME: ledger-bot
+  SERVER_USER: ledger-bot
+  SERVER_HOST: ${{ vars.SERVER_IP }}
+  SERVER_PORT: 22
+  LOG_TO_FILE: ${{ vars.LOG_TO_FILE }}
+  BOT_CONFIG: ${{ vars.BOT_CONFIG }}
+  BOT_DISCORD_TOKEN: ${{ secrets.BOT_DISCORD_TOKEN }}
+  BOT_AIRTABLE_KEY: ${{ secrets.BOT_AIRTABLE_KEY }}
+  BOT_AIRTABLE_BASE: ${{ secrets.BOT_AIRTABLE_BASE }}
+  BOT_ID: ${{ vars.BOT_ID }}
 
 jobs:
   build-and-push:
@@ -27,7 +36,11 @@ jobs:
         run: docker build --build-arg bot_version=${{ env.RELEASE_VERSION }} . --file Dockerfile --tag $IMAGE_NAME
 
       - name: Log into registry
-        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Push image
         run: |
@@ -50,3 +63,15 @@ jobs:
 
           docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.SERVER_HOST }}
+          username: ${{ env.SERVER_USER }}
+          key: ${{ secrets.LEDGER_BOT_DEPLOY_KEY }}
+          port: ${{ env.SERVER_PORT }}
+          script: |
+            docker-compose -f /opt/ledger-bot/docker-compose.yml down
+            docker-compose -f /opt/ledger-bot/docker-compose.yml pull
+            docker-compose -f //opt/ledger-bot/docker-compose.yml up -d
