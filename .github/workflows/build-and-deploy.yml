@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
     tags:
       - v*
   workflow_dispatch:
@@ -66,14 +67,33 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ env.SERVER_PORT }}
           script: |
-            export LOG_TO_FILE=${{ vars.LOG_TO_FILE }}
-            export BOT_CONFIG=${{ vars.BOT_CONFIG }}
-            export DISCORD_TOKEN=${{ secrets.BOT_DISCORD_TOKEN }}
-            export BOT_DISCORD_TOKEN=${{ secrets.BOT_DISCORD_TOKEN }}
-            export BOT_AIRTABLE_KEY=${{ secrets.BOT_AIRTABLE_KEY }}
-            export BOT_AIRTABLE_BASE=${{ secrets.BOT_AIRTABLE_BASE }}
-            export BOT_ID=${{ vars.BOT_ID }}
-            export BOT_VERSION=${{ env.RELEASE_VERSION }}
-            docker compose -f /opt/ledger-bot/docker-compose.yml down
-            docker compose -f /opt/ledger-bot/docker-compose.yml pull
-            docker compose -f /opt/ledger-bot/docker-compose.yml up -d
+            # Set destination on server depending on whether we're on the main or dev branch.
+            if [ "${{ github.ref }}" = "refs/heads/dev" ]; then
+              DEPLOY_PATH="/opt/dev-ledger-bot"
+            else
+              DEPLOY_PATH="/opt/ledger-bot"
+            fi
+
+            # Set environment variables
+            echo "LOG_TO_FILE=${{ vars.LOG_TO_FILE }}" > $DEPLOY_PATH/env_file
+            echo "BOT_CONFIG=${{ vars.BOT_CONFIG }}" >> $DEPLOY_PATH/env_file
+            echo "BOT_AIRTABLE_KEY=${{ secrets.BOT_AIRTABLE_KEY }}" >> $DEPLOY_PATH/env_file
+            echo "BOT_VERSION=${{ env.RELEASE_VERSION }}" >> $DEPLOY_PATH/env_file
+
+            # Set deployment specific between dev vs prod
+            if [ "${{ github.ref }}" = "refs/heads/dev" ]; then
+              echo "DISCORD_TOKEN=${{ secrets.DEV_BOT_DISCORD_TOKEN }}" >> $DEPLOY_PATH/env_file
+              echo "BOT_DISCORD_TOKEN=${{ secrets.DEV_BOT_DISCORD_TOKEN }}" >> $DEPLOY_PATH/env_file
+              echo "BOT_AIRTABLE_BASE=${{ secrets.DEV_BOT_AIRTABLE_BASE }}" >> $DEPLOY_PATH/env_file
+              echo "BOT_ID=${{ vars.DEV_BOT_ID }}" >> $DEPLOY_PATH/env_file
+            else
+              echo "DISCORD_TOKEN=${{ secrets.BOT_DISCORD_TOKEN }}" >> $DEPLOY_PATH/env_file
+              echo "BOT_DISCORD_TOKEN=${{ secrets.BOT_DISCORD_TOKEN }}" >> $DEPLOY_PATH/env_file
+              echo "BOT_AIRTABLE_BASE=${{ secrets.BOT_AIRTABLE_BASE }}" >> $DEPLOY_PATH/env_file
+              echo "BOT_ID=${{ vars.BOT_ID }}" >> $DEPLOY_PATH/env_file
+            fi
+
+            # Rebuild container
+            docker compose -f $DEPLOY_PATH/docker-compose.yml down
+            docker compose -f $DEPLOY_PATH/docker-compose.yml pull
+            docker compose -f $DEPLOY_PATH/docker-compose.yml up -d
