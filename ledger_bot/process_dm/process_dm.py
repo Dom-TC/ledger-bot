@@ -61,3 +61,5 @@ async def process_dm(client: "LedgerBot", message: Message):
     elif message_content == "!help":
         log.info("Recognised command: !help")
         await command_help(client=client, message=message, dm_channel=dm_channel)
+    else:
+        message = "I'm afraid I don't recommend that command.  Please use `!help` for a list of what I can do."
