@@ -61,12 +61,6 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
                 "requires_dev": False,
             },
             {
-                "command": "/add_user",
-                "args": [],
-                "description": "Adds you to the table",
-                "requires_dev": False,
-            },
-            {
                 "command": "/help",
                 "args": [],
                 "description": "Returns this message",
@@ -131,7 +125,7 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
     )
 
     prefix = f"{config['name']} allows you to track in-progress sales to other users.\nCreate a new transaction with `/new_sale`. To update a transactions status, react to the message from {config['name']}."
-    suffix = f"{config['name']} was built by {maintainers}."
+    suffix = f"{config['name']} was built by {maintainers} and is hosted by <https://snailedit.dev/>."
 
     body = ""
     for section in sections:

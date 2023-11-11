@@ -1,17 +1,10 @@
 version: "3"
 
 services:
-  your-service:
+  ledger-bot:
     image: ghcr.io/dom-tc/ledger-bot:latest
-    environment:
-      - DISCORD_TOKEN=${DISCORD_TOKEN}
-      - LOG_TO_FILE=${LOG_TO_FILE}
-      - BOT_CONFIG=${BOT_CONFIG}
-      - BOT_DISCORD_TOKEN=${BOT_DISCORD_TOKEN}
-      - BOT_AIRTABLE_KEY=${BOT_AIRTABLE_KEY}
-      - BOT_AIRTABLE_BASE=${BOT_AIRTABLE_BASE}
-      - BOT_ID=${BOT_ID}
-      - BOT_VERSION=${BOT_VERSION}
+    env_file:
+      - env_file
     ports:
       - "8080:80"
     volumes:

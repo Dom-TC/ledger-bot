@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
     tags:
       - v*
   workflow_dispatch:
@@ -30,7 +31,7 @@ jobs:
         run: docker build --build-arg bot_version=${{ env.RELEASE_VERSION }} . --file Dockerfile --tag $IMAGE_NAME
 
       - name: Log into registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -58,7 +59,16 @@ jobs:
           docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
 
-      - name: Deploy to server
+  deploy-main:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to main
         uses: appleboy/ssh-action@master
         with:
           host: ${{ env.SERVER_HOST }}
@@ -66,14 +76,61 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ env.SERVER_PORT }}
           script: |
-            export LOG_TO_FILE=${{ vars.LOG_TO_FILE }}
-            export BOT_CONFIG=${{ vars.BOT_CONFIG }}
-            export DISCORD_TOKEN=${{ secrets.BOT_DISCORD_TOKEN }}
-            export BOT_DISCORD_TOKEN=${{ secrets.BOT_DISCORD_TOKEN }}
-            export BOT_AIRTABLE_KEY=${{ secrets.BOT_AIRTABLE_KEY }}
-            export BOT_AIRTABLE_BASE=${{ secrets.BOT_AIRTABLE_BASE }}
-            export BOT_ID=${{ vars.BOT_ID }}
-            export BOT_VERSION=${{ env.RELEASE_VERSION }}
+            # Set environment variables
+            echo "LOG_TO_FILE=${{ vars.LOG_TO_FILE }}" > /opt/ledger-bot/env_file
+            echo "LOG_FOLDER_PATH=${{ vars.LOG_FOLDER_PATH }}" > /opt/ledger-bot/env_file
+            echo "BOT_CONFIG=${{ vars.BOT_CONFIG }}" >> /opt/ledger-bot/env_file
+            echo "BOT_AIRTABLE_KEY=${{ secrets.BOT_AIRTABLE_KEY }}" >> /opt/ledger-bot/env_file
+            echo "BOT_VERSION=${{ env.RELEASE_VERSION }}" >> /opt/ledger-bot/env_file
+            echo "DISCORD_TOKEN=${{ secrets.BOT_DISCORD_TOKEN }}" >> /opt/ledger-bot/env_file
+            echo "BOT_DISCORD_TOKEN=${{ secrets.BOT_DISCORD_TOKEN }}" >> /opt/ledger-bot/env_file
+            echo "BOT_AIRTABLE_BASE=${{ secrets.BOT_AIRTABLE_BASE }}" >> /opt/ledger-bot/env_file
+            echo "BOT_ID=${{ vars.BOT_ID }}" >> /opt/ledger-bot/env_file
+
+            # Create log folder, if needed
+            log_path="/opt/ledger-bot/ledger-bot$(echo "${{ vars.LOG_FOLDER_PATH }}" | sed 's#/etc/ledger-bot##')"
+            echo log_path=$log_path
+            mkdir -p $log_path
+
+            # Rebuild container
             docker compose -f /opt/ledger-bot/docker-compose.yml down
             docker compose -f /opt/ledger-bot/docker-compose.yml pull
-            docker compose -f //opt/ledger-bot/docker-compose.yml up -d
+            docker compose -f /opt/ledger-bot/docker-compose.yml up -d
+
+  deploy-dev:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to dev
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.SERVER_HOST }}
+          username: ${{ env.SERVER_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ env.SERVER_PORT }}
+          script: |
+            # Set environment variables
+            echo "LOG_TO_FILE=${{ vars.LOG_TO_FILE }}" > /opt/dev-ledger-bot/env_file
+            echo "LOG_FOLDER_PATH=${{ vars.LOG_FOLDER_PATH }}" > /opt/dev-ledger-bot/env_file
+            echo "BOT_CONFIG=${{ vars.BOT_CONFIG }}" >> /opt/dev-ledger-bot/env_file
+            echo "BOT_AIRTABLE_KEY=${{ secrets.DEV_BOT_AIRTABLE_KEY }}" >> /opt/dev-ledger-bot/env_file
+            echo "BOT_VERSION=${{ env.RELEASE_VERSION }}" >> /opt/dev-ledger-bot/env_file
+            echo "DISCORD_TOKEN=${{ secrets.DEV_BOT_DISCORD_TOKEN }}" >> /opt/dev-ledger-bot/env_file
+            echo "BOT_DISCORD_TOKEN=${{ secrets.DEV_BOT_DISCORD_TOKEN }}" >> /opt/dev-ledger-bot/env_file
+            echo "BOT_AIRTABLE_BASE=${{ secrets.DEV_BOT_AIRTABLE_BASE }}" >> /opt/dev-ledger-bot/env_file
+            echo "BOT_ID=${{ vars.DEV_BOT_ID }}" >> /opt/dev-ledger-bot/env_file
+
+            # Create log folder, if needed
+            log_path="/opt/dev-ledger-bot/ledger-bot$(echo "${{ vars.LOG_FOLDER_PATH }}" | sed 's#/etc/ledger-bot##')"
+            echo log_path=$log_path
+            mkdir -p $log_path
+
+            # Rebuild container
+            docker compose -f /opt/dev-ledger-bot/docker-compose.yml down
+            docker compose -f /opt/dev-ledger-bot/docker-compose.yml pull
+            docker compose -f /opt/dev-ledger-bot/docker-compose.yml up -d
