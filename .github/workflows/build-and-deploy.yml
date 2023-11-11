@@ -87,6 +87,9 @@ jobs:
             echo "BOT_AIRTABLE_BASE=${{ secrets.BOT_AIRTABLE_BASE }}" >> /opt/ledger-bot/env_file
             echo "BOT_ID=${{ vars.BOT_ID }}" >> /opt/ledger-bot/env_file
 
+            # Create log folder, if needed
+            mkdir -p ${{ vars.LOG_FOLDER_PATH }}
+
             # Rebuild container
             docker compose -f /opt/ledger-bot/docker-compose.yml down
             docker compose -f /opt/ledger-bot/docker-compose.yml pull
