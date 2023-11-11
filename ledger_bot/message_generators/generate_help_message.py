@@ -61,12 +61,6 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
                 "requires_dev": False,
             },
             {
-                "command": "/add_user",
-                "args": [],
-                "description": "Adds you to the table",
-                "requires_dev": False,
-            },
-            {
                 "command": "/help",
                 "args": [],
                 "description": "Returns this message",
