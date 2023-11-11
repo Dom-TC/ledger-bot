@@ -13,7 +13,7 @@ from ._send_message import _send_message
 log = logging.getLogger(__name__)
 
 
-async def approve_transaction(
+async def cancel_transaction(
     reactor: discord.Member,
     buyer: discord.Member,
     seller: discord.Member,
@@ -24,7 +24,7 @@ async def approve_transaction(
     storage: AirtableStorage,
 ):
     """
-    Approve the specified transaction.
+    Cancel the specified transaction.
 
     Paramaters
     ----------
@@ -41,31 +41,18 @@ async def approve_transaction(
     target_transaction : Transaction
         The transaction being processed
     config : dict
-        The config dictionary
-
+        The config dictionar
     """
-    if target_transaction.cancelled:
-        log.info(
-            f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Transaction cancelled"
-        )
-        return
-
-    if reactor.id != buyer.id:
-        log.info(
-            f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Reactor is not the buyer"
-        )
-        return
-
     if target_transaction.sale_approved:
         log.info(
             f"Ignoring approval on transaction {target_transaction.row_id}. Transaction already approved"
         )
         return
 
-    target_transaction.sale_approved = True
-    target_transaction.approved_date = datetime.datetime.utcnow().isoformat()
-    transaction_fields = ["sale_approved", "approved_date"]
-    log.debug(f"target_transaction: {target_transaction}")
+    target_transaction.cancelled = True
+    target_transaction.cancelled_date = datetime.datetime.utcnow().isoformat()
+    transaction_fields = ["cancelled", "cancelled_date"]
+
     await storage.save_transaction(
         transaction=target_transaction, fields=transaction_fields
     )
@@ -77,7 +64,7 @@ async def approve_transaction(
         wine_price=target_transaction.price,
         config=config,
         is_update=True,
-        is_approved=True,
+        is_cancelled=True,
     )
 
     await _send_message(
