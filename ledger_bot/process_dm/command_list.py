@@ -32,4 +32,5 @@ async def command_list(
         transactions=transactions, user_id=message.author.id, storage=client.storage
     )
 
-    await dm_channel.send(response)
+    for message in response:
+        await dm_channel.send(message)

@@ -50,4 +50,5 @@ async def command_list(
         transactions=transactions, user_id=interaction.user.id, storage=client.storage
     )
 
-    await interaction.followup.send(response, ephemeral=True)
+    for message in response:
+        await interaction.followup.send(message, ephemeral=True)
