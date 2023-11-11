@@ -1,5 +1,7 @@
 """Helper functions for generating messages to be sent."""
 
+# flake8: noqa
+
 import logging
 from typing import Optional
 
@@ -73,7 +75,7 @@ def generate_transaction_status_message(
     ):
         # Sale completed
         title_line = "*Sale Completed*"
-    if is_update:
+    elif is_update:
         # Updated transaction
         title_line = "*Sale Updated*"
     else:
@@ -85,6 +87,8 @@ def generate_transaction_status_message(
 
     if is_approved:
         approved_decleration = f"Approved: {config['emojis']['status_confirmed']}"
+    elif is_cancelled:
+        approved_decleration = f"Approved: {config['emojis']['status_cancelled']}"
     else:
         approved_decleration = f"Approved: {config['emojis']['status_unconfirmed']} {buyer.mention} please approve this sale by reacting with {config['emojis']['approval']}"
 
@@ -97,6 +101,8 @@ def generate_transaction_status_message(
     elif is_marked_paid_by_seller:
         # Seller confirmed paid
         paid_decleration = f"Paid:           {config['emojis']['status_part_confirmed']} {buyer.mention} please confirm this transaction has been paid by reacting with {config['emojis']['paid']}"
+    elif is_cancelled:
+        paid_decleration = f"Paid:           {config['emojis']['status_cancelled']}"
     elif is_approved is False:
         paid_decleration = f"Paid:           {config['emojis']['status_unconfirmed']}"
     else:
@@ -111,10 +117,17 @@ def generate_transaction_status_message(
     elif is_marked_delivered_by_seller:
         # Seller confirmed delivered
         delivered_decleration = f"Delivered: {config['emojis']['status_part_confirmed']} {buyer.mention} please confirm this transaction has been delivered by reacting with {config['emojis']['delivered']}"
+    elif is_cancelled:
+        delivered_decleration = f"Delivered: {config['emojis']['status_cancelled']}"
     elif is_approved is False:
         delivered_decleration = f"Delivered: {config['emojis']['status_unconfirmed']}"
     else:
         delivered_decleration = f"Delivered: {config['emojis']['status_unconfirmed']} to mark this as delivered, please react with {config['emojis']['delivered']}"
+
+    if is_approved is False and is_cancelled is False:
+        cancel_message = f"\n\n*To cancel this transaction, please react with {config['emojis']['cancel']}*"
+    else:
+        cancel_message = ""
 
     # Build message_contents from components
     message_contents = (
@@ -129,6 +142,7 @@ def generate_transaction_status_message(
         + paid_decleration
         + "\n"
         + delivered_decleration
+        + cancel_message
     )
 
     return message_contents

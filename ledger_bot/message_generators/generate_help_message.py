@@ -37,6 +37,11 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
                 "requires_dev": False,
             },
             {
+                "reaction": config["emojis"]["cancel"],
+                "description": "Cancel a transaction.",
+                "requires_dev": False,
+            },
+            {
                 "reaction": config["emojis"]["paid"],
                 "description": "Mark a transaction as paid.",
                 "requires_dev": False,

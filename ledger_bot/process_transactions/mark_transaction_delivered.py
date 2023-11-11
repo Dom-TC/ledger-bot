@@ -44,6 +44,12 @@ async def mark_transaction_delivered(
         The config dictionary
 
     """
+    if target_transaction.cancelled:
+        log.info(
+            f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Transaction cancelled"
+        )
+        return
+
     if reactor.id == buyer.id:
         is_buyer = True
         log.info("Processing buyer marked as delivered")

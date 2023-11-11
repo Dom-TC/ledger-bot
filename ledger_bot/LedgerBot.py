@@ -10,6 +10,7 @@ from discord import app_commands
 from .process_dm import is_dm, process_dm
 from .process_transactions import (
     approve_transaction,
+    cancel_transaction,
     mark_transaction_delivered,
     mark_transaction_paid,
 )
@@ -112,6 +113,7 @@ class LedgerBot(discord.Client):
         # Check if valid reaction emoji
         if payload.emoji.name not in [
             self.config["emojis"]["approval"],
+            self.config["emojis"]["cancel"],
             self.config["emojis"]["paid"],
             self.config["emojis"]["delivered"],
         ]:
@@ -204,6 +206,21 @@ class LedgerBot(discord.Client):
                 f"Processing delivered reaction from {reactor.name} on message {payload.message_id}"
             )
             await mark_transaction_delivered(
+                reactor=reactor,
+                buyer=buyer,
+                seller=seller,
+                payload=payload,
+                channel=channel,
+                target_transaction=target_transaction,
+                config=self.config,
+                storage=self.storage,
+            )
+        elif payload.emoji.name == self.config["emojis"]["cancel"]:
+            # Delivered
+            log.info(
+                f"Processing cancel reaction from {reactor.name} on message {payload.message_id}"
+            )
+            await cancel_transaction(
                 reactor=reactor,
                 buyer=buyer,
                 seller=seller,
