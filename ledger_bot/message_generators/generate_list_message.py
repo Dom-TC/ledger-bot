@@ -1,6 +1,7 @@
 """Generates a message listing a users active transactions."""
 
 import logging
+import re
 from typing import Dict, List
 
 from ledger_bot.models import Transaction
@@ -229,9 +230,73 @@ async def _build_transaction_lists(
     return transaction_lists
 
 
+def _split_message(intro: str, purchases_content: str, sales_content: str) -> List[str]:
+    """
+    Splits the message content into 2000 character chunks.
+
+    Discord can't accept messages more than 2000 characters, so we have to return long lists as multiple messages.
+
+    Parameters
+    ----------
+    intro : str
+        The intro section
+    purchases_content : str
+        The purchases section
+    sales_content : str
+        The sales section
+
+    Returns
+    -------
+    List[str]
+        A list of messages to send
+    """
+    if len(intro + purchases_content + sales_content) > 1995:
+        log.info(
+            f"Splitting large message ({len(intro + purchases_content + sales_content)} characters)"
+        )
+        output = [intro]
+
+        if len(purchases_content) < 2000:
+            output.append(purchases_content)
+        else:
+            # Further split purchases:
+
+            # Remove first line (otherwise it's classed as it's own section and sent as a single message)
+            purchases_content = purchases_content[15:]
+
+            sections = re.split(r"\n(?=[A-Za-z ]+:)", purchases_content)
+
+            for i, section in enumerate(sections):
+                if i == 0:
+                    section = "**Purchases**\n" + section
+
+                output.append(section)
+
+        if len(sales_content) < 2000:
+            output.append(sales_content)
+        else:
+            # Further split sales:
+
+            # Remove first line (otherwise it's classed as it's own section and sent as a single message)
+            sales_content = sales_content[11:]
+
+            sections = re.split(r"\n(?=[A-Za-z ]+:)", sales_content)
+
+            for i, section in enumerate(sections):
+                if i == 0:
+                    section = "**Sales**\n" + section
+
+                output.append(section)
+
+    else:
+        output = [intro + purchases_content + sales_content]
+
+    return output
+
+
 async def generate_list_message(
     transactions: List[Transaction], user_id: int, storage: AirtableStorage
-) -> str:
+) -> List[str]:
     """
     Generates formatted text for listing the provided transactions to return to the user.
 
@@ -253,10 +318,11 @@ async def generate_list_message(
     """
     log.info(f"Formatting {len(transactions)} transactions into list")
 
-    contents = ""
+    purchases_content = ""
+    sales_content = ""
 
     if len(transactions) == 0:
-        contents = "You don't have any transactions."
+        intro = "You don't have any transactions."
     else:
         transaction_lists = await _build_transaction_lists(
             transactions=transactions, user_id=user_id, storage=storage
@@ -272,16 +338,16 @@ async def generate_list_message(
             if transaction_lists["buying"][category]:
                 # If first category with contents, add title
                 if not has_purchases:
-                    contents += "\n**Purchases**\n"
+                    purchases_content += "\n**Purchases**\n"
                     has_purchases = True
 
-                contents += (
+                purchases_content += (
                     f"{category.replace('_', ' ').title().replace('And', 'and')}:\n"
                 )
 
                 for item in transaction_lists["buying"][category]:
                     log.debug(f"Generating output for {item}")
-                    contents += f"- \"{item['wine_name']}\" from <@{item['other_party']}> for £{item['price']} - {item['last_message_link']}\n"
+                    purchases_content += f"- \"{item['wine_name']}\" from <@{item['other_party']}> for £{item['price']} - {item['last_message_link']}\n"
                     purchase_count += 1
 
         for category in transaction_lists["selling"]:
@@ -289,16 +355,16 @@ async def generate_list_message(
             if transaction_lists["selling"][category]:
                 # If first category with contents, add title
                 if not has_sales:
-                    contents += "\n**Sales**\n"
+                    sales_content += "\n**Sales**\n"
                     has_sales = True
 
-                contents += (
+                sales_content += (
                     f"{category.replace('_', ' ').title().replace('And', 'and')}:\n"
                 )
 
                 for item in transaction_lists["selling"][category]:
                     log.debug(f"Generating output for {item}")
-                    contents += f"- \"{item['wine_name']}\" to <@{item['other_party']}> for £{item['price']} - {item['last_message_link']}\n"
+                    sales_content += f"- \"{item['wine_name']}\" to <@{item['other_party']}> for £{item['price']} - {item['last_message_link']}\n"
                     sale_count += 1
 
         intro = ""
@@ -309,4 +375,6 @@ async def generate_list_message(
         elif sale_count and not purchase_count:
             intro = f"You have {sale_count} sale{'s' if sale_count > 1 else ''}.\n"
 
-    return intro + contents
+    output = _split_message(intro, purchases_content, sales_content)
+
+    return output
