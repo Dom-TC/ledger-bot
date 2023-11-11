@@ -88,7 +88,9 @@ jobs:
             echo "BOT_ID=${{ vars.BOT_ID }}" >> /opt/ledger-bot/env_file
 
             # Create log folder, if needed
-            mkdir -p ${{ vars.LOG_FOLDER_PATH }}
+            log_path="/opt/dev-ledger-bot/dev-ledger-bot$(echo "${{ vars.LOG_FOLDER_PATH }}" | sed 's#/etc/ledger-bot##')"
+            echo log_path=$log_path
+            mkdir -p $log_path
 
             # Rebuild container
             docker compose -f /opt/ledger-bot/docker-compose.yml down
@@ -124,7 +126,9 @@ jobs:
             echo "BOT_ID=${{ vars.DEV_BOT_ID }}" >> /opt/dev-ledger-bot/env_file
 
             # Create log folder, if needed
-            mkdir -p ${{ vars.LOG_FOLDER_PATH }}
+            log_path="/opt/dev-ledger-bot/dev-ledger-bot$(echo "${{ vars.LOG_FOLDER_PATH }}" | sed 's#/etc/ledger-bot##')"
+            echo log_path=$log_path
+            mkdir -p $log_path
 
             # Rebuild container
             docker compose -f /opt/dev-ledger-bot/docker-compose.yml down
