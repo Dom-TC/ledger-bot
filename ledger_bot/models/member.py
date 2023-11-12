@@ -1,29 +1,27 @@
 """The data model for a record in the `members` table."""
 
 import logging
-
-from .model import Model
+from dataclasses import dataclass
 
 log = logging.getLogger(__name__)
 
 
-class Member(Model):
-    attributes = [
-        "id",
-        "row_id",
-        "discord_id",
-        "username",
-        "nickname",
-        "sell_transactions",
-        "buy_transactions",
-        "bot_id",
-    ]
+@dataclass
+class Member:
+    record_id: str
+    row_id: str
+    discord_id: int
+    username: str
+    nickname: str
+    sell_transactions: str
+    buy_transactions: str
+    bot_id: str
 
     @classmethod
     def from_airtable(cls, data: dict) -> "Member":
         fields = data["fields"]
         return cls(
-            id=data["id"],
+            record_id=data["id"],
             row_id=fields.get("row_id"),
             username=fields.get("username"),
             discord_id=int(fields.get("discord_id")),

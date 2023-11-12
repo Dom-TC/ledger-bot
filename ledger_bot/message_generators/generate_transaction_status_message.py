@@ -83,7 +83,7 @@ def generate_transaction_status_message(
         title_line = "*New Sale Listed*"
 
     user_decleration = f"**{seller.mention} sold {wine_name} to {buyer.mention}**"
-    price_decleration = f"Price: £{wine_price}"
+    price_decleration = f"Price: £{'{:.2f}'.format(wine_price)}"
 
     if is_approved:
         approved_decleration = f"Approved: {config['emojis']['status_confirmed']}"

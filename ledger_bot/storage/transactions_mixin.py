@@ -78,7 +78,7 @@ class TransactionsMixin:
 
         transaction_data = transaction.to_airtable(fields=fields)
         log.info(f"Adding transaction data: {transaction_data['fields']}")
-        if transaction.id:
+        if transaction.record_id:
             log.info(f"Updating transaction with id: {transaction_data['id']}")
             return await self.update_transaction(
                 transaction_data["id"], transaction_data["fields"]

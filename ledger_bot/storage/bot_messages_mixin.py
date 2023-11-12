@@ -41,7 +41,7 @@ class BotMessagesMixin:
             "bot_message_id": str(message.id),
             "channel_id": str(message.channel.id),
             "guild_id": str(message.guild.id),
-            "transaction_id": [transaction.id],
+            "transaction_id": [transaction.record_id],
             "message_creation_date": datetime.datetime.utcnow().isoformat(),
             "bot_id": self.bot_id or "",
         }

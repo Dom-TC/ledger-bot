@@ -105,7 +105,7 @@ async def _build_transaction_lists(
         transaction_lists[section][sub_section].append(
             {
                 "wine_name": transaction.wine,
-                "price": transaction.price,
+                "price": "{:.2f}".format(transaction.price),
                 "other_party": other_party,
                 "last_message_link": last_message_link,
             }
