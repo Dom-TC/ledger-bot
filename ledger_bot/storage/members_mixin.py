@@ -4,6 +4,8 @@ import logging
 from typing import Optional
 
 from aiohttp import ClientSession
+from asyncache import cached
+from cachetools import LRUCache
 from discord import Member as DiscordMember
 
 from ledger_bot.models import Member
@@ -71,6 +73,7 @@ class MembersMixin:
         """
         return await self._insert(self.members_url, record, session)
 
+    @cached(LRUCache(maxsize=64))
     async def get_or_add_member(self, member: DiscordMember) -> Member:
         """
         Fetches an existing member or adds a new record for them.
@@ -100,6 +103,7 @@ class MembersMixin:
             )
         return Member.from_airtable(member_record)
 
+    @cached(LRUCache(maxsize=64))
     async def get_member_from_record_id(self, record_id: int) -> Member:
         """Returns the member object for the member with a given AirTable record id."""
         log.info(f"Finding member with record {record_id}")
