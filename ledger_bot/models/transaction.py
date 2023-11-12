@@ -2,6 +2,7 @@
 
 import logging
 from dataclasses import dataclass
+from typing import Optional, Union
 
 from .bot_message import BotMessage
 from .member import Member
@@ -11,27 +12,27 @@ log = logging.getLogger(__name__)
 
 @dataclass
 class Transaction:
-    record_id: str = None
-    row_id: str = None
-    seller_id: str = None
-    seller_discord_id: int = None
-    buyer_id: str = None
-    buyer_discord_id: int = None
-    wine: str = None
-    price: float = None
-    sale_approved: str = None
-    buyer_marked_delivered: str = None
-    seller_marked_delivered: str = None
-    buyer_marked_paid: str = None
-    seller_marked_paid: str = None
-    cancelled: str = None
-    creation_date: str = None
-    approved_date: str = None
-    paid_date: str = None
-    delivered_date: str = None
-    cancelled_date: str = None
-    bot_messages: str = None
-    bot_id: str = None
+    record_id: Optional[str] = None
+    row_id: Optional[str] = None
+    seller_id: Optional[str] = None
+    seller_discord_id: Optional[int] = None
+    buyer_id: Optional[str] = None
+    buyer_discord_id: Optional[int] = None
+    wine: Optional[str] = None
+    price: Optional[float] = None
+    sale_approved: Optional[bool] = None
+    buyer_marked_delivered: Optional[bool] = None
+    seller_marked_delivered: Optional[bool] = None
+    buyer_marked_paid: Optional[bool] = None
+    seller_marked_paid: Optional[bool] = None
+    cancelled: Optional[bool] = None
+    creation_date: Optional[str] = None
+    approved_date: Optional[str] = None
+    paid_date: Optional[str] = None
+    delivered_date: Optional[str] = None
+    cancelled_date: Optional[str] = None
+    bot_messages: Optional[BotMessage] = None
+    bot_id: Optional[str] = None
 
     @classmethod
     def from_airtable(cls, data: dict) -> "Transaction":
@@ -61,7 +62,31 @@ class Transaction:
         )
 
     def to_airtable(self, fields=None) -> dict:
-        fields = fields if fields else self.attributes
+        fields = (
+            fields
+            if fields
+            else [
+                "wine",
+                "price",
+                "buyer_id",
+                "buyer_discord_id",
+                "seller_id",
+                "seller_discord_id",
+                "sale_approved",
+                "buyer_marked_delivered",
+                "seller_marked_delivered",
+                "buyer_marked_paid",
+                "seller_marked_paid",
+                "cancelled",
+                "creation_date",
+                "approved_date",
+                "paid_date",
+                "delivered_date",
+                "cancelled_date",
+                "bot_id",
+                "bot_messages",
+            ]
+        )
         data = {}
 
         if "seller_id" in fields:
@@ -79,8 +104,8 @@ class Transaction:
 
         if "bot_messages" in fields:
             data["bot_messages"] = [
-                self.bot_messages.id
-                if isinstance(self.buyer_id, BotMessage)
+                self.bot_messages.record_id
+                if isinstance(self.bot_messages, BotMessage)
                 else self.bot_messages
             ]
 

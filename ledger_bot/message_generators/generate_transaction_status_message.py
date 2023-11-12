@@ -11,8 +11,8 @@ log = logging.getLogger(__name__)
 
 
 def generate_transaction_status_message(
-    seller: discord.Member,
-    buyer: discord.Member,
+    seller: discord.User,
+    buyer: discord.User,
     wine_name: str,
     wine_price: float,
     config: dict,

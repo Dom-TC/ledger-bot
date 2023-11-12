@@ -50,6 +50,7 @@ class AirtableStorage(BotMessagesMixin, TransactionsMixin, MembersMixin, BaseSto
         airtable_key: str,
         bot_id: Optional[str],
     ):
+        super().__init__(airtable_base, airtable_key)
         self.airtable_key = airtable_key
         self.bot_id = bot_id
         self.members_url = f"https://api.airtable.com/v0/{airtable_base}/members"
@@ -57,5 +58,3 @@ class AirtableStorage(BotMessagesMixin, TransactionsMixin, MembersMixin, BaseSto
         self.bot_messages_url = (
             f"https://api.airtable.com/v0/{airtable_base}/bot_messages"
         )
-        self.auth_header = {"Authorization": f"Bearer {self.airtable_key}"}
-        self._semaphore = asyncio.Semaphore(5)

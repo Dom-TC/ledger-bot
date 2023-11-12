@@ -15,10 +15,10 @@ log = logging.getLogger(__name__)
 
 async def approve_transaction(
     reactor: discord.Member,
-    buyer: discord.Member,
-    seller: discord.Member,
+    buyer: discord.User,
+    seller: discord.User,
     payload,
-    channel,
+    channel: discord.abc.GuildChannel,
     target_transaction: Transaction,
     config: dict,
     storage: AirtableStorage,

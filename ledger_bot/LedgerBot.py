@@ -109,7 +109,7 @@ class LedgerBot(discord.Client):
         # Process messages
         await process_message(self, message)
 
-    async def on_raw_reaction_add(self, payload):
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         # Check if valid reaction emoji
         if payload.emoji.name not in [
             self.config["emojis"]["approval"],
@@ -140,11 +140,21 @@ class LedgerBot(discord.Client):
 
         # Check if valid message
         target_transaction = await self.storage.find_transaction_by_bot_message_id(
-            payload.message_id
+            str(payload.message_id)
         )
         if target_transaction is None:
             log.info(
                 f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Invalid target message"
+            )
+            return
+        if target_transaction.buyer_id is None:
+            log.info(
+                f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Target message doesn't contain valid buyer_id"
+            )
+            return
+        if target_transaction.seller_id is None:
+            log.info(
+                f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Target message doesn't contain valid seller_id"
             )
             return
 
