@@ -4,8 +4,8 @@ import logging
 import re
 from typing import Dict, List
 
-from ledger_bot.models import Transaction
-from ledger_bot.storage import AirtableStorage, BotMessage
+from ledger_bot.models import BotMessage, Transaction
+from ledger_bot.storage import AirtableStorage
 
 log = logging.getLogger(__name__)
 
@@ -40,6 +40,7 @@ async def _build_transaction_lists(
             "awaiting_payment": [],
             "awaiting_delivery": [],
             "awaiting_payment_and_delivery": [],
+            "cancelled": [],
             "completed": [],
         },
         "selling": {
@@ -47,6 +48,7 @@ async def _build_transaction_lists(
             "awaiting_payment": [],
             "awaiting_delivery": [],
             "awaiting_payment_and_delivery": [],
+            "cancelled": [],
             "completed": [],
         },
     }
@@ -63,169 +65,51 @@ async def _build_transaction_lists(
         is_paid = bool(transaction.buyer_marked_paid) and bool(
             transaction.seller_marked_paid
         )
+        is_cancelled = bool(transaction.cancelled)
 
         log.debug(f"Is Approved: {is_approved}")
         log.debug(f"Is Delivered: {is_delivered}")
         log.debug(f"Is Paid: {is_paid}")
+        log.debug(f"Is Cancelled: {is_cancelled}")
 
+        # Generate link for last status message
+        last_message_link = await _get_latest_message_link(
+            transaction=transaction, storage=storage
+        )
+
+        # Check whether the user is the buyer or seller
         if int(transaction.seller_discord_id) == user_id:
             log.debug("User is seller")
-            # User is seller
-            if not is_approved:
-                # Not Approved
-                last_message_link = await _get_latest_message_link(
-                    transaction=transaction, storage=storage
-                )
-
-                transaction_lists["selling"]["awaiting_approval"].append(
-                    {
-                        "wine_name": transaction.wine,
-                        "price": transaction.price,
-                        "other_party": transaction.buyer_discord_id,
-                        "last_message_link": last_message_link,
-                    }
-                )
-            elif is_paid and not is_delivered:
-                log.debug("Transaction is paid but not delivered")
-                # Paid but not delivered
-
-                last_message_link = await _get_latest_message_link(
-                    transaction=transaction, storage=storage
-                )
-
-                transaction_lists["selling"]["awaiting_delivery"].append(
-                    {
-                        "wine_name": transaction.wine,
-                        "price": transaction.price,
-                        "other_party": transaction.buyer_discord_id,
-                        "last_message_link": last_message_link,
-                    }
-                )
-
-            elif is_delivered and not is_paid:
-                log.debug("Transaction is deliverd but not paid")
-                # Delivered but not paid
-
-                last_message_link = await _get_latest_message_link(
-                    transaction=transaction, storage=storage
-                )
-
-                transaction_lists["selling"]["awaiting_payment"].append(
-                    {
-                        "wine_name": transaction.wine,
-                        "price": transaction.price,
-                        "other_party": transaction.buyer_discord_id,
-                        "last_message_link": last_message_link,
-                    }
-                )
-
-            elif not is_paid and not is_delivered:
-                log.debug("Transaction is neither approved nor paid")
-                # Neither paid nor delivered
-                last_message_link = await _get_latest_message_link(
-                    transaction=transaction, storage=storage
-                )
-
-                transaction_lists["selling"]["awaiting_payment_and_delivery"].append(
-                    {
-                        "wine_name": transaction.wine,
-                        "price": transaction.price,
-                        "other_party": transaction.buyer_discord_id,
-                        "last_message_link": last_message_link,
-                    }
-                )
-
-            elif is_paid and is_delivered:
-                # Completed
-                last_message_link = await _get_latest_message_link(
-                    transaction=transaction, storage=storage
-                )
-
-                transaction_lists["selling"]["completed"].append(
-                    {
-                        "wine_name": transaction.wine,
-                        "price": transaction.price,
-                        "other_party": transaction.buyer_discord_id,
-                        "last_message_link": last_message_link,
-                    }
-                )
-
+            section = "selling"
+            other_party = transaction.buyer_discord_id
         elif int(transaction.buyer_discord_id) == user_id:
             log.debug("User is buyer")
-            # User is buyer
-            if not is_approved:
-                # Not Approved
-                last_message_link = await _get_latest_message_link(
-                    transaction=transaction, storage=storage
-                )
+            section = "buying"
+            other_party = transaction.seller_discord_id
 
-                transaction_lists["buying"]["awaiting_approval"].append(
-                    {
-                        "wine_name": transaction.wine,
-                        "price": transaction.price,
-                        "other_party": transaction.seller_discord_id,
-                        "last_message_link": last_message_link,
-                    }
-                )
-            elif is_paid and not is_delivered:
-                # Paid but not delivered
-                last_message_link = await _get_latest_message_link(
-                    transaction=transaction, storage=storage
-                )
+        # Define sub_section
+        if is_cancelled:
+            sub_section = "cancelled"
+        elif not is_approved:
+            sub_section = "awaiting_approval"
+        elif is_paid and not is_delivered:
+            sub_section = "awaiting_delivery"
+        elif is_delivered and not is_paid:
+            sub_section = "awaiting_payment"
+        elif not is_paid and not is_delivered:
+            sub_section = "awaiting_payment_and_delivery"
+        elif is_paid and is_delivered:
+            sub_section = "completed"
 
-                transaction_lists["buying"]["awaiting_delivery"].append(
-                    {
-                        "wine_name": transaction.wine,
-                        "price": transaction.price,
-                        "other_party": transaction.seller_discord_id,
-                        "last_message_link": last_message_link,
-                    }
-                )
-
-            elif is_delivered and not is_paid:
-                # Delivered but not paid
-                last_message_link = await _get_latest_message_link(
-                    transaction=transaction, storage=storage
-                )
-
-                transaction_lists["buying"]["awaiting_payment"].append(
-                    {
-                        "wine_name": transaction.wine,
-                        "price": transaction.price,
-                        "other_party": transaction.seller_discord_id,
-                        "last_message_link": last_message_link,
-                    }
-                )
-
-            elif not is_paid and not is_delivered:
-                # Neither paid nor delivered
-                last_message_link = await _get_latest_message_link(
-                    transaction=transaction, storage=storage
-                )
-
-                transaction_lists["buying"]["awaiting_payment_and_delivery"].append(
-                    {
-                        "wine_name": transaction.wine,
-                        "price": transaction.price,
-                        "other_party": transaction.seller_discord_id,
-                        "last_message_link": last_message_link,
-                    }
-                )
-
-            elif is_paid and is_delivered:
-                # Completed
-                last_message_link = await _get_latest_message_link(
-                    transaction=transaction, storage=storage
-                )
-
-                transaction_lists["buying"]["completed"].append(
-                    {
-                        "wine_name": transaction.wine,
-                        "price": transaction.price,
-                        "other_party": transaction.seller_discord_id,
-                        "last_message_link": last_message_link,
-                    }
-                )
+        # Add transaction payload to correct list
+        transaction_lists[section][sub_section].append(
+            {
+                "wine_name": transaction.wine,
+                "price": transaction.price,
+                "other_party": other_party,
+                "last_message_link": last_message_link,
+            }
+        )
 
     return transaction_lists
 
