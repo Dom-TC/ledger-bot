@@ -18,7 +18,7 @@ class Reminder:
     date: datetime
     member_id: str
     transaction_id: str
-    status: str
+    status: Optional[str]
     bot_id: str
 
     @classmethod

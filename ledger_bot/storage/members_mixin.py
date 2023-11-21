@@ -109,24 +109,3 @@ class MembersMixin:
         log.info(f"Finding member with record {record_id}")
         member_record = await self._retrieve_member(record_id)
         return Member.from_airtable(member_record)
-
-    async def insert_transaction(
-        self, record: dict, session: Optional[ClientSession] = None
-    ) -> dict:
-        """
-        Inserts a transaction into the table.
-
-        Paramaters
-        ----------
-        record : dict
-            The record to insert
-
-        session : ClientSession, optional
-            The ClientSession to use
-
-        Returns
-        -------
-        dict
-            A Dictionary containing the inserted record
-        """
-        return await self._insert(self.wines_url, record, session)

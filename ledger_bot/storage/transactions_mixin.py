@@ -98,6 +98,27 @@ class TransactionsMixin:
         log.debug(f"Retrieving transaction with id {transaction_id}")
         return await self._get(f"{self.wines_url}/{transaction_id}", session=session)
 
+    async def insert_transaction(
+        self, record: dict, session: Optional[ClientSession] = None
+    ) -> dict:
+        """
+        Inserts a transaction into the table.
+
+        Paramaters
+        ----------
+        record : dict
+            The record to insert
+
+        session : ClientSession, optional
+            The ClientSession to use
+
+        Returns
+        -------
+        dict
+            A Dictionary containing the inserted record
+        """
+        return await self._insert(self.wines_url, record, session)
+
     async def find_transaction_by_bot_message_id(self, message_id: str) -> Transaction:
         """Takes a message and returns any associated Transactions, else returns None."""
         log.info(f"Searching for transactions relating to bot message {message_id}")

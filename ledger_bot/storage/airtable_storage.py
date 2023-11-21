@@ -7,12 +7,15 @@ from typing import Optional
 from .base_storage import BaseStorage
 from .bot_messages_mixin import BotMessagesMixin
 from .members_mixin import MembersMixin
+from .reminders_mixin import RemindersMixin
 from .transactions_mixin import TransactionsMixin
 
 log = logging.getLogger(__name__)
 
 
-class AirtableStorage(BotMessagesMixin, TransactionsMixin, MembersMixin, BaseStorage):
+class AirtableStorage(
+    RemindersMixin, BotMessagesMixin, TransactionsMixin, MembersMixin, BaseStorage
+):
     """
     A class to interface with AirTable.
 
@@ -58,3 +61,4 @@ class AirtableStorage(BotMessagesMixin, TransactionsMixin, MembersMixin, BaseSto
         self.bot_messages_url = (
             f"https://api.airtable.com/v0/{airtable_base}/bot_messages"
         )
+        self.reminders_url = f"https://api.airtable.com/v0/{airtable_base}/reminders"
