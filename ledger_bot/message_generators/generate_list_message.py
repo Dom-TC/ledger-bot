@@ -11,13 +11,16 @@ log = logging.getLogger(__name__)
 
 
 async def _get_latest_message_link(transaction: Transaction, storage: AirtableStorage):
+    if transaction.bot_messages is None:
+        return ""
+
     latest_message_record_id = transaction.bot_messages[-1]
     message_record = await storage.find_bot_message_by_record_id(
         latest_message_record_id
     )
     message = BotMessage.from_airtable(message_record)
 
-    link = f"https://discord.com/channels/{message.guild_id}/{message.channel_id}/{message.bot_message_id}"
+    link = f"- https://discord.com/channels/{message.guild_id}/{message.channel_id}/{message.bot_message_id}"
     return link
 
 
@@ -231,7 +234,7 @@ async def generate_list_message(
 
                 for item in transaction_lists["buying"][category]:
                     log.debug(f"Generating output for {item}")
-                    purchases_content += f"- \"{item['wine_name']}\" from <@{item['other_party']}> for £{item['price']} - {item['last_message_link']}\n"
+                    purchases_content += f"- \"{item['wine_name']}\" from <@{item['other_party']}> for £{item['price']} {item['last_message_link']}\n"
                     purchase_count += 1
 
         for category in transaction_lists["selling"]:
@@ -248,7 +251,7 @@ async def generate_list_message(
 
                 for item in transaction_lists["selling"][category]:
                     log.debug(f"Generating output for {item}")
-                    sales_content += f"- \"{item['wine_name']}\" to <@{item['other_party']}> for £{item['price']} - {item['last_message_link']}\n"
+                    sales_content += f"- \"{item['wine_name']}\" to <@{item['other_party']}> for £{item['price']} {item['last_message_link']}\n"
                     sale_count += 1
 
         intro = ""
