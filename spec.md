@@ -60,3 +60,12 @@ Price: <price>
 <paid_emoji> Paid:
 <delivered_emoji> Delivered:
 ```
+
+## Reminders ToDo
+1. Switch to new user flow - User tags LedgerBot in a reply to the transaction in question with the correct syntax.
+2. Create ReminderManager class
+    1. Create New Reminder
+    2. Add jobs for each reminder
+    3. Process reminder at correct time
+    4. DM command to list reminders
+    5. DM command to remove reminders
