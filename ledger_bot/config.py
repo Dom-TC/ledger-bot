@@ -36,6 +36,7 @@ def parse(config):
             "cancel": "👎",
             "paid": "💸",
             "delivered": "🚚",
+            "reminder": "🔔",
             "unknown_version": "🤷",
             "status_confirmed": "🟩",
             "status_part_confirmed": "🟨",

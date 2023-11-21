@@ -2,6 +2,7 @@
 
 import logging
 from dataclasses import dataclass
+from typing import List
 
 log = logging.getLogger(__name__)
 
@@ -15,6 +16,7 @@ class Member:
     nickname: str
     sell_transactions: str
     buy_transactions: str
+    reminders: List[str]
     bot_id: str
 
     @classmethod
@@ -28,6 +30,7 @@ class Member:
             nickname=fields.get("nickname"),
             sell_transactions=fields.get("sell_transactions"),
             buy_transactions=fields.get("buy_transactions"),
+            reminders=fields.get("reminders"),
             bot_id=fields.get("bot_id"),
         )
 

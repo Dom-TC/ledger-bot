@@ -13,6 +13,7 @@ from .process_transactions import (
     cancel_transaction,
     mark_transaction_delivered,
     mark_transaction_paid,
+    send_reminder_dm,
 )
 from .processs_message import process_message
 from .scheduled_commands import cleanup
@@ -116,6 +117,7 @@ class LedgerBot(discord.Client):
             self.config["emojis"]["cancel"],
             self.config["emojis"]["paid"],
             self.config["emojis"]["delivered"],
+            self.config["emojis"]["reminder"],
         ]:
             return
 
@@ -231,6 +233,21 @@ class LedgerBot(discord.Client):
                 f"Processing cancel reaction from {reactor.name} on message {payload.message_id}"
             )
             await cancel_transaction(
+                reactor=reactor,
+                buyer=buyer,
+                seller=seller,
+                payload=payload,
+                channel=channel,
+                target_transaction=target_transaction,
+                config=self.config,
+                storage=self.storage,
+            )
+        elif payload.emoji.name == self.config["emojis"]["reminder"]:
+            # Watch
+            log.info(
+                f"Processing reminder reaction from {reactor.name} on message {payload.message_id}"
+            )
+            await send_reminder_dm(
                 reactor=reactor,
                 buyer=buyer,
                 seller=seller,

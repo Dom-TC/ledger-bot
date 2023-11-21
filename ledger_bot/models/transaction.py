@@ -32,6 +32,7 @@ class Transaction:
     delivered_date: Optional[str] = None
     cancelled_date: Optional[str] = None
     bot_messages: Optional[BotMessage] = None
+    reminders: Optional[str] = None
     bot_id: Optional[str] = None
 
     @classmethod
@@ -58,6 +59,7 @@ class Transaction:
             delivered_date=fields.get("delivered_date"),
             cancelled_date=fields.get("cancelled_date"),
             bot_messages=fields.get("bot_messages"),
+            reminders=fields.get("reminders"),
             bot_id=fields.get("bot_id"),
         )
 
