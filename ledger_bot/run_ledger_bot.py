@@ -19,6 +19,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .config import parse
 from .errors import SignalHaltError
 from .LedgerBot import LedgerBot
+from .reminder_manager import ReminderManager
 from .slash_commands import setup_slash
 from .storage import AirtableStorage
 
@@ -63,8 +64,15 @@ def start_bot():
     # Create scheduler
     scheduler = AsyncIOScheduler(timezone="utc")
 
+    # Create reminder_manager
+    reminder_manager = ReminderManager(
+        config=config, scheduler=scheduler, storage=storage
+    )
+
     # Create client
-    client = LedgerBot(config=config, storage=storage, scheduler=scheduler)
+    client = LedgerBot(
+        config=config, storage=storage, scheduler=scheduler, reminders=reminder_manager
+    )
 
     # Build slash commands
     setup_slash(client, config, storage)

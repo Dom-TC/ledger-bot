@@ -16,6 +16,7 @@ from .process_transactions import (
     send_reminder_dm,
 )
 from .processs_message import process_message
+from .reminder_manager import ReminderManager
 from .scheduled_commands import cleanup
 from .storage import AirtableStorage
 
@@ -43,12 +44,17 @@ class LedgerBot(discord.Client):
     """
 
     def __init__(
-        self, config: dict, storage: AirtableStorage, scheduler: AsyncIOScheduler
+        self,
+        config: dict,
+        storage: AirtableStorage,
+        scheduler: AsyncIOScheduler,
+        reminders: ReminderManager,
     ):
         self.config = config
         self.storage = storage
         self.guild = discord.Object(id=self.config["guild"])
         self.scheduler = scheduler
+        self.reminders = reminders
 
         log.info(f"Set guild: {self.config['guild']}")
         log.info(f"Watching channels: {self.config['channels']}")
@@ -60,6 +66,7 @@ class LedgerBot(discord.Client):
         log.info("Scheduling jobs...")
         scheduler.add_job(
             func=cleanup,
+            name="Cleanup",
             kwargs={"client": self, "storage": self.storage},
             trigger="cron",
             hour=config["run_cleanup_time"]["hour"],

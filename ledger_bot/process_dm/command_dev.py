@@ -37,7 +37,9 @@ async def command_dev(
         else:
             result = "The following jobs are currently configured: \n"
             for job in jobs:
-                result += f"- {job.id}: {job.name} - {job.trigger} {job.next_run_time}"
+                result += (
+                    f"- {job.id}: {job.name} - {job.trigger} {job.next_run_time}\n"
+                )
 
         await dm_channel.send(result)
 

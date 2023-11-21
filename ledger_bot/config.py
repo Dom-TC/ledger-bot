@@ -58,6 +58,11 @@ def parse(config):
             "minute": "0",
             "second": "0",
         },
+        "reminder_refresh_time": {
+            "hour": "*",
+            "minute": "*/5",
+            "second": "0",
+        },
         "cleanup_removes_transaction_records": False,
     }
 
