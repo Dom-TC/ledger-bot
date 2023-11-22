@@ -13,12 +13,12 @@ from .process_transactions import (
     cancel_transaction,
     mark_transaction_delivered,
     mark_transaction_paid,
-    send_reminder_dm,
 )
 from .processs_message import process_message
 from .reminder_manager import ReminderManager
 from .scheduled_commands import cleanup
 from .storage import AirtableStorage
+from .views import CreateReminderButton
 
 log = logging.getLogger(__name__)
 
@@ -254,15 +254,14 @@ class LedgerBot(discord.Client):
             log.info(
                 f"Processing reminder reaction from {reactor.name} on message {payload.message_id}"
             )
-            await send_reminder_dm(
-                reactor=reactor,
-                buyer=buyer,
-                seller=seller,
-                payload=payload,
-                channel=channel,
-                target_transaction=target_transaction,
-                config=self.config,
-                storage=self.storage,
+            await reactor.send(
+                content=f'Click here to add a reminder for "*{target_transaction.wine}*" from {buyer.mention} to {seller.mention} for £{target_transaction.price}',
+                view=CreateReminderButton(
+                    storage=self.storage,
+                    transaction=target_transaction,
+                    user=reactor,
+                    reminders=self.reminders,
+                ),
             )
 
     async def on_disconnect(self):

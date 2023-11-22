@@ -9,6 +9,7 @@ import discord
 from apscheduler import events
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from .models import Reminder, Transaction
 from .storage import AirtableStorage
 
 log = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ class ReminderManager:
         self.missed_job_ids = []
         self.get_channel_func = None
 
-        initial_refresh_run = datetime.now() + timedelta(seconds=5)
+        initial_refresh_run = datetime.now() + timedelta(minutes=2)
         scheduler.add_job(
             self.refresh_reminders,
             name="Refresh Reminders",
@@ -56,7 +57,7 @@ class ReminderManager:
             self.scheduler.add_job(
                 self.send_reminder,
                 id=reminder.id,
-                name=f"Reminder: {reminder.notes.strip()} now ({reminder.date})!",
+                name=f"Reminder: {reminder.transaction_id}!",
                 trigger="date",
                 next_run_time=reminder.date,
                 coalesce=True,
@@ -71,5 +72,64 @@ class ReminderManager:
             reminders_processed += 1
         log.debug(f"Refreshed {reminders_processed} reminders")
 
-    async def send_reminder():
-        pass
+    async def send_reminder(self):
+        raise NotImplementedError
+
+    async def create_reminder(
+        self,
+        reminder: Reminder | None,
+        date: datetime | None = None,
+        member: discord.Member | None = None,
+        transaction: Transaction | None = None,
+        status: str | None = None,
+    ):
+        """
+        Add a reminder to the store and schedule it.
+
+        Parameters
+        ----------
+        member : discord.Member
+            The user creating the reminder
+        transaction : Transaction
+            The transaction the user wants to be reminded of
+        status : Optional[str], optional
+            An optional status filter, by default None
+        """
+        if reminder is None:
+            log.debug("Reminder object not provided, building from components.")
+
+            if not (date and member and transaction):
+                log.error(
+                    f"date, member, and transaction must all be provided if dynamically building reminder object. Received {date} / {member} / {transaction}."
+                )
+                raise ValueError
+
+            member_record = await self.storage.get_or_add_member(member)
+
+            # Build Transaction object from provided data
+            reminder = Reminder(
+                date=date,
+                member_id=member_record.record_id,
+                transaction_id=transaction.record_id,
+                status=status,
+            )
+
+        reminder_fields = ["date", "member_id", "transaction_id", "status", "bot_id"]
+        log.debug(f"Creating reminder: {reminder}, with fields {reminder_fields}")
+
+        log.debug(f"{reminder} / {type(reminder)}")
+
+        reminder_record = await self.storage.save_reminder(
+            reminder=reminder, fields=reminder_fields
+        )
+
+        created_reminder = Reminder.from_airtable(reminder_record)
+
+        log.info(f"Created reminder {created_reminder}")
+        return created_reminder
+
+    async def list_reminders(self):
+        raise NotImplementedError
+
+    async def remove_reminder(self):
+        raise NotImplementedError

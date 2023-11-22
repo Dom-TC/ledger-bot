@@ -44,4 +44,5 @@ async def command_hello(
         )
         return
 
+    log.info(f"Saying hello to {interaction.user.name}")
     await interaction.response.send_message(f"Hi, {interaction.user.mention}")

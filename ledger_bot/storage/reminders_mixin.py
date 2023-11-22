@@ -58,6 +58,31 @@ class RemindersMixin:
         """
         return await self._insert(self.reminders_url, record, session)
 
+    async def update_reminder(
+        self,
+        record_id: str,
+        reminder_record: dict,
+        session: Optional[ClientSession] = None,
+    ):
+        """
+        Updates a specific reminder record.
+
+        Paramaters
+        ----------
+        record_id : str
+            The primary key of the reminder to update
+
+        reminder_record : dict
+            The records to update
+
+        session : ClientSession, optional
+            The ClientSession to use
+
+        """
+        return await self._update(
+            self.reminders_url + "/" + record_id, reminder_record, session
+        )
+
     async def save_reminder(self, reminder: Reminder, fields=None) -> Reminder:
         """
         Saves a reminder.
@@ -86,15 +111,17 @@ class RemindersMixin:
         if "bot_id" not in fields:
             fields.append("bot_id")
 
+        log.debug(f"{reminder} / {type(reminder)}")
+
         reminder_data = reminder.to_airtable(fields=fields)
-        log.info(f"Adding transaction data: {reminder_data['fields']}")
-        if reminder_data.record_id:
-            log.info(f"Updating transaction with id: {reminder_data['id']}")
-            return await self.reminder_data(
+        log.info(f"Adding reminder data: {reminder_data['fields']}")
+        if reminder.record_id:
+            log.info(f"Updating reminder with id: {reminder_data['id']}")
+            return await self.update_reminder(
                 reminder_data["id"], reminder_data["fields"]
             )
         else:
-            log.info("Adding transaction to Airtable")
+            log.info("Adding reminder to Airtable")
             return await self.insert_reminder(reminder_data["fields"])
 
     async def remove_reminder(self, *reminder_ids: str):

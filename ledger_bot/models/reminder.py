@@ -13,13 +13,13 @@ log = logging.getLogger(__name__)
 
 @dataclass
 class Reminder:
-    record_id: str
-    row_id: str
     date: datetime
     member_id: str
     transaction_id: str
-    status: Optional[str]
-    bot_id: str
+    record_id: str | None = None
+    row_id: str | None = None
+    status: str | None = None
+    bot_id: str | None = None
 
     @classmethod
     def from_airtable(cls, data: dict) -> "Reminder":
@@ -49,7 +49,7 @@ class Reminder:
 
         data = {}
         if "date" in fields:
-            data["Date"] = self.date.isoformat()
+            data["date"] = self.date.isoformat()
 
         if "member_id" in fields:
             data["member_id"] = [
