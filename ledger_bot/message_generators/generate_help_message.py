@@ -51,6 +51,11 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
                 "description": "Mark a transaction as delivered.",
                 "requires_dev": False,
             },
+            {
+                "reaction": config["emojis"]["reminder"],
+                "description": "Set a reminder for a transaction.",
+                "requires_dev": False,
+            },
         ],
         "Channel Commands": [
             {
@@ -114,6 +119,12 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
                 "args": [],
                 "description": "Returns a list of your transactions",
                 "requires_dev": False,
+            },
+            {
+                "command": "!dev refresh_reminders",
+                "args": [],
+                "description": "Refreshes the scheduled reminders",
+                "requires_dev": True,
             },
         ],
     }

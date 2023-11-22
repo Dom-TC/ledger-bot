@@ -20,17 +20,18 @@ async def command_list(
     """DM command - list."""
     log.info(f"Getting transactions for user {message.author.name}")
 
-    transactions = await client.storage.get_users_transaction(message.author.id)
+    transactions = await client.storage.get_users_transaction(str(message.author.id))
 
-    if len(transactions) == 0:
-        dm_channel.send("You don't have any open transactions.")
+    if transactions is None:
+        await dm_channel.send("You don't have any open transactions.")
+    else:
+        for i, transaction_record in enumerate(transactions):
+            log.debug(transaction_record)
+            transactions[i] = Transaction.from_airtable(transaction_record)
 
-    for i, transaction in enumerate(transactions):
-        transactions[i] = Transaction.from_airtable(transaction)
+        response = await generate_list_message(
+            transactions=transactions, user_id=message.author.id, storage=client.storage
+        )
 
-    response = await generate_list_message(
-        transactions=transactions, user_id=message.author.id, storage=client.storage
-    )
-
-    for message in response:
-        await dm_channel.send(message)
+        for transmit_message in response:
+            await dm_channel.send(transmit_message)

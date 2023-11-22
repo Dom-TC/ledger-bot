@@ -43,7 +43,7 @@ async def cleanup(client: "LedgerBot", storage: AirtableStorage):
             for transaction_record in transactions:
                 transaction = Transaction.from_airtable(transaction_record)
 
-                log.info(f"Cleaning transaction {transaction.id}")
+                log.info(f"Cleaning transaction {transaction.record_id}")
 
                 # If bot_messages exist, remove them.
                 # Because we (optionally) keep transaction records, it's possible transactions exist with no bot record

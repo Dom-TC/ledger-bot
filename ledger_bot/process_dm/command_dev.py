@@ -37,10 +37,16 @@ async def command_dev(
         else:
             result = "The following jobs are currently configured: \n"
             for job in jobs:
-                result += f"- {job.id}: {job.name} - {job.trigger} {job.next_run_time}"
+                result += (
+                    f"- {job.id}: {job.name} - {job.trigger} {job.next_run_time}\n"
+                )
 
         await dm_channel.send(result)
 
     elif request.startswith("clean"):
         await dm_channel.send("Cleaning records")
         await cleanup(client=client, storage=client.storage)
+
+    elif request.startswith("refresh_reminders"):
+        await dm_channel.send("Refreshing reminders")
+        await client.reminders.refresh_reminders()

@@ -2,7 +2,7 @@
 
 import logging
 import re
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from ledger_bot.models import BotMessage, Transaction
 from ledger_bot.storage import AirtableStorage
@@ -10,15 +10,18 @@ from ledger_bot.storage import AirtableStorage
 log = logging.getLogger(__name__)
 
 
-async def _get_latest_message_link(transaction: Transaction, storage: AirtableStorage):
-    latest_message_record_id = transaction.bot_messages[-1]
-    message_record = await storage.find_bot_message_by_record_id(
-        latest_message_record_id
-    )
-    message = BotMessage.from_airtable(message_record)
+async def _get_latest_message_link(
+    transaction: Transaction, storage: AirtableStorage
+) -> Optional[str]:
+    if transaction.bot_messages is not None:
+        latest_message_record_id = transaction.bot_messages[-1]  # type: ignore
+        message_record = await storage.find_bot_message_by_record_id(
+            latest_message_record_id
+        )
+        message = BotMessage.from_airtable(message_record)
 
-    link = f"https://discord.com/channels/{message.guild_id}/{message.channel_id}/{message.bot_message_id}"
-    return link
+        link = f"https://discord.com/channels/{message.guild_id}/{message.channel_id}/{message.bot_message_id}"
+        return link
 
 
 async def _build_transaction_lists(
@@ -77,12 +80,11 @@ async def _build_transaction_lists(
             transaction=transaction, storage=storage
         )
 
-        # Check whether the user is the buyer or seller
-        if int(transaction.seller_discord_id) == user_id:
+        if transaction.seller_discord_id == user_id:
             log.debug("User is seller")
             section = "selling"
             other_party = transaction.buyer_discord_id
-        elif int(transaction.buyer_discord_id) == user_id:
+        else:
             log.debug("User is buyer")
             section = "buying"
             other_party = transaction.seller_discord_id
@@ -98,14 +100,14 @@ async def _build_transaction_lists(
             sub_section = "awaiting_payment"
         elif not is_paid and not is_delivered:
             sub_section = "awaiting_payment_and_delivery"
-        elif is_paid and is_delivered:
+        else:
             sub_section = "completed"
 
         # Add transaction payload to correct list
         transaction_lists[section][sub_section].append(
             {
                 "wine_name": transaction.wine,
-                "price": transaction.price,
+                "price": "{:.2f}".format(transaction.price),
                 "other_party": other_party,
                 "last_message_link": last_message_link,
             }

@@ -36,6 +36,7 @@ def parse(config):
             "cancel": "👎",
             "paid": "💸",
             "delivered": "🚚",
+            "reminder": "🔔",
             "unknown_version": "🤷",
             "status_confirmed": "🟩",
             "status_part_confirmed": "🟨",
@@ -54,6 +55,11 @@ def parse(config):
         "cleanup_delay_hours": 24,  # How many hours must have passed between a transaction being completed and it being cleaned
         "run_cleanup_time": {
             "hour": 1,
+            "minute": "0",
+            "second": "0",
+        },
+        "reminder_refresh_time": {
+            "hour": "*/5",
             "minute": "0",
             "second": "0",
         },

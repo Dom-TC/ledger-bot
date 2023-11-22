@@ -17,7 +17,10 @@ async def command_hello(
     interaction: discord.Interaction,
 ):
     """Says hello."""
-    channel_name = interaction.channel.name
+    if isinstance(interaction.channel, discord.channel.TextChannel):
+        channel_name = interaction.channel.name
+    else:
+        channel_name = "DM"
 
     if (
         config["channels"].get("include")
@@ -41,4 +44,5 @@ async def command_hello(
         )
         return
 
+    log.info(f"Saying hello to {interaction.user.name}")
     await interaction.response.send_message(f"Hi, {interaction.user.mention}")

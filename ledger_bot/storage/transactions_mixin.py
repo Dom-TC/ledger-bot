@@ -78,7 +78,7 @@ class TransactionsMixin:
 
         transaction_data = transaction.to_airtable(fields=fields)
         log.info(f"Adding transaction data: {transaction_data['fields']}")
-        if transaction.id:
+        if transaction.record_id:
             log.info(f"Updating transaction with id: {transaction_data['id']}")
             return await self.update_transaction(
                 transaction_data["id"], transaction_data["fields"]
@@ -97,6 +97,27 @@ class TransactionsMixin:
     ):
         log.debug(f"Retrieving transaction with id {transaction_id}")
         return await self._get(f"{self.wines_url}/{transaction_id}", session=session)
+
+    async def insert_transaction(
+        self, record: dict, session: Optional[ClientSession] = None
+    ) -> dict:
+        """
+        Inserts a transaction into the table.
+
+        Paramaters
+        ----------
+        record : dict
+            The record to insert
+
+        session : ClientSession, optional
+            The ClientSession to use
+
+        Returns
+        -------
+        dict
+            A Dictionary containing the inserted record
+        """
+        return await self._insert(self.wines_url, record, session)
 
     async def find_transaction_by_bot_message_id(self, message_id: str) -> Transaction:
         """Takes a message and returns any associated Transactions, else returns None."""
@@ -152,3 +173,9 @@ class TransactionsMixin:
             return None
         else:
             return transactions
+
+    async def get_transaction_from_record_id(self, record_id: str) -> Transaction:
+        """Returns the transaction object for the transaction with a given AirTable record id."""
+        log.info(f"Finding transaction with record {record_id}")
+        transaction_object = await self._retrieve_transaction(record_id)
+        return Transaction.from_airtable(transaction_object)
