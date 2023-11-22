@@ -249,6 +249,7 @@ class LedgerBot(discord.Client):
                 config=self.config,
                 storage=self.storage,
             )
+
         elif payload.emoji.name == self.config["emojis"]["reminder"]:
             # Watch
             log.info(
@@ -263,6 +264,7 @@ class LedgerBot(discord.Client):
                     reminders=self.reminders,
                 ),
             )
+
 
     async def on_disconnect(self):
         log.warning("Bot disconnected")

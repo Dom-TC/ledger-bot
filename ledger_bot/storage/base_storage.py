@@ -183,3 +183,4 @@ class BaseStorage:
         upsert_fields: Optional[list[str]] = None,
     ) -> dict:
         return await self._modify(url, "patch", record, upsert_fields, session)
+
