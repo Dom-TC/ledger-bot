@@ -1,8 +1,10 @@
 """Base storage class to interface with the end database."""
 
 
+import asyncio
 import logging
-from typing import List, Literal, Optional
+from collections.abc import AsyncGenerator
+from typing import List, Literal, Optional, Union
 
 from aiohttp import ClientSession
 
@@ -14,12 +16,23 @@ log = logging.getLogger(__name__)
 
 
 class BaseStorage:
+    semaphore = asyncio.Semaphore(5)
+
+    def __init__(
+        self,
+        airtable_base: str,
+        airtable_key: str,
+    ):
+        self.airtable_base = airtable_base
+        self.airtable_key = airtable_key
+        self.auth_header = {"Authorization": f"Bearer {self.airtable_key}"}
+
     async def _get(
         self,
         url: str,
         params: Optional[dict[str, str]] = None,
         session: Optional[ClientSession] = None,
-    ):
+    ) -> dict:
         async def run_fetch(session_to_use: ClientSession):
             async with session_to_use.get(
                 url,
@@ -27,12 +40,11 @@ class BaseStorage:
                 headers=self.auth_header,
             ) as r:
                 if r.status != 200:
-                    print(r.url)
                     raise AirTableError(r.url, await r.json())
-                response: dict = await r.json()
-                return response
+                motto_response: dict = await r.json()
+                return motto_response
 
-        async with self._semaphore:
+        async with self.semaphore:
             result = await run_request(run_fetch, session)
             await airtable_sleep()
             return result
@@ -55,20 +67,26 @@ class BaseStorage:
     async def _iterate(
         self,
         base_url: str,
-        filter_by_formula: str,
+        *,
+        filter_by_formula: Optional[str],
         sort: Optional[list[str]] = None,
         session: Optional[ClientSession] = None,
-    ):
-        params = {"filterByFormula": filter_by_formula}
+        fields: Optional[Union[list[str], str]] = None,
+    ) -> AsyncGenerator[dict]:
+        params = {}
+        if filter_by_formula:
+            params = {"filterByFormula": filter_by_formula}
         if sort:
             for idx, field in enumerate(sort):
                 params.update({"sort[{index}][field]".format(index=idx): field})
-                params.update({"sort[{index}][direction]".format(index=idx): "desc"})
+                params.update({"sort[{index}][direction]".format(index=idx): "asc"})
+        if fields:
+            params.update({"fields[]": fields})
         offset = None
         while True:
             if offset:
                 params.update(offset=offset)
-            async with self._semaphore:
+            async with self.semaphore:
                 response = await self._get(base_url, params, session)
                 await airtable_sleep()
             records = response.get("records", [])
@@ -99,10 +117,9 @@ class BaseStorage:
                 headers=self.auth_header,
             ) as r:
                 if r.status != 200:
-                    log.warning(f"Failed to delete IDs: {records_to_delete}")
                     raise AirTableError(r.url, await r.json())
 
-        async with self._semaphore:
+        async with self.semaphore:
             result = await run_request(run_delete, session)
             await airtable_sleep()
             return result
@@ -112,32 +129,58 @@ class BaseStorage:
         url: str,
         method: Literal["post", "patch"],
         record: dict,
+        upsert_fields: Optional[list[str]],
         session: Optional[ClientSession] = None,
     ):
         async def run_insert(session_to_use: ClientSession):
-            data = {"fields": record}
+            is_single_record = "records" not in record
+            has_fields = "fields" not in record
+            data: dict[str, Union[str, dict, list]] = (
+                {"fields": record} if is_single_record and has_fields else record
+            )
+            entity_url = url
+            if upsert_fields is not None:
+                if "records" not in record:
+                    data["records"] = [data.copy()]
+                    data.pop("fields")
+                    if data.get("id"):
+                        data.pop("id")
+                data["performUpsert"] = {"fieldsToMergeOn": upsert_fields}
+            elif is_single_record and (record_id := record.get("id")):
+                entity_url += "/" + record_id
+                record.pop("id")
+
             async with session_to_use.request(
                 method,
-                url,
+                entity_url,
                 json=data,
                 headers=self.auth_header,
             ) as r:
                 if r.status != 200:
-                    raise AirTableError(r.url, await r.json())
+                    raise AirTableError(r.url, await r.json(), data)
                 response: dict = await r.json()
                 return response
 
-        async with self._semaphore:
+        async with self.semaphore:
             result = await run_request(run_insert, session)
             await airtable_sleep()
             return result
 
     async def _insert(
-        self, url: str, record: dict, session: Optional[ClientSession] = None
-    ):
-        return await self._modify(url, "post", record, session)
+        self,
+        url: str,
+        record: dict,
+        session: Optional[ClientSession] = None,
+        upsert_fields: Optional[list[str]] = None,
+    ) -> dict:
+        return await self._modify(url, "post", record, upsert_fields, session)
 
     async def _update(
-        self, url: str, record: dict, session: Optional[ClientSession] = None
-    ):
-        return await self._modify(url, "patch", record, session)
+        self,
+        url: str,
+        record: dict,
+        session: Optional[ClientSession] = None,
+        upsert_fields: Optional[list[str]] = None,
+    ) -> dict:
+        return await self._modify(url, "patch", record, upsert_fields, session)
+

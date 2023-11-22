@@ -24,7 +24,10 @@ async def command_new_sale(
     price: float,
 ):
     """Add transaction to Airtable."""
-    channel_name = interaction.channel.name
+    if isinstance(interaction.channel, discord.channel.TextChannel):
+        channel_name = interaction.channel.name
+    else:
+        channel_name = "DM"
 
     if (
         config["channels"].get("include")

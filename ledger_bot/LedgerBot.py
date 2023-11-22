@@ -15,8 +15,10 @@ from .process_transactions import (
     mark_transaction_paid,
 )
 from .processs_message import process_message
+from .reminder_manager import ReminderManager
 from .scheduled_commands import cleanup
 from .storage import AirtableStorage
+from .views import CreateReminderButton
 
 log = logging.getLogger(__name__)
 
@@ -42,12 +44,17 @@ class LedgerBot(discord.Client):
     """
 
     def __init__(
-        self, config: dict, storage: AirtableStorage, scheduler: AsyncIOScheduler
+        self,
+        config: dict,
+        storage: AirtableStorage,
+        scheduler: AsyncIOScheduler,
+        reminders: ReminderManager,
     ):
         self.config = config
         self.storage = storage
         self.guild = discord.Object(id=self.config["guild"])
         self.scheduler = scheduler
+        self.reminders = reminders
 
         log.info(f"Set guild: {self.config['guild']}")
         log.info(f"Watching channels: {self.config['channels']}")
@@ -59,6 +66,7 @@ class LedgerBot(discord.Client):
         log.info("Scheduling jobs...")
         scheduler.add_job(
             func=cleanup,
+            name="Cleanup",
             kwargs={"client": self, "storage": self.storage},
             trigger="cron",
             hour=config["run_cleanup_time"]["hour"],
@@ -109,13 +117,14 @@ class LedgerBot(discord.Client):
         # Process messages
         await process_message(self, message)
 
-    async def on_raw_reaction_add(self, payload):
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         # Check if valid reaction emoji
         if payload.emoji.name not in [
             self.config["emojis"]["approval"],
             self.config["emojis"]["cancel"],
             self.config["emojis"]["paid"],
             self.config["emojis"]["delivered"],
+            self.config["emojis"]["reminder"],
         ]:
             return
 
@@ -140,11 +149,21 @@ class LedgerBot(discord.Client):
 
         # Check if valid message
         target_transaction = await self.storage.find_transaction_by_bot_message_id(
-            payload.message_id
+            str(payload.message_id)
         )
         if target_transaction is None:
             log.info(
                 f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Invalid target message"
+            )
+            return
+        if target_transaction.buyer_id is None:
+            log.info(
+                f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Target message doesn't contain valid buyer_id"
+            )
+            return
+        if target_transaction.seller_id is None:
+            log.info(
+                f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Target message doesn't contain valid seller_id"
             )
             return
 
@@ -230,6 +249,22 @@ class LedgerBot(discord.Client):
                 config=self.config,
                 storage=self.storage,
             )
+
+        elif payload.emoji.name == self.config["emojis"]["reminder"]:
+            # Watch
+            log.info(
+                f"Processing reminder reaction from {reactor.name} on message {payload.message_id}"
+            )
+            await reactor.send(
+                content=f'Click here to add a reminder for "*{target_transaction.wine}*" from {buyer.mention} to {seller.mention} for £{target_transaction.price}',
+                view=CreateReminderButton(
+                    storage=self.storage,
+                    transaction=target_transaction,
+                    user=reactor,
+                    reminders=self.reminders,
+                ),
+            )
+
 
     async def on_disconnect(self):
         log.warning("Bot disconnected")

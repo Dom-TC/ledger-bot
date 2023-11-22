@@ -104,29 +104,8 @@ class MembersMixin:
         return Member.from_airtable(member_record)
 
     @cached(LRUCache(maxsize=64))
-    async def get_member_from_record_id(self, record_id: int) -> Member:
+    async def get_member_from_record_id(self, record_id: str) -> Member:
         """Returns the member object for the member with a given AirTable record id."""
         log.info(f"Finding member with record {record_id}")
         member_record = await self._retrieve_member(record_id)
         return Member.from_airtable(member_record)
-
-    async def insert_transaction(
-        self, record: dict, session: Optional[ClientSession] = None
-    ) -> dict:
-        """
-        Inserts a transaction into the table.
-
-        Paramaters
-        ----------
-        record : dict
-            The record to insert
-
-        session : ClientSession, optional
-            The ClientSession to use
-
-        Returns
-        -------
-        dict
-            A Dictionary containing the inserted record
-        """
-        return await self._insert(self.wines_url, record, session)

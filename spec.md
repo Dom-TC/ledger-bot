@@ -60,3 +60,17 @@ Price: <price>
 <paid_emoji> Paid:
 <delivered_emoji> Delivered:
 ```
+
+## New Reminder Flow
+
+1. User reacts to post
+2. Show modal asking for days / hours / statys
+3. Store reminder
+
+## Reminders ToDo.
+
+1. Create New Reminder
+2. Add jobs for each reminder
+3. Process reminder at correct time
+4. DM command to list reminders
+5. DM command to remove reminders

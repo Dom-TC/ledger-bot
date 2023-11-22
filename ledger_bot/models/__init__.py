@@ -1,8 +1,8 @@
 """The data models for ledger_bot."""
 
-from . import bot_message, member, model, transaction
+from . import bot_message, member, reminder, transaction
 
-Model = model.Model
 Member = member.Member
 Transaction = transaction.Transaction
 BotMessage = bot_message.BotMessage
+Reminder = reminder.Reminder

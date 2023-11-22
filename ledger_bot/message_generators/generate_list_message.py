@@ -2,7 +2,7 @@
 
 import logging
 import re
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from ledger_bot.models import BotMessage, Transaction
 from ledger_bot.storage import AirtableStorage
@@ -22,7 +22,6 @@ async def _get_latest_message_link(transaction: Transaction, storage: AirtableSt
 
     link = f"- https://discord.com/channels/{message.guild_id}/{message.channel_id}/{message.bot_message_id}"
     return link
-
 
 async def _build_transaction_lists(
     transactions: List[Transaction], user_id: int, storage: AirtableStorage
@@ -86,6 +85,7 @@ async def _build_transaction_lists(
             section = "selling"
             other_party = transaction.buyer_discord_id
         elif int(transaction.buyer_discord_id) == user_id:
+
             log.debug("User is buyer")
             section = "buying"
             other_party = transaction.seller_discord_id
@@ -108,7 +108,7 @@ async def _build_transaction_lists(
         transaction_lists[section][sub_section].append(
             {
                 "wine_name": transaction.wine,
-                "price": transaction.price,
+                "price": "{:.2f}".format(transaction.price),
                 "other_party": other_party,
                 "last_message_link": last_message_link,
             }

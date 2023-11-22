@@ -51,12 +51,32 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
                 "description": "Mark a transaction as delivered.",
                 "requires_dev": False,
             },
+            {
+                "reaction": config["emojis"]["reminder"],
+                "description": "Set a reminder for a transaction.",
+                "requires_dev": False,
+            },
         ],
         "Channel Commands": [
             {
                 "command": "/new_sale",
                 "args": ["wine_name", "buyer", "price"],
                 "description": "Creates a new sale transaction.",
+                "requires_dev": False,
+            },
+            {
+                "command": "/new_split",
+                "args": [
+                    "wine_name",
+                    "price",
+                    "buyer_1",
+                    "buyer_2",
+                    "buyer_3",
+                    "buyer_4",
+                    "buyer_5",
+                    "buyer_6",
+                ],
+                "description": "Creates a new six bottle split.",
                 "requires_dev": False,
             },
             {
@@ -114,6 +134,12 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
                 "args": [],
                 "description": "Returns a list of your transactions",
                 "requires_dev": False,
+            },
+            {
+                "command": "!dev refresh_reminders",
+                "args": [],
+                "description": "Refreshes the scheduled reminders",
+                "requires_dev": True,
             },
         ],
     }
