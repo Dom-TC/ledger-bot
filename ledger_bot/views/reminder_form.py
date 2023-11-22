@@ -130,7 +130,7 @@ class ReminderForm(discord.ui.Modal, title="Create Reminder In..."):
         log.debug(f"{self.reminder} / {type(self.reminder)}")
 
         await interaction.response.send_message(
-            content=f"Your reminder will be scheduled for <t:{display_time}:f> (<t:{display_time}:R>).\nWould you like to add a filter? The reminder will only be sent if the filter **hasn't** been met.",
+            content=f"Your reminder will be scheduled for <t:{display_time}:f> (<t:{display_time}:R>).\nWould you like to add a filter? The reminder will only be sent if the filter **hasn't** been met.\nPress Save to confirm your reminder.",
             view=SetFilterView(
                 storage=self.storage,
                 reminder=self.reminder,

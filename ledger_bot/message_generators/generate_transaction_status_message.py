@@ -125,9 +125,11 @@ def generate_transaction_status_message(
         delivered_decleration = f"Delivered: {config['emojis']['status_unconfirmed']} to mark this as delivered, please react with {config['emojis']['delivered']}"
 
     if is_approved is False and is_cancelled is False:
-        cancel_message = f"\n\n*To cancel this transaction, please react with {config['emojis']['cancel']}*"
+        cancel_message = f"*To cancel this transaction, please react with {config['emojis']['cancel']}*\n"
     else:
         cancel_message = ""
+
+    footer_message = f"*To set a reminder for this transaction, please react with {config['emojis']['reminder']} and follow the DMed instructions.*"
 
     # Build message_contents from components
     message_contents = (
@@ -142,7 +144,10 @@ def generate_transaction_status_message(
         + paid_decleration
         + "\n"
         + delivered_decleration
+        + "\n"
+        + "\n"
         + cancel_message
+        + footer_message
     )
 
     return message_contents

@@ -173,3 +173,9 @@ class TransactionsMixin:
             return None
         else:
             return transactions
+
+    async def get_transaction_from_record_id(self, record_id: str) -> Transaction:
+        """Returns the transaction object for the transaction with a given AirTable record id."""
+        log.info(f"Finding transaction with record {record_id}")
+        transaction_object = await self._retrieve_transaction(record_id)
+        return Transaction.from_airtable(transaction_object)

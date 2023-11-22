@@ -74,6 +74,9 @@ def start_bot():
         config=config, storage=storage, scheduler=scheduler, reminders=reminder_manager
     )
 
+    # Pass client back into reminder manager.
+    reminder_manager.set_client(client)
+
     # Build slash commands
     setup_slash(client, config, storage)
 
