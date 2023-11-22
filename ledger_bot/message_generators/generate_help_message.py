@@ -65,6 +65,21 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
                 "requires_dev": False,
             },
             {
+                "command": "/new_split",
+                "args": [
+                    "wine_name",
+                    "price",
+                    "buyer_1",
+                    "buyer_2",
+                    "buyer_3",
+                    "buyer_4",
+                    "buyer_5",
+                    "buyer_6",
+                ],
+                "description": "Creates a new six bottle split.",
+                "requires_dev": False,
+            },
+            {
                 "command": "/hello",
                 "args": [],
                 "description": "Says hello",
