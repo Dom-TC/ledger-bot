@@ -13,6 +13,7 @@ from .command_hello import command_hello
 from .command_help import command_help
 from .command_list import command_list
 from .command_new_sale import command_new_sale
+from .command_new_split import command_new_split
 
 log = logging.getLogger(__name__)
 
@@ -63,6 +64,43 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
             interaction=interaction,
             wine_name=wine_name,
             buyer=buyer,
+            price=price,
+        )
+
+    @client.tree.command(
+        guild=client.guild,
+        name="new_split",
+        description="Split a wine between six people",
+    )
+    @app_commands.describe(
+        wine_name="The wine you're selling.",
+        price="The price of the wine",
+        buyer_1="The name of the the first person you're selling to.",
+        buyer_2="The name of the the second person you're selling to.",
+        buyer_3="The name of the the third person you're selling to.",
+        buyer_4="The name of the the fourth person you're selling to.",
+        buyer_5="The name of the the fifth person you're selling to.",
+        buyer_6="The name of the the sixth person you're selling to.",
+    )
+    async def new_split(
+        interaction: discord.Interaction,
+        wine_name: str,
+        price: float,
+        buyer_1: discord.Member,
+        buyer_2: discord.Member,
+        buyer_3: discord.Member,
+        buyer_4: discord.Member,
+        buyer_5: discord.Member,
+        buyer_6: discord.Member,
+    ):
+        buyers = [buyer_1, buyer_2, buyer_3, buyer_4, buyer_5, buyer_6]
+        await command_new_split(
+            client=client,
+            config=config,
+            storage=storage,
+            interaction=interaction,
+            wine_name=wine_name,
+            buyers=buyers,
             price=price,
         )
 
