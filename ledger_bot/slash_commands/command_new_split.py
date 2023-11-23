@@ -25,6 +25,8 @@ async def command_new_split(
     price: float,
 ):
     """Add transaction to Airtable."""
+    log.debug(f"Processing command {interaction.command}")
+
     if isinstance(interaction.channel, discord.channel.TextChannel):
         channel_name = interaction.channel.name
     else:
