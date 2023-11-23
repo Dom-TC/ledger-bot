@@ -123,6 +123,12 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
                 "description": "Returns a list of your transactions",
                 "requires_dev": False,
             },
+            {
+                "command": "/stats",
+                "args": [],
+                "description": f"Returns stats about {config['name']}",
+                "requires_dev": False,
+            },
         ],
         "DM Commands": [
             {
@@ -166,6 +172,12 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
                 "args": [],
                 "description": "Refreshes the scheduled reminders",
                 "requires_dev": True,
+            },
+            {
+                "command": "!stats",
+                "args": [],
+                "description": f"Returns stats about {config['name']}",
+                "requires_dev": False,
             },
         ],
     }

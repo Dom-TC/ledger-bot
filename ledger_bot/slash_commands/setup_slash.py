@@ -14,6 +14,7 @@ from .command_help import command_help
 from .command_list import command_list
 from .command_new_sale import command_new_sale
 from .command_new_split import command_new_split
+from .command_stats import command_stats
 
 log = logging.getLogger(__name__)
 
@@ -93,6 +94,7 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
         buyer_5: discord.Member,
         buyer_6: discord.Member,
     ):
+        log.info(f"Recognised command: /new_split from {interaction.user.name}")
         buyers = [buyer_1, buyer_2, buyer_3, buyer_4, buyer_5, buyer_6]
         await command_new_split(
             client=client,
@@ -124,6 +126,7 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
         buyer_2: discord.Member,
         buyer_3: discord.Member,
     ):
+        log.info(f"Recognised command: /new_split_3 from {interaction.user.name}")
         buyers = [buyer_1, buyer_2, buyer_3]
         await command_new_split(
             client=client,
@@ -173,6 +176,7 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
         buyer_11: discord.Member,
         buyer_12: discord.Member,
     ):
+        log.info(f"Recognised command: /new_split_12 from {interaction.user.name}")
         buyers = [
             buyer_1,
             buyer_2,
@@ -213,5 +217,15 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
         """Returns a list of the users transactions."""
         log.info(f"Recognised command: /list from {interaction.user.name}")
         await command_list(
+            client=client, config=config, storage=storage, interaction=interaction
+        )
+
+    @client.tree.command(
+        guild=client.guild, name="stats", description="View your stats"
+    )
+    async def stats(interaction: discord.Interaction):
+        """Returns a list of the users transactions."""
+        log.info(f"Recognised command: /stats from {interaction.user.name}")
+        await command_stats(
             client=client, config=config, storage=storage, interaction=interaction
         )
