@@ -105,6 +105,99 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
         )
 
     @client.tree.command(
+        guild=client.guild,
+        name="new_split_3",
+        description="Split a wine between three people",
+    )
+    @app_commands.describe(
+        wine_name="The wine you're selling.",
+        price="The price of the wine",
+        buyer_1="The name of the the first person you're selling to.",
+        buyer_2="The name of the the second person you're selling to.",
+        buyer_3="The name of the the third person you're selling to.",
+    )
+    async def new_split_3(
+        interaction: discord.Interaction,
+        wine_name: str,
+        price: float,
+        buyer_1: discord.Member,
+        buyer_2: discord.Member,
+        buyer_3: discord.Member,
+    ):
+        buyers = [buyer_1, buyer_2, buyer_3]
+        await command_new_split(
+            client=client,
+            config=config,
+            storage=storage,
+            interaction=interaction,
+            wine_name=wine_name,
+            buyers=buyers,
+            price=price,
+        )
+
+    @client.tree.command(
+        guild=client.guild,
+        name="new_split_12",
+        description="Split a wine between twelve people",
+    )
+    @app_commands.describe(
+        wine_name="The wine you're selling.",
+        price="The price of the wine",
+        buyer_1="The name of the the first person you're selling to.",
+        buyer_2="The name of the the second person you're selling to.",
+        buyer_3="The name of the the third person you're selling to.",
+        buyer_4="The name of the the fourth person you're selling to.",
+        buyer_5="The name of the the fifth person you're selling to.",
+        buyer_6="The name of the the sixth person you're selling to.",
+        buyer_7="The name of the the seventh person you're selling to.",
+        buyer_8="The name of the the eighth person you're selling to.",
+        buyer_9="The name of the the nineth person you're selling to.",
+        buyer_10="The name of the the tenth person you're selling to.",
+        buyer_11="The name of the the eleventh person you're selling to.",
+        buyer_12="The name of the the twelfth person you're selling to.",
+    )
+    async def new_split_12(
+        interaction: discord.Interaction,
+        wine_name: str,
+        price: float,
+        buyer_1: discord.Member,
+        buyer_2: discord.Member,
+        buyer_3: discord.Member,
+        buyer_4: discord.Member,
+        buyer_5: discord.Member,
+        buyer_6: discord.Member,
+        buyer_7: discord.Member,
+        buyer_8: discord.Member,
+        buyer_9: discord.Member,
+        buyer_10: discord.Member,
+        buyer_11: discord.Member,
+        buyer_12: discord.Member,
+    ):
+        buyers = [
+            buyer_1,
+            buyer_2,
+            buyer_3,
+            buyer_4,
+            buyer_5,
+            buyer_6,
+            buyer_7,
+            buyer_8,
+            buyer_9,
+            buyer_10,
+            buyer_11,
+            buyer_12,
+        ]
+        await command_new_split(
+            client=client,
+            config=config,
+            storage=storage,
+            interaction=interaction,
+            wine_name=wine_name,
+            buyers=buyers,
+            price=price,
+        )
+
+    @client.tree.command(
         guild=client.guild, name="help", description="Get help information"
     )
     async def slash_help(interaction: discord.Interaction):
