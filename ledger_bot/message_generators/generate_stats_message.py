@@ -121,6 +121,13 @@ def generate_stats_message(
     user_count_buyer_all = buyer_dataframe.shape[0]
     user_count_seller_all = seller_dataframe.shape[0]
 
+    seller_has_transactions = bool(
+        not seller_dataframe[~seller_dataframe["is_cancelled"]].empty
+    )
+    buyer_has_transactions = bool(
+        not buyer_dataframe[~buyer_dataframe["is_cancelled"]].empty
+    )
+
     user_count_buyer_unapproved = buyer_dataframe[
         buyer_dataframe["is_none_status"]
     ].shape[0]
@@ -153,39 +160,45 @@ def generate_stats_message(
         seller_dataframe["is_cancelled"]
     ].shape[0]
 
-    user_average_purchase_price = buyer_dataframe[~buyer_dataframe["is_cancelled"]][
-        "price"
-    ].mean()
-    user_total_purchase_price = buyer_dataframe[~buyer_dataframe["is_cancelled"]][
-        "price"
-    ].sum()
-    user_max_purchase_wine_name = buyer_dataframe.loc[
-        buyer_dataframe[~buyer_dataframe["is_cancelled"]]["price"].idxmax(), "wine"
-    ]
-    user_max_purchase_wine_seller = buyer_dataframe.loc[
-        buyer_dataframe[~buyer_dataframe["is_cancelled"]]["price"].idxmax(),
-        "seller_discord_id",
-    ]
-    user_max_purchase_wine_price = buyer_dataframe.loc[
-        buyer_dataframe[~buyer_dataframe["is_cancelled"]]["price"].idxmax(), "price"
-    ]
+    if buyer_has_transactions:
+        user_average_purchase_price = buyer_dataframe[~buyer_dataframe["is_cancelled"]][
+            "price"
+        ].mean()
+        user_total_purchase_price = buyer_dataframe[~buyer_dataframe["is_cancelled"]][
+            "price"
+        ].sum()
 
-    user_average_sale_price = seller_dataframe[~seller_dataframe["is_cancelled"]][
-        "price"
-    ].mean()
-    user_total_sale_price = seller_dataframe[~seller_dataframe["is_cancelled"]][
-        "price"
-    ].sum()
-    user_max_sale_wine_name = seller_dataframe.loc[
-        seller_dataframe[~seller_dataframe["is_cancelled"]]["price"].idxmax(), "wine"
-    ]
-    user_max_sale_wine_buyer = seller_dataframe.loc[
-        seller_dataframe[~seller_dataframe["is_cancelled"]]["price"].idxmax(),
-        "buyer_discord_id",
-    ]
-    user_max_sale_wine_price = seller_dataframe.loc[
-        seller_dataframe[~seller_dataframe["is_cancelled"]]["price"].idxmax(), "price"
-    ]
+        user_max_purchase_wine_name = buyer_dataframe.loc[
+            buyer_dataframe[~buyer_dataframe["is_cancelled"]]["price"].idxmax(), "wine"
+        ]
+        user_max_purchase_wine_seller = buyer_dataframe.loc[
+            buyer_dataframe[~buyer_dataframe["is_cancelled"]]["price"].idxmax(),
+            "seller_discord_id",
+        ]
+        user_max_purchase_wine_price = buyer_dataframe.loc[
+            buyer_dataframe[~buyer_dataframe["is_cancelled"]]["price"].idxmax(), "price"
+        ]
+
+    if seller_has_transactions:
+        user_average_sale_price = seller_dataframe[~seller_dataframe["is_cancelled"]][
+            "price"
+        ].mean()
+        user_total_sale_price = seller_dataframe[~seller_dataframe["is_cancelled"]][
+            "price"
+        ].sum()
+
+        user_max_sale_wine_name = seller_dataframe.loc[
+            seller_dataframe[~seller_dataframe["is_cancelled"]]["price"].idxmax(),
+            "wine",
+        ]
+        user_max_sale_wine_buyer = seller_dataframe.loc[
+            seller_dataframe[~seller_dataframe["is_cancelled"]]["price"].idxmax(),
+            "buyer_discord_id",
+        ]
+        user_max_sale_wine_price = seller_dataframe.loc[
+            seller_dataframe[~seller_dataframe["is_cancelled"]]["price"].idxmax(),
+            "price",
+        ]
 
     # Server Stats
     server_count_all = dataframe.shape[0]
@@ -286,10 +299,15 @@ def generate_stats_message(
         else ""
     )
     output += "\n"
-    output += f"Your average purchase price is £{user_average_purchase_price:.2f}, and you've spent a total of £{user_total_purchase_price:.2f}.\n"
-    output += f"Your most expensive purchase is *{user_max_purchase_wine_name}* which you bought from <@{user_max_purchase_wine_seller}> for £{user_max_purchase_wine_price:.2f}.\n"
-    output += f"Your average sale price is £{user_average_sale_price:.2f}, and you've made a total of £{user_total_sale_price:.2f}.\n"
-    output += f"Your most expensive sale is *{user_max_sale_wine_name}* which you sold to <@{user_max_sale_wine_buyer}> for £{user_max_sale_wine_price:.2f}.\n"
+
+    if buyer_has_transactions:
+        output += f"Your average purchase price is £{user_average_purchase_price:.2f}, and you've spent a total of £{user_total_purchase_price:.2f}.\n"
+        output += f"Your most expensive purchase is *{user_max_purchase_wine_name}* which you bought from <@{user_max_purchase_wine_seller}> for £{user_max_purchase_wine_price:.2f}.\n"
+
+    if seller_has_transactions:
+        output += f"Your average sale price is £{user_average_sale_price:.2f}, and you've made a total of £{user_total_sale_price:.2f}.\n"
+        output += f"Your most expensive sale is *{user_max_sale_wine_name}* which you sold to <@{user_max_sale_wine_buyer}> for £{user_max_sale_wine_price:.2f}.\n"
+
     output += "\n"
     output += "**Server Stats**\n"
     output += f"There have been {server_count_all} transactions recorded in the server. You account for {user_sales_percentage}% of transactions in the server!\n"
