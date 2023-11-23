@@ -4,6 +4,8 @@ import logging
 from typing import List, Optional
 
 from aiohttp import ClientSession
+from asyncache import cached
+from cachetools import TTLCache
 
 from ledger_bot.models import BotMessage, Transaction
 
@@ -179,3 +181,13 @@ class TransactionsMixin:
         log.info(f"Finding transaction with record {record_id}")
         transaction_object = await self._retrieve_transaction(record_id)
         return Transaction.from_airtable(transaction_object)
+
+    # Cache for 12 hours
+    # @cached(cache=TTLCache(maxsize=128, ttl=43200))
+    async def get_all_transactions(self) -> [List[Transaction]]:
+        log.info("Getting all transactions")
+        transactions = await self._list_transactions(None)
+        if len(transactions) == 0:
+            return None
+        else:
+            return transactions

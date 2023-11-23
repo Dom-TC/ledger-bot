@@ -9,6 +9,7 @@ from .command_dev import command_dev
 from .command_help import command_help
 from .command_list import command_list
 from .command_reminder import command_reminder
+from .command_stats import command_stats
 from .command_version import command_version
 from .get_dm_channel import get_dm_channel
 
@@ -68,6 +69,10 @@ async def process_dm(client: "LedgerBot", message: Message):
     elif message_content.startswith("!reminder"):
         log.info("Recognised command: !watch")
         await command_reminder(client=client, message=message, dm_channel=dm_channel)
+
+    elif message_content.startswith("!stats"):
+        log.info("Recognised command: !stats")
+        await command_stats(client=client, message=message, dm_channel=dm_channel)
 
     else:
         await dm_channel.send(
