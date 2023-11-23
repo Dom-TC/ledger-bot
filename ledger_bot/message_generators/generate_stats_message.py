@@ -203,6 +203,7 @@ def generate_stats_message(
     # Server Stats
     server_count_all = dataframe.shape[0]
     server_average_price = dataframe[~dataframe["is_cancelled"]]["price"].mean()
+    server_total_price = dataframe[~dataframe["is_cancelled"]]["price"].sum()
     server_max_wine_name = dataframe.loc[
         dataframe[~dataframe["is_cancelled"]]["price"].idxmax(), "wine"
     ]
@@ -310,7 +311,7 @@ def generate_stats_message(
 
     output += "\n"
     output += "**Server Stats**\n"
-    output += f"There have been {server_count_all} transactions recorded in the server. You account for {user_sales_percentage}% of transactions in the server!\n"
+    output += f"There have been {server_count_all} transactions recorded in the server, with a total value of £{server_total_price:.2f}. You account for {user_sales_percentage}% of transactions in the server!\n"
     output += f"The average price has been £{server_average_price:.2f}.\n"
     output += f"The most expensive sale recorded was *{server_max_wine_name}* from <@{server_max_wine_seller}> to <@{server_max_wine_buyer}> for £{server_max_wine_price:.2f}.\n"
     output += "\n"
