@@ -3,6 +3,7 @@ from . import (
     generate_help_message,
     generate_list_message,
     generate_reminder_status_message,
+    generate_stats_message,
     generate_transaction_status_message,
 )
 
@@ -14,3 +15,4 @@ generate_list_message = generate_list_message.generate_list_message
 generate_reminder_status_message = (
     generate_reminder_status_message.generate_reminder_status_message
 )
+generate_stats_message = generate_stats_message.generate_stats_message
