@@ -10,6 +10,23 @@ from ledger_bot.storage import AirtableStorage
 log = logging.getLogger(__name__)
 
 
+def _split_text_on_newline(text, chunk_length) -> List:
+    chunks = []
+    current_chunk = ""
+
+    for line in text.splitlines(True):
+        if len(current_chunk) + len(line) <= chunk_length:
+            current_chunk += line
+        else:
+            chunks.append(current_chunk)
+            current_chunk = line
+
+    if current_chunk:
+        chunks.append(current_chunk)
+
+    return chunks
+
+
 async def _get_latest_message_link(transaction: Transaction, storage: AirtableStorage):
     if transaction.bot_messages is None:
         return ""
@@ -22,6 +39,7 @@ async def _get_latest_message_link(transaction: Transaction, storage: AirtableSt
 
     link = f"- https://discord.com/channels/{message.guild_id}/{message.channel_id}/{message.bot_message_id}"
     return link
+
 
 async def _build_transaction_lists(
     transactions: List[Transaction], user_id: int, storage: AirtableStorage
@@ -85,7 +103,6 @@ async def _build_transaction_lists(
             section = "selling"
             other_party = transaction.buyer_discord_id
         elif int(transaction.buyer_discord_id) == user_id:
-
             log.debug("User is buyer")
             section = "buying"
             other_party = transaction.seller_discord_id
@@ -151,13 +168,19 @@ def _split_message(intro: str, purchases_content: str, sales_content: str) -> Li
             # Remove first line (otherwise it's classed as it's own section and sent as a single message)
             purchases_content = purchases_content[15:]
 
+            # Split on section title
             sections = re.split(r"\n(?=[A-Za-z ]+:)", purchases_content)
 
             for i, section in enumerate(sections):
                 if i == 0:
                     section = "**Purchases**\n" + section
 
-                output.append(section)
+                if len(section) < 1995:
+                    output.append(section)
+                else:
+                    # Further split section
+                    sub_sections = _split_text_on_newline(section, 1995)
+                    output = output + sub_sections
 
         if len(sales_content) < 2000:
             output.append(sales_content)
@@ -167,13 +190,19 @@ def _split_message(intro: str, purchases_content: str, sales_content: str) -> Li
             # Remove first line (otherwise it's classed as it's own section and sent as a single message)
             sales_content = sales_content[11:]
 
+            # Split on section title
             sections = re.split(r"\n(?=[A-Za-z ]+:)", sales_content)
 
             for i, section in enumerate(sections):
                 if i == 0:
                     section = "**Sales**\n" + section
 
-                output.append(section)
+                if len(section) < 1995:
+                    output.append(section)
+                else:
+                    # Further split section
+                    sub_sections = _split_text_on_newline(section, 1995)
+                    output = output + sub_sections
 
     else:
         output = [intro + purchases_content + sales_content]
