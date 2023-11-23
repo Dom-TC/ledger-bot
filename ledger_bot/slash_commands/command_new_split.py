@@ -52,16 +52,9 @@ async def command_new_split(
         )
         return
 
-    # If user isn't a maintainer, they shouldn't be able to sell to either ledger-bot, or themselves.
+    # If user isn't a maintainer, they shouldn't be able to sell to either ledger-bot.
     if interaction.user.id not in client.config["maintainer_ids"]:
         for buyer in buyers:
-            if buyer.id == interaction.user.id:
-                log.info(f"Rejecting sale to self from {interaction.user.name}")
-                await interaction.response.send_message(
-                    content="You can't sell a wine to yourself!", ephemeral=True
-                )
-                return
-
             if buyer.id == client.user.id:
                 log.info(f"Rejecting sale to ledger-bot from {interaction.user.name}")
                 await interaction.response.send_message(
@@ -78,6 +71,11 @@ async def command_new_split(
 
     for buyer in buyers:
         log.info("Processing new sale...")
+
+        if buyer.id == interaction.user.id:
+            log.info("Ignoring sale to self")
+            continue
+
         log.info(f"Getting / adding seller: {interaction.user}")
         seller_record = await storage.get_or_add_member(interaction.user)
         log.info(f"Getting / adding buyer: {buyer}")
