@@ -15,6 +15,7 @@ from .process_transactions import (
     mark_transaction_paid,
 )
 from .processs_message import process_message
+from .reactions import add_reaction, remove_reaction
 from .reminder_manager import ReminderManager
 from .scheduled_commands import cleanup
 from .storage import AirtableStorage
@@ -167,6 +168,16 @@ class LedgerBot(discord.Client):
             )
             return
 
+        # After this point all are checks are slow, so we add the reaction now.
+        # The valid message check above is also pretty slow, but we'd then add the reaction to every message that received 👍
+        # So we add this after those checks
+        await add_reaction(
+            client=self,
+            message_id=payload.message_id,
+            reaction=self.config["emojis"]["thinking"],
+            channel_obj=channel,
+        )
+
         # Get buyer & seller discord.Member objects
         buyer_id = await self.storage.get_member_from_record_id(
             target_transaction.buyer_id
@@ -181,6 +192,11 @@ class LedgerBot(discord.Client):
         if reactor.id != buyer.id and reactor.id != seller.id:
             log.info(
                 f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Reactor is neither buyer nor seller"
+            )
+            await remove_reaction(
+                client=self,
+                message_id=payload.message_id,
+                reaction=self.config["emojis"]["thinking"],
             )
             return
 
@@ -265,6 +281,13 @@ class LedgerBot(discord.Client):
                 ),
             )
 
+        # Remove our thinking reaction
+        await remove_reaction(
+            client=self,
+            message_id=payload.message_id,
+            reaction=self.config["emojis"]["thinking"],
+            channel_obj=channel,
+        )
 
     async def on_disconnect(self):
         log.warning("Bot disconnected")
