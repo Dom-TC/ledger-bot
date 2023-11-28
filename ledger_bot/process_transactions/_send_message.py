@@ -13,7 +13,7 @@ async def _send_message(
     response_contents: str,
     channel,
     target_transaction: Transaction,
-    previous_message_id: int,
+    previous_message_id: int | None,
     storage: AirtableStorage,
     config: dict,
 ):
@@ -32,7 +32,7 @@ async def _send_message(
     except AirTableError as error:
         log.error(f"An error occured storing the content in AirTable: {error}")
 
-    if config["delete_previous_bot_messages"]:
+    if config["delete_previous_bot_messages"] and previous_message_id is not None:
         log.info("delete_previous_bot_messages is true")
         log.info(f"Removing bot_message {previous_message_id}")
         old_message = await channel.fetch_message(previous_message_id)

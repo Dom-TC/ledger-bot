@@ -179,6 +179,12 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
                 "description": f"Returns stats about {config['name']}",
                 "requires_dev": False,
             },
+            {
+                "command": "!dev refresh_message",
+                "args": ["transaction_row_id", "optional: channel_id"],
+                "description": "Deletes all existing messages for a given transaction, and posts a new status update",
+                "requires_dev": False,
+            },
         ],
     }
 
