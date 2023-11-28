@@ -9,7 +9,7 @@ from ledger_bot.message_generators import generate_transaction_status_message
 from ledger_bot.models import BotMessage, Transaction
 from ledger_bot.storage import AirtableStorage
 
-from ._send_message import _send_message
+from .send_message import send_message
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
@@ -99,7 +99,7 @@ async def refresh_transaction(client: "LedgerBot", row_id: int, channel_id: int 
         is_cancelled=transaction.cancelled,
     )
 
-    await _send_message(
+    await send_message(
         response_contents=message_contents,
         channel=channel,
         target_transaction=transaction,
