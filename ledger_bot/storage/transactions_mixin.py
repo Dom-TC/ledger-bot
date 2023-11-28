@@ -191,3 +191,15 @@ class TransactionsMixin:
             return None
         else:
             return transactions
+
+    async def get_transaction_by_row_id(self, row_id: int) -> Transaction | None:
+        """Returns the transaction with the corrosponding row id."""
+        log.info(f"Getting transactions with row_id {row_id}")
+
+        filter_formula = f"IF(row_id={row_id},TRUE(), FALSE())"
+
+        transactions = await self._list_transactions(filter_formula)
+        if len(transactions) == 0:
+            return None
+        else:
+            return transactions[0]

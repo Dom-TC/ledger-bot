@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 import discord
 
+from ledger_bot.process_transactions import refresh_transaction
 from ledger_bot.reactions import add_reaction
 from ledger_bot.scheduled_commands import cleanup
 
@@ -50,3 +51,12 @@ async def command_dev(
     elif request.startswith("refresh_reminders"):
         await dm_channel.send("Refreshing reminders")
         await client.reminders.refresh_reminders()
+
+    elif request.startswith("refresh_message"):
+        row_id = int(request.split(" ")[1])
+        channel_id = int(request.split(" ")[2]) if len(request.split(" ")) > 2 else None
+        await dm_channel.send(f"Refreshing transaction: {row_id}")
+        response = await refresh_transaction(
+            client=client, row_id=row_id, channel_id=channel_id
+        )
+        await dm_channel.send(response)
