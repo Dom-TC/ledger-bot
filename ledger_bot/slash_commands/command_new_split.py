@@ -10,6 +10,7 @@ from ledger_bot.errors import AirTableError
 from ledger_bot.LedgerBot import LedgerBot
 from ledger_bot.message_generators import generate_transaction_status_message
 from ledger_bot.models import Transaction
+from ledger_bot.process_transactions import send_message
 from ledger_bot.storage import AirtableStorage
 
 log = logging.getLogger(__name__)
@@ -71,6 +72,7 @@ async def command_new_split(
 
     log.info("Processing split...")
 
+    count = 0
     for buyer in buyers:
         log.info("Processing new sale...")
 
@@ -134,19 +136,18 @@ async def command_new_split(
             wine_price=price,
             config=config,
         )
-        try:
-            await interaction.followup.send(response_contents)
+        await send_message(
+            response_contents=response_contents,
+            channel=interaction.channel,
+            target_transaction=transaction_record,
+            previous_message_id=None,
+            storage=storage,
+            config=config,
+        )
 
-            # We have to call a different command to get the message we just posted
-            bot_message = await interaction.original_response()
+        count += 1
 
-            await storage.record_bot_message(
-                message=bot_message, transaction=transaction_record
-            )
-
-        except discord.HTTPException as error:
-            log.error(f"An error occured sending the message: {error}")
-        except discord.ClientException as error:
-            log.error(f"Couldn't get response message channel: {error}")
-        except AirTableError as error:
-            log.error(f"An error occured storing the content in AirTable: {error}")
+    await interaction.followup.send(
+        f"{count} transactions have been created from your split.",
+        ephemeral=True,
+    )

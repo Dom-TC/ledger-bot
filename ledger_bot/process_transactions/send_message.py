@@ -1,3 +1,5 @@
+"""Helper function to send a message, removing all previous messages."""
+
 import logging
 
 import discord
@@ -9,7 +11,7 @@ from ledger_bot.storage import AirtableStorage
 log = logging.getLogger(__name__)
 
 
-async def _send_message(
+async def send_message(
     response_contents: str,
     channel,
     target_transaction: Transaction,

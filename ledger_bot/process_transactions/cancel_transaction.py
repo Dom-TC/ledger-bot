@@ -8,7 +8,7 @@ from ledger_bot.message_generators import generate_transaction_status_message
 from ledger_bot.models import Transaction
 from ledger_bot.storage import AirtableStorage
 
-from ._send_message import _send_message
+from .send_message import send_message
 
 log = logging.getLogger(__name__)
 
@@ -67,7 +67,7 @@ async def cancel_transaction(
         is_cancelled=True,
     )
 
-    await _send_message(
+    await send_message(
         response_contents=response_contents,
         channel=channel,
         target_transaction=target_transaction,

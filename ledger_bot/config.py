@@ -38,6 +38,7 @@ def parse(config):
             "delivered": "🚚",
             "reminder": "🔔",
             "unknown_version": "🤷",
+            "thinking": "⏳",
             "status_confirmed": "🟩",
             "status_part_confirmed": "🟨",
             "status_unconfirmed": "🟥",
