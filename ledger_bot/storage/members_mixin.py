@@ -1,7 +1,7 @@
 """Mixin for dealing with the Members table."""
 
 import logging
-from typing import Optional
+from typing import List, Optional
 
 from aiohttp import ClientSession
 from asyncache import cached
@@ -10,10 +10,15 @@ from discord import Member as DiscordMember
 
 from ledger_bot.models import Member
 
+from .base_storage import BaseStorage
+
 log = logging.getLogger(__name__)
 
 
-class MembersMixin:
+class MembersMixin(BaseStorage):
+    members_url: str
+    bot_id: str
+
     async def _list_members(
         self, filter_by_formula: str, session: Optional[ClientSession] = None
     ):
@@ -22,10 +27,15 @@ class MembersMixin:
     def _list_all_members(
         self,
         filter_by_formula: str,
-        sort: [str],
+        sort: List[str],
         session: Optional[ClientSession] = None,
     ):
-        return self._iterate(self.members_url, filter_by_formula, sort, session)
+        return self._iterate(
+            self.members_url,
+            filter_by_formula=filter_by_formula,
+            sort=sort,
+            session=session,
+        )
 
     async def _find_member_by_discord_id(
         self, discord_id: str, session: Optional[ClientSession] = None
@@ -42,7 +52,9 @@ class MembersMixin:
     ):
         return await self._get(f"{self.members_url}/{member_id}", session=session)
 
-    async def _delete_members(self, members: [str], session: ClientSession = None):
+    async def _delete_members(
+        self, members: List[str], session: ClientSession | None = None
+    ):
         # AirTable API only allows us to batch delete 10 records at a time, so we need to split up requests
         member_ids_length = len(members)
         delete_batches = (
@@ -50,7 +62,7 @@ class MembersMixin:
         )
 
         for records_to_delete in delete_batches:
-            await self._delete(self.motto_url, records_to_delete, session)
+            await self._delete(self.members_url, records_to_delete, session)
 
     async def insert_member(
         self, record: dict, session: Optional[ClientSession] = None
@@ -88,7 +100,7 @@ class MembersMixin:
         Member
             The record from AirTable for this member
         """
-        member_record = await self._find_member_by_discord_id(member.id)
+        member_record = await self._find_member_by_discord_id(str(member.id))
 
         if not member_record:
             data = {

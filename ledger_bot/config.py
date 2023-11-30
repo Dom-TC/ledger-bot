@@ -10,7 +10,7 @@ from datetime import datetime
 log = logging.getLogger(__name__)
 
 
-def parse(config):
+def parse(config: dict) -> dict:
     """
     Parse provided config, with defaults and env vars.
 

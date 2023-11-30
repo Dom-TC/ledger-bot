@@ -2,7 +2,7 @@
 
 import logging
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from ledger_bot.models import BotMessage, Transaction
 from ledger_bot.storage import AirtableStorage
@@ -97,6 +97,14 @@ async def _build_transaction_lists(
             transaction=transaction, storage=storage
         )
 
+        if transaction.seller_discord_id is None:
+            log.warning("No Seller Discord ID specified. Skipping")
+            raise ValueError
+
+        if transaction.buyer_discord_id is None:
+            log.warning("No Buyer Discord ID specified. Skipping")
+            raise ValueError
+
         # Check whether the user is the buyer or seller
         if int(transaction.seller_discord_id) == user_id:
             log.debug("User is seller")
@@ -106,6 +114,10 @@ async def _build_transaction_lists(
             log.debug("User is buyer")
             section = "buying"
             other_party = transaction.seller_discord_id
+        else:
+            log.error("Section is unknown")
+            section = "unknown"
+            other_party = None
 
         # Define sub_section
         if is_cancelled:
@@ -120,6 +132,9 @@ async def _build_transaction_lists(
             sub_section = "awaiting_payment_and_delivery"
         elif is_paid and is_delivered:
             sub_section = "completed"
+        else:
+            log.error("Sub-section is unknown")
+            sub_section = "unknown"
 
         # Add transaction payload to correct list
         transaction_lists[section][sub_section].append(

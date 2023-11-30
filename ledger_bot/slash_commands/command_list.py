@@ -1,7 +1,7 @@
 """DM command - list."""
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 import discord
 
@@ -32,7 +32,9 @@ async def command_list(
     await interaction.response.defer(ephemeral=True)
 
     try:
-        transactions = await client.storage.get_users_transaction(interaction.user.id)
+        transactions_dict = await client.storage.get_users_transaction(
+            str(interaction.user.id)
+        )
     except AirTableError as error:
         log.error(f"There was an error processing the AirTable request: {error}")
         await interaction.response.send_message(
@@ -40,15 +42,19 @@ async def command_list(
         )
         return
 
-    if len(transactions) == 0:
-        interaction.response.send_message("You don't have any open transactions.")
+    if transactions_dict is None:
+        await interaction.response.send_message("You don't have any transactions.")
+    else:
+        transactions: List[Transaction] = []
+        for transaction_record in transactions_dict:
+            log.debug(transaction_record)
+            transactions.append(Transaction.from_airtable(transaction_record))
 
-    for i, transaction in enumerate(transactions):
-        transactions[i] = Transaction.from_airtable(transaction)
+        response = await generate_list_message(
+            transactions=transactions,
+            user_id=interaction.user.id,
+            storage=client.storage,
+        )
 
-    response = await generate_list_message(
-        transactions=transactions, user_id=interaction.user.id, storage=client.storage
-    )
-
-    for message in response:
-        await interaction.followup.send(message, ephemeral=True)
+        for transmit_message in response:
+            await interaction.followup.send(transmit_message, ephemeral=True)

@@ -4,7 +4,7 @@
 import asyncio
 import logging
 from collections.abc import AsyncGenerator
-from typing import List, Literal, Optional, Union
+from typing import Any, List, Literal, Optional, Union
 
 from aiohttp import ClientSession
 
@@ -30,7 +30,7 @@ class BaseStorage:
     async def _get(
         self,
         url: str,
-        params: Optional[dict[str, str]] = None,
+        params: dict[str, str | List[str] | None] | None = None,
         session: Optional[ClientSession] = None,
     ) -> dict:
         async def run_fetch(session_to_use: ClientSession):
@@ -41,8 +41,8 @@ class BaseStorage:
             ) as r:
                 if r.status != 200:
                     raise AirTableError(r.url, await r.json())
-                motto_response: dict = await r.json()
-                return motto_response
+                response: dict = await r.json()
+                return response
 
         async with self.semaphore:
             result = await run_request(run_fetch, session)
@@ -72,16 +72,20 @@ class BaseStorage:
         sort: Optional[list[str]] = None,
         session: Optional[ClientSession] = None,
         fields: Optional[Union[list[str], str]] = None,
-    ) -> AsyncGenerator[dict]:
-        params = {}
+    ) -> AsyncGenerator[dict, None]:
+        params: dict[str, str | List[str] | None] = {}
+
         if filter_by_formula:
             params = {"filterByFormula": filter_by_formula}
         if sort:
             for idx, field in enumerate(sort):
-                params.update({"sort[{index}][field]".format(index=idx): field})
-                params.update({"sort[{index}][direction]".format(index=idx): "asc"})
+                params[f"sort[{idx}][field]"] = field
+                params[f"sort[{idx}][direction]"] = "asc"
         if fields:
-            params.update({"fields[]": fields})
+            if isinstance(fields, list):
+                params["fields[]"] = fields
+            else:
+                params["fields[]"] = [fields]
         offset = None
         while True:
             if offset:
@@ -102,25 +106,26 @@ class BaseStorage:
         records_to_delete: List[str],
         session: Optional[ClientSession] = None,
     ):
-        async def run_delete(session_to_use: ClientSession):
+        async def run_delete(session_to_use: ClientSession) -> dict | None:
+            url = (
+                base_url
+                if len(records_to_delete) > 1
+                else f"{base_url}/{records_to_delete[0]}"
+            )
+            params = (
+                {"records": records_to_delete} if len(records_to_delete) > 1 else None
+            )
+
             async with session_to_use.delete(
-                (
-                    base_url
-                    if len(records_to_delete) > 1
-                    else base_url + f"/{records_to_delete[0]}"
-                ),
-                params=(
-                    {"records": records_to_delete}
-                    if len(records_to_delete) > 1
-                    else None
-                ),
+                url=url,
+                params=params,
                 headers=self.auth_header,
             ) as r:
                 if r.status != 200:
                     raise AirTableError(r.url, await r.json())
 
         async with self.semaphore:
-            result = await run_request(run_delete, session)
+            result = await run_request(run_delete, session)  # type: ignore
             await airtable_sleep()
             return result
 
@@ -183,4 +188,3 @@ class BaseStorage:
         upsert_fields: Optional[list[str]] = None,
     ) -> dict:
         return await self._modify(url, "patch", record, upsert_fields, session)
-

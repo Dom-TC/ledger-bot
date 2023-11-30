@@ -59,15 +59,19 @@ async def cleanup(client: "LedgerBot", storage: AirtableStorage):
 
                             channel = client.get_channel(bot_message.channel_id)
 
-                            message = await channel.fetch_message(
-                                bot_message.bot_message_id
-                            )
+                            if isinstance(channel, discord.TextChannel):
 
-                            log.info(f"Deleting message: {bot_message.bot_message_id}")
-                            await message.delete()
+                                message = await channel.fetch_message(
+                                    bot_message.bot_message_id
+                                )
 
-                            log.info(f"Deleting message record: {bot_message_id}")
-                            await storage.delete_bot_message(bot_message_id)
+                                log.info(
+                                    f"Deleting message: {bot_message.bot_message_id}"
+                                )
+                                await message.delete()
+
+                                log.info(f"Deleting message record: {bot_message_id}")
+                                await storage.delete_bot_message(bot_message_id)
 
                         except discord.Forbidden as error:
                             log.error(
@@ -78,9 +82,12 @@ async def cleanup(client: "LedgerBot", storage: AirtableStorage):
                         except discord.HTTPException as error:
                             log.error(f"An error occured deleting the message: {error}")
 
-                if client.config["cleanup_removes_transaction_records"]:
+                if (
+                    client.config["cleanup_removes_transaction_records"]
+                    and transaction.record_id is not None
+                ):
                     log.info(f"Deleting transaction record: {transaction_record}")
-                    storage.delete_transaction(transaction_record)
+                    await storage.delete_transaction(transaction.record_id)
 
     except AirTableError as error:
         log.error(f"An error occured deleting the record in AirTable: {error}")

@@ -120,9 +120,16 @@ class ReminderForm(discord.ui.Modal, title="Create Reminder In..."):
 
         member_record = await self.storage.get_or_add_member(self.user)
 
+        if self.transaction.record_id is None:
+            await interaction.response.send_message(
+                "Failed to find transaction ID. Please try again later."
+            )
+            log.error("Transaction had no record ID.")
+            return
+
         # Create Reminder instance
         self.reminder = Reminder(
-            date=reminder_time,
+            date=reminder_time.datetime,
             member_id=member_record.record_id,
             transaction_id=self.transaction.record_id,
         )

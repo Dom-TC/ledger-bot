@@ -1,18 +1,22 @@
 """Mixin for dealing with the Transactions table."""
 
 import logging
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from aiohttp import ClientSession
-from asyncache import cached
-from cachetools import TTLCache
 
 from ledger_bot.models import BotMessage, Transaction
+
+from .base_storage import BaseStorage
 
 log = logging.getLogger(__name__)
 
 
-class TransactionsMixin:
+class TransactionsMixin(BaseStorage):
+    wines_url: str
+    bot_id: str
+    find_bot_message_by_message_id: Callable  # This is definited in the BotMessagesMixin
+
     async def update_transaction(
         self,
         record_id: str,
@@ -121,7 +125,9 @@ class TransactionsMixin:
         """
         return await self._insert(self.wines_url, record, session)
 
-    async def find_transaction_by_bot_message_id(self, message_id: str) -> Transaction:
+    async def find_transaction_by_bot_message_id(
+        self, message_id: str
+    ) -> Transaction | None:
         """Takes a message and returns any associated Transactions, else returns None."""
         log.info(f"Searching for transactions relating to bot message {message_id}")
         bot_message_record = await self.find_bot_message_by_message_id(message_id)
@@ -135,7 +141,9 @@ class TransactionsMixin:
             )
             return Transaction.from_airtable(transaction_record) or None
 
-    async def delete_transaction(self, record_id: str, session: ClientSession = None):
+    async def delete_transaction(
+        self, record_id: str, session: ClientSession | None = None
+    ):
         """Delete the specified bot_message record."""
         records_to_delete = [record_id]
         log.info(f"Deleting records {records_to_delete}")
@@ -143,7 +151,7 @@ class TransactionsMixin:
 
     async def get_completed_transactions(
         self, hours_completed: int = 0
-    ) -> Optional[List[Transaction]]:
+    ) -> Optional[List[dict]]:
         """
         Get a list of transactions that are completed.
 
@@ -167,10 +175,12 @@ class TransactionsMixin:
         else:
             return transactions
 
-    async def get_users_transaction(self, user_id: str) -> Optional[List[Transaction]]:
+    async def get_users_transaction(self, user_id: str) -> Optional[List[dict]]:
         filter_formula = f"OR(IF({{seller_discord_id}}={user_id},TRUE(),FALSE()),IF({{buyer_discord_id}}={user_id},TRUE(),FALSE()))"
 
         transactions = await self._list_transactions(filter_formula)
+
+        log.debug(f"transactions: {transactions} / {type(transactions)}")
         if len(transactions) == 0:
             return None
         else:
@@ -182,17 +192,15 @@ class TransactionsMixin:
         transaction_object = await self._retrieve_transaction(record_id)
         return Transaction.from_airtable(transaction_object)
 
-    # Cache for 12 hours
-    # @cached(cache=TTLCache(maxsize=128, ttl=43200))
-    async def get_all_transactions(self) -> [List[Transaction]]:
+    async def get_all_transactions(self) -> List[dict] | None:
         log.info("Getting all transactions")
-        transactions = await self._list_transactions(None)
+        transactions = await self._list_transactions("")
         if len(transactions) == 0:
             return None
         else:
             return transactions
 
-    async def get_transaction_by_row_id(self, row_id: int) -> Transaction | None:
+    async def get_transaction_by_row_id(self, row_id: int) -> dict | None:
         """Returns the transaction with the corrosponding row id."""
         log.info(f"Getting transactions with row_id {row_id}")
 

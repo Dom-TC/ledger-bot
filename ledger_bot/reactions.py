@@ -15,7 +15,7 @@ async def _add_reaction_to_channel(
     client: "LedgerBot",
     message_id: int,
     reaction: str,
-    channel: discord.abc.GuildChannel,
+    channel: discord.TextChannel,
 ) -> bool:
     try:
         log.info(f"Searching for {message_id} in {channel.name} - {channel.id}")
@@ -44,7 +44,7 @@ async def add_reaction(
     client: "LedgerBot",
     message_id: int,
     reaction: str,
-    channel_obj: Optional[discord.abc.GuildChannel] = None,
+    channel_obj: Optional[discord.TextChannel] = None,
 ):
     """Adds the specified reaction to the given message."""
     log.info(f"Adding {reaction} to message {message_id}")
@@ -71,7 +71,7 @@ async def _remove_reaction_from_channel(
     client: "LedgerBot",
     message_id: int,
     reaction: str,
-    channel: discord.abc.GuildChannel,
+    channel: discord.TextChannel,
 ):
     try:
         log.info(f"Searching for {message_id} in {channel.name} - {channel.id}")
@@ -108,7 +108,7 @@ async def remove_reaction(
     client: "LedgerBot",
     message_id: int,
     reaction: str,
-    channel_obj: Optional[discord.abc.GuildChannel] = None,
+    channel_obj: Optional[discord.TextChannel] = None,
 ):
     """Removes the specified reaction from the given message."""
     log.info(f"Removing {reaction} from message {message_id}")

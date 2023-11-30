@@ -1,10 +1,11 @@
 """DM command - list."""
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 import discord
 
+from ledger_bot.errors import AirTableError
 from ledger_bot.message_generators import generate_list_message
 from ledger_bot.models import Transaction
 
@@ -20,14 +21,22 @@ async def command_list(
     """DM command - list."""
     log.info(f"Getting transactions for user {message.author.name}")
 
-    transactions = await client.storage.get_users_transaction(str(message.author.id))
+    try:
+        transactions_dict = await client.storage.get_users_transaction(
+            str(message.author.id)
+        )
+    except AirTableError as error:
+        log.error(f"There was an error processing the AirTable request: {error}")
+        await dm_channel.send("An unexpected error occured.")
+        return
 
-    if transactions is None:
-        await dm_channel.send("You don't have any open transactions.")
+    if transactions_dict is None:
+        await dm_channel.send("You don't have any transactions.")
     else:
-        for i, transaction_record in enumerate(transactions):
+        transactions: List[Transaction] = []
+        for transaction_record in transactions_dict:
             log.debug(transaction_record)
-            transactions[i] = Transaction.from_airtable(transaction_record)
+            transactions.append(Transaction.from_airtable(transaction_record))
 
         response = await generate_list_message(
             transactions=transactions, user_id=message.author.id, storage=client.storage

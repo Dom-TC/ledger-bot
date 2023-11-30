@@ -2,7 +2,9 @@
 
 import logging
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import List
+
+import discord
 
 from .bot_message import BotMessage
 from .member import Member
@@ -12,28 +14,28 @@ log = logging.getLogger(__name__)
 
 @dataclass
 class Transaction:
-    record_id: Optional[str] = None
-    row_id: Optional[str] = None
-    seller_id: Optional[str] = None
-    seller_discord_id: Optional[int] = None
-    buyer_id: Optional[str] = None
-    buyer_discord_id: Optional[int] = None
-    wine: Optional[str] = None
-    price: Optional[float] = None
-    sale_approved: Optional[bool] = None
-    buyer_marked_delivered: Optional[bool] = None
-    seller_marked_delivered: Optional[bool] = None
-    buyer_marked_paid: Optional[bool] = None
-    seller_marked_paid: Optional[bool] = None
-    cancelled: Optional[bool] = None
-    creation_date: Optional[str] = None
-    approved_date: Optional[str] = None
-    paid_date: Optional[str] = None
-    delivered_date: Optional[str] = None
-    cancelled_date: Optional[str] = None
-    bot_messages: Optional[BotMessage] = None
-    reminders: Optional[str] = None
-    bot_id: Optional[str] = None
+    seller_id: str | Member
+    buyer_id: str | Member
+    wine: str
+    price: float
+    record_id: str | None = None
+    row_id: str | None = None
+    seller_discord_id: int | None = None
+    buyer_discord_id: int | None = None
+    sale_approved: bool | None = None
+    buyer_marked_delivered: bool | None = None
+    seller_marked_delivered: bool | None = None
+    buyer_marked_paid: bool | None = None
+    seller_marked_paid: bool | None = None
+    cancelled: bool | None = None
+    creation_date: str | None = None
+    approved_date: str | None = None
+    paid_date: str | None = None
+    delivered_date: str | None = None
+    cancelled_date: str | None = None
+    bot_messages: List[str] | None = None
+    reminders: str | None = None
+    bot_id: str | None = None
 
     @classmethod
     def from_airtable(cls, data: dict) -> "Transaction":

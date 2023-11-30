@@ -55,6 +55,10 @@ async def command_new_split(
         )
         return
 
+    if client.user is None:
+        log.critical("The client isn't connected")
+        return
+
     # If user isn't a maintainer, they shouldn't be able to sell to either ledger-bot.
     if interaction.user.id not in client.config["maintainer_ids"]:
         for buyer in buyers:
@@ -83,6 +87,16 @@ async def command_new_split(
                 ephemeral=True,
             )
             continue
+
+        if not isinstance(interaction.user, discord.Member):
+            log.error(
+                f"interaction.user isn't a discord.Member. {interaction.user} / {type(interaction.user)}"
+            )
+            await interaction.response.send_message(
+                content="An unexpected error occured. Please try again later.",
+                ephemeral=True,
+            )
+            return
 
         log.info(f"Getting / adding seller: {interaction.user}")
         seller_record = await storage.get_or_add_member(interaction.user)

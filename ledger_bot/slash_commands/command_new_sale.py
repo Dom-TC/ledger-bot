@@ -51,6 +51,10 @@ async def command_new_sale(
         )
         return
 
+    if client.user is None:
+        log.critical("The client isn't connected")
+        return
+
     # If user isn't a maintainer, they shouldn't be able to sell to either ledger-bot, or themselves.
     if interaction.user.id not in client.config["maintainer_ids"]:
         if buyer.id == interaction.user.id:
@@ -70,6 +74,16 @@ async def command_new_sale(
     # Discord Interactions need to be responded to in <3s or they time out.  We take longer, so defer the interaction.
     # We can't dynamically choose whether the response will be ephemeral or not, so this has to be after the above channel checks, or they can't be emphemeral.
     await interaction.response.defer()
+
+    if not isinstance(interaction.user, discord.Member):
+        log.error(
+            f"interaction.user isn't a discord.Member. {interaction.user} / {type(interaction.user)}"
+        )
+        await interaction.response.send_message(
+            content="An unexpected error occured. Please try again later.",
+            ephemeral=True,
+        )
+        return
 
     log.info("Processing new sale...")
     log.info(f"Getting / adding seller: {interaction.user}")

@@ -1,10 +1,7 @@
 """The various models used by ledger-bot."""
 
-import asyncio
 import logging
-from typing import Optional
 
-from .base_storage import BaseStorage
 from .bot_messages_mixin import BotMessagesMixin
 from .members_mixin import MembersMixin
 from .reminders_mixin import RemindersMixin
@@ -14,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 class AirtableStorage(
-    RemindersMixin, BotMessagesMixin, TransactionsMixin, MembersMixin, BaseStorage
+    RemindersMixin, BotMessagesMixin, TransactionsMixin, MembersMixin
 ):
     """
     A class to interface with AirTable.
@@ -51,7 +48,7 @@ class AirtableStorage(
         self,
         airtable_base: str,
         airtable_key: str,
-        bot_id: Optional[str],
+        bot_id: str,
     ):
         super().__init__(airtable_base, airtable_key)
         self.airtable_key = airtable_key

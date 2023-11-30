@@ -1,7 +1,7 @@
 """Slash command - stats."""
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 import discord
 
@@ -29,7 +29,7 @@ async def command_stats(
     await interaction.response.defer(ephemeral=True)
 
     try:
-        transactions = await client.storage.get_all_transactions()
+        transactions_dict = await client.storage.get_all_transactions()
     except AirTableError as error:
         log.error(f"There was an error processing the AirTable request: {error}")
         await interaction.response.send_message(
@@ -37,14 +37,18 @@ async def command_stats(
         )
         return
 
-    if len(transactions) == 0:
-        interaction.response.send_message("No transactions have been recorded.")
+    if transactions_dict is None:
+        await interaction.response.send_message("No transactions have been recorded.")
 
-    for i, transaction in enumerate(transactions):
-        transactions[i] = Transaction.from_airtable(transaction)
+    else:
+        transactions: List[Transaction] = []
+        for transaction_record in transactions_dict:
+            transactions.append(Transaction.from_airtable(transaction_record))
 
-    response = generate_stats_message(
-        transactions=transactions, user_id=interaction.user.id, storage=client.storage
-    )
+        response = generate_stats_message(
+            transactions=transactions,
+            user_id=interaction.user.id,
+            storage=client.storage,
+        )
 
-    await interaction.followup.send(response, ephemeral=True)
+        await interaction.followup.send(response, ephemeral=True)

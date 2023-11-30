@@ -1,9 +1,8 @@
 """Classing for managing Reminders."""
 
-import asyncio
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import TYPE_CHECKING, Callable, Optional
+from datetime import datetime
+from typing import TYPE_CHECKING
 
 import arrow
 import discord
@@ -55,10 +54,9 @@ class ReminderManager:
     def handle_scheduler_event(self, event: events.JobEvent):
         """Handle events from scheduler."""
         job = self.scheduler.get_job(event.job_id)
-        if job is not None:
-            if job.name.startswith("Reminder:"):
-                log.debug(f"Adding job {event.job_id} to missed_job_ids")
-                self.missed_job_ids.append(event.job_id)
+        if job is not None and job.name.startswith("Reminder:"):
+            log.debug(f"Adding job {event.job_id} to missed_job_ids")
+            self.missed_job_ids.append(event.job_id)
 
     async def refresh_reminders(self):
         """Creates jobs for all stored reminders."""
@@ -140,6 +138,14 @@ class ReminderManager:
                     log.info("Skipping reminder - paid")
                     return
 
+        if transaction_record.seller_discord_id is None:
+            log.warning("No Seller Discord ID specified. Skipping")
+            return
+
+        if transaction_record.buyer_discord_id is None:
+            log.warning("No Buyer Discord ID specified. Skipping")
+            return
+
         status_message = generate_reminder_status_message(
             seller=await self.client.fetch_user(transaction_record.seller_discord_id),
             buyer=await self.client.fetch_user(transaction_record.buyer_discord_id),
@@ -156,7 +162,7 @@ class ReminderManager:
 
         link = None
         if transaction_record.bot_messages is not None:
-            latest_message_record_id = transaction_record.bot_messages[-1]  # type: ignore
+            latest_message_record_id = transaction_record.bot_messages[-1]
             message_record = await self.storage.find_bot_message_by_record_id(
                 latest_message_record_id
             )
@@ -195,6 +201,10 @@ class ReminderManager:
                 )
                 raise ValueError
 
+            if transaction.record_id is None:
+                log.error("Transaction has no record ID.")
+                raise ValueError
+
             member_record = await self.storage.get_or_add_member(member)
 
             # Build Transaction object from provided data
@@ -207,8 +217,6 @@ class ReminderManager:
 
         reminder_fields = ["date", "member_id", "transaction_id", "status", "bot_id"]
         log.debug(f"Creating reminder: {reminder}, with fields {reminder_fields}")
-
-        log.debug(f"{reminder} / {type(reminder)}")
 
         reminder_record = await self.storage.save_reminder(
             reminder=reminder, fields=reminder_fields
