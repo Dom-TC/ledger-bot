@@ -43,7 +43,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.taskipy.tasks]
 start = "python -m ledger_bot"
-pytest = "pytest --cov=ledger_bot tests/"
+pytest = "pytest --cov=ledger_bot tests/ --cov-report term:skip-covered"
 flake8 = "flake8 ledger_bot"
 bandit = "bandit -c pyproject.toml -r ledger_bot"
 mypy = "mypy ledger_bot"
