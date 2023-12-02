@@ -2,7 +2,7 @@
 
 import logging
 import re
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from ledger_bot.models import BotMessage, Transaction
 from ledger_bot.storage import AirtableStorage
@@ -31,7 +31,12 @@ async def _get_latest_message_link(transaction: Transaction, storage: AirtableSt
     if transaction.bot_messages is None:
         return ""
 
-    latest_message_record_id = transaction.bot_messages[-1]
+    latest_message_record = transaction.bot_messages[-1]
+    latest_message_record_id = (
+        latest_message_record.record_id
+        if isinstance(latest_message_record, BotMessage)
+        else latest_message_record
+    )
     message_record = await storage.find_bot_message_by_record_id(
         latest_message_record_id
     )
@@ -54,7 +59,7 @@ async def _build_transaction_lists(
     - last_message_link
     """
     log.debug(f"Building transaction lists with {transactions}")
-    transaction_lists = {
+    transaction_lists: Dict[str, Dict[str, List[Dict[str, Any]]]] = {
         "buying": {
             "awaiting_approval": [],
             "awaiting_payment": [],

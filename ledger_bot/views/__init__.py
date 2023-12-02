@@ -1,6 +1,3 @@
 """Views."""
 
-from . import reminder_form
-
-CreateReminderButton = reminder_form.CreateReminderButton
-ReminderForm = reminder_form.ReminderForm
+from .reminder_form import CreateReminderButton, ReminderForm

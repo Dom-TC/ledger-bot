@@ -38,7 +38,13 @@ async def refresh_transaction(client: "LedgerBot", row_id: int, channel_id: int 
 
     # Delete all previous bot messages, if they exist
     if bot_messages is not None:
-        for message_id in bot_messages:
+        for bot_message in bot_messages:
+            message_id = (
+                bot_message.record_id
+                if isinstance(bot_message, BotMessage)
+                else bot_message
+            )
+
             message_record = await client.storage.find_bot_message_by_record_id(
                 message_id
             )

@@ -2,7 +2,7 @@
 
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 import arrow
 import discord
@@ -31,7 +31,7 @@ class ReminderManager:
         self.config = config
         self.scheduler = scheduler
         self.storage = storage
-        self.missed_job_ids = []
+        self.missed_job_ids: List[str] = []
         self.get_channel_func = None
 
         initial_refresh_time = arrow.utcnow().shift(minutes=1).datetime
@@ -163,10 +163,13 @@ class ReminderManager:
         link = None
         if transaction_record.bot_messages is not None:
             latest_message_record_id = transaction_record.bot_messages[-1]
-            message_record = await self.storage.find_bot_message_by_record_id(
-                latest_message_record_id
-            )
-            message = BotMessage.from_airtable(message_record)
+            if isinstance(latest_message_record_id, str):
+                message_record = await self.storage.find_bot_message_by_record_id(
+                    latest_message_record_id
+                )
+                message = BotMessage.from_airtable(message_record)
+            else:
+                message = latest_message_record_id
 
             link = f"\n\n https://discord.com/channels/{message.guild_id}/{message.channel_id}/{message.bot_message_id}"
 

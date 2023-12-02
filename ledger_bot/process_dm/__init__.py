@@ -1,17 +1,8 @@
 """Functions to process DM messages."""
 
-from . import (
-    command_help,
-    command_list,
-    command_version,
-    get_dm_channel,
-    is_dm,
-    process_dm,
-)
-
-get_dm_channel = get_dm_channel.get_dm_channel
-is_dm = is_dm.is_dm
-process_dm = process_dm.process_dm
-command_version = command_version.command_version
-command_help = command_help.command_help
-command_list = command_list.command_list
+from .command_help import command_help
+from .command_list import command_list
+from .command_version import command_version
+from .get_dm_channel import get_dm_channel
+from .is_dm import is_dm
+from .process_dm import process_dm

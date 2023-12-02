@@ -48,7 +48,13 @@ async def cleanup(client: "LedgerBot", storage: AirtableStorage):
                 # If bot_messages exist, remove them.
                 # Because we (optionally) keep transaction records, it's possible transactions exist with no bot record
                 if transaction.bot_messages is not None:
-                    for bot_message_id in transaction.bot_messages:
+                    for bot_message in transaction.bot_messages:
+                        bot_message_id = (
+                            bot_message.record_id
+                            if isinstance(bot_message, BotMessage)
+                            else bot_message
+                        )
+
                         try:
                             bot_message_record = (
                                 await storage.find_bot_message_by_record_id(

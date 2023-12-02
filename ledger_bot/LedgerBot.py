@@ -165,16 +165,6 @@ class LedgerBot(discord.Client):
                 f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Invalid target message"
             )
             return
-        if target_transaction.buyer_id is None:
-            log.info(
-                f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Target message doesn't contain valid buyer_id"
-            )
-            return
-        if target_transaction.seller_id is None:
-            log.info(
-                f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Target message doesn't contain valid seller_id"
-            )
-            return
 
         # After this point all are checks are slow, so we add the reaction now.
         # The valid message check above is also pretty slow, but we'd then add the reaction to every message that received 👍

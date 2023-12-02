@@ -92,18 +92,22 @@ class ReminderForm(discord.ui.Modal, title="Create Reminder In..."):
 
         super().__init__()
 
-    days = discord.ui.TextInput(label="Days", required=False)
-    hours = discord.ui.TextInput(label="Hours", required=False)
+    days_input: discord.ui.TextInput = discord.ui.TextInput(
+        label="Days", required=False
+    )
+    hours_input: discord.ui.TextInput = discord.ui.TextInput(
+        label="Hours", required=False
+    )
 
     async def on_submit(self, interaction: discord.Interaction):
         # hours and days need to be ints
         try:
-            hours = int(self.hours.value)
+            hours = int(self.hours_input.value)
         except ValueError:
             hours = 0
 
         try:
-            days = int(self.days.value)
+            days = int(self.days_input.value)
         except ValueError:
             days = 0
 
@@ -150,7 +154,10 @@ class ReminderForm(discord.ui.Modal, title="Create Reminder In..."):
         # Schedule first reminder
 
     async def on_error(
-        self, interaction: discord.Interaction, error: Exception
+        self,
+        interaction: discord.Interaction,
+        error: Exception,
+        item: discord.ui.Item | None = None,
     ) -> None:
         await interaction.response.send_message(
             "Oops! Something went wrong.", ephemeral=True

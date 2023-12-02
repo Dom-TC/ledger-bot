@@ -2,12 +2,13 @@
 
 import logging
 from dataclasses import dataclass
-from typing import List
-
-import discord
+from typing import TYPE_CHECKING, Dict, List
 
 from .bot_message import BotMessage
 from .member import Member
+
+if TYPE_CHECKING:
+    from .reminder import Reminder
 
 log = logging.getLogger(__name__)
 
@@ -33,8 +34,8 @@ class Transaction:
     paid_date: str | None = None
     delivered_date: str | None = None
     cancelled_date: str | None = None
-    bot_messages: List[str] | None = None
-    reminders: str | None = None
+    bot_messages: List[str | BotMessage] | None = None
+    reminders: "List[str | Reminder] | None" = None
     bot_id: str | None = None
 
     @classmethod
@@ -91,7 +92,8 @@ class Transaction:
                 "bot_messages",
             ]
         )
-        data = {}
+
+        data: Dict[str, str | List] = {}
 
         if "seller_id" in fields:
             data["seller_id"] = [
@@ -106,7 +108,7 @@ class Transaction:
                 else self.buyer_id
             ]
 
-        if "bot_messages" in fields:
+        if "bot_messages" in fields and self.bot_messages is not None:
             data["bot_messages"] = [
                 self.bot_messages.record_id
                 if isinstance(self.bot_messages, BotMessage)

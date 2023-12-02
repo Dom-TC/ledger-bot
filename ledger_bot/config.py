@@ -5,18 +5,19 @@ module to process configs, defaults defined in the function, overwritten by prov
 
 import logging
 import os
-from datetime import datetime
+from typing import Any, Dict, List
 
 log = logging.getLogger(__name__)
 
 
-def parse(config: dict) -> dict:
+def parse(config: Dict[str, Any]) -> dict:
     """
     Parse provided config, with defaults and env vars.
 
     Returns dict
     """
-    defaults = {
+    # defaults: Dict[str, str | int | bool | Dict[str, Any] | List[int] | None] = {
+    defaults: Dict[str, Any] = {
         "id": None,
         "name": "Ledger-Bot",
         "authentication": {

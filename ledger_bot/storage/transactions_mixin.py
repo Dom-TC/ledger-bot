@@ -1,7 +1,7 @@
 """Mixin for dealing with the Transactions table."""
 
 import logging
-from typing import Callable, List, Optional
+from typing import Callable, Dict, List, Optional
 
 from aiohttp import ClientSession
 
@@ -169,7 +169,7 @@ class TransactionsMixin(BaseStorage):
         """
         filter_formula = f"AND({{sale_approved}},{{buyer_marked_delivered}},{{buyer_marked_paid}},{{seller_marked_delivered}},{{seller_marked_paid}},IF(DATETIME_DIFF(TODAY(),{{delivered_date}},'hours')>{hours_completed},TRUE(),FALSE()),IF(DATETIME_DIFF(TODAY(),{{paid_date}},'hours')>{hours_completed},TRUE(),FALSE()))"
 
-        transactions = await self._list_transactions(filter_formula)
+        transactions: List = await self._list_transactions(filter_formula)
         if len(transactions) == 0:
             return None
         else:
@@ -178,7 +178,7 @@ class TransactionsMixin(BaseStorage):
     async def get_users_transaction(self, user_id: str) -> Optional[List[dict]]:
         filter_formula = f"OR(IF({{seller_discord_id}}={user_id},TRUE(),FALSE()),IF({{buyer_discord_id}}={user_id},TRUE(),FALSE()))"
 
-        transactions = await self._list_transactions(filter_formula)
+        transactions: List = await self._list_transactions(filter_formula)
 
         log.debug(f"transactions: {transactions} / {type(transactions)}")
         if len(transactions) == 0:
@@ -194,7 +194,7 @@ class TransactionsMixin(BaseStorage):
 
     async def get_all_transactions(self) -> List[dict] | None:
         log.info("Getting all transactions")
-        transactions = await self._list_transactions("")
+        transactions: List = await self._list_transactions("")
         if len(transactions) == 0:
             return None
         else:
@@ -206,7 +206,7 @@ class TransactionsMixin(BaseStorage):
 
         filter_formula = f"IF(row_id={row_id},TRUE(), FALSE())"
 
-        transactions = await self._list_transactions(filter_formula)
+        transactions: List[Dict] = await self._list_transactions(filter_formula)
         if len(transactions) == 0:
             return None
         else:

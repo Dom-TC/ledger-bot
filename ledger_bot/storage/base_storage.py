@@ -4,7 +4,7 @@
 import asyncio
 import logging
 from collections.abc import AsyncGenerator
-from typing import Any, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from aiohttp import ClientSession
 
@@ -32,7 +32,7 @@ class BaseStorage:
         url: str,
         params: dict[str, str | List[str] | None] | None = None,
         session: Optional[ClientSession] = None,
-    ) -> dict:
+    ):
         async def run_fetch(session_to_use: ClientSession):
             async with session_to_use.get(
                 url,
@@ -55,14 +55,16 @@ class BaseStorage:
         filter_by_formula: Optional[str],
         session: Optional[ClientSession] = None,
         view: Optional[str] = None,
-    ):
-        params = {}
+    ) -> List:
+        params: Dict[str, Any] = {}
         if filter_by_formula := filter_by_formula:
             params.update({"filterByFormula": filter_by_formula})
         if view := view:
             params.update({"view": view})
         response = await self._get(base_url, params, session)
-        return response.get("records", [])
+        records: List = response.get("records", [])
+
+        return records
 
     async def _iterate(
         self,
@@ -105,8 +107,8 @@ class BaseStorage:
         base_url: str,
         records_to_delete: List[str],
         session: Optional[ClientSession] = None,
-    ):
-        async def run_delete(session_to_use: ClientSession) -> dict | None:
+    ) -> Dict:
+        async def run_delete(session_to_use: ClientSession) -> Dict:
             url = (
                 base_url
                 if len(records_to_delete) > 1
@@ -123,9 +125,11 @@ class BaseStorage:
             ) as r:
                 if r.status != 200:
                     raise AirTableError(r.url, await r.json())
+                response: dict = await r.json()
+                return response
 
         async with self.semaphore:
-            result = await run_request(run_delete, session)  # type: ignore
+            result: Dict = await run_request(run_delete, session)
             await airtable_sleep()
             return result
 
@@ -136,8 +140,8 @@ class BaseStorage:
         record: dict,
         upsert_fields: Optional[list[str]],
         session: Optional[ClientSession] = None,
-    ):
-        async def run_insert(session_to_use: ClientSession):
+    ) -> Dict:
+        async def run_insert(session_to_use: ClientSession) -> Dict:
             is_single_record = "records" not in record
             has_fields = "fields" not in record
             data: dict[str, Union[str, dict, list]] = (
@@ -167,7 +171,7 @@ class BaseStorage:
                 return response
 
         async with self.semaphore:
-            result = await run_request(run_insert, session)
+            result: Dict = await run_request(run_insert, session)
             await airtable_sleep()
             return result
 
@@ -177,7 +181,7 @@ class BaseStorage:
         record: dict,
         session: Optional[ClientSession] = None,
         upsert_fields: Optional[list[str]] = None,
-    ) -> dict:
+    ) -> Dict:
         return await self._modify(url, "post", record, upsert_fields, session)
 
     async def _update(
@@ -186,5 +190,5 @@ class BaseStorage:
         record: dict,
         session: Optional[ClientSession] = None,
         upsert_fields: Optional[list[str]] = None,
-    ) -> dict:
+    ) -> Dict:
         return await self._modify(url, "patch", record, upsert_fields, session)
