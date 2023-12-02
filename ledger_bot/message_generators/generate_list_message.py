@@ -2,7 +2,7 @@
 
 import logging
 import re
-from typing import Dict, List, Optional
+from typing import Any, Dict, List
 
 from ledger_bot.models import BotMessage, Transaction
 from ledger_bot.storage import AirtableStorage
@@ -31,7 +31,12 @@ async def _get_latest_message_link(transaction: Transaction, storage: AirtableSt
     if transaction.bot_messages is None:
         return ""
 
-    latest_message_record_id = transaction.bot_messages[-1]
+    latest_message_record = transaction.bot_messages[-1]
+    latest_message_record_id = (
+        latest_message_record.record_id
+        if isinstance(latest_message_record, BotMessage)
+        else latest_message_record
+    )
     message_record = await storage.find_bot_message_by_record_id(
         latest_message_record_id
     )
@@ -54,7 +59,7 @@ async def _build_transaction_lists(
     - last_message_link
     """
     log.debug(f"Building transaction lists with {transactions}")
-    transaction_lists = {
+    transaction_lists: Dict[str, Dict[str, List[Dict[str, Any]]]] = {
         "buying": {
             "awaiting_approval": [],
             "awaiting_payment": [],
@@ -97,6 +102,14 @@ async def _build_transaction_lists(
             transaction=transaction, storage=storage
         )
 
+        if transaction.seller_discord_id is None:
+            log.warning("No Seller Discord ID specified. Skipping")
+            raise ValueError
+
+        if transaction.buyer_discord_id is None:
+            log.warning("No Buyer Discord ID specified. Skipping")
+            raise ValueError
+
         # Check whether the user is the buyer or seller
         if int(transaction.seller_discord_id) == user_id:
             log.debug("User is seller")
@@ -106,6 +119,10 @@ async def _build_transaction_lists(
             log.debug("User is buyer")
             section = "buying"
             other_party = transaction.seller_discord_id
+        else:
+            log.error("Section is unknown")
+            section = "unknown"
+            other_party = None
 
         # Define sub_section
         if is_cancelled:
@@ -120,6 +137,9 @@ async def _build_transaction_lists(
             sub_section = "awaiting_payment_and_delivery"
         elif is_paid and is_delivered:
             sub_section = "completed"
+        else:
+            log.error("Sub-section is unknown")
+            sub_section = "unknown"
 
         # Add transaction payload to correct list
         transaction_lists[section][sub_section].append(

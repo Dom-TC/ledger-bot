@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from signal import SIGINT, SIGTERM, Signals
+from signal import Signals
 from sys import stderr
 
 log = logging.getLogger(__name__)

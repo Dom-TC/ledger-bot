@@ -2,8 +2,8 @@
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, time
-from typing import Optional
+from datetime import datetime
+from typing import Dict, List
 
 from .member import Member
 from .transaction import Transaction
@@ -14,8 +14,8 @@ log = logging.getLogger(__name__)
 @dataclass
 class Reminder:
     date: datetime
-    member_id: str
-    transaction_id: str
+    member_id: str | Member
+    transaction_id: str | Transaction
     record_id: str | None = None
     row_id: str | None = None
     status: str | None = None
@@ -47,7 +47,7 @@ class Reminder:
             ]
         )
 
-        data = {}
+        data: Dict[str, str | List] = {}
         if "date" in fields:
             data["date"] = self.date.isoformat()
 
@@ -62,10 +62,11 @@ class Reminder:
             data["transaction_id"] = [
                 self.transaction_id.record_id
                 if isinstance(self.transaction_id, Transaction)
+                and self.transaction_id.record_id is not None
                 else self.transaction_id
             ]
 
-        if "status" in fields:
+        if "status" in fields and self.status is not None:
             data["status"] = self.status
 
         return {

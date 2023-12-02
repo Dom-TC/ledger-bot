@@ -1,20 +1,21 @@
 """Mixin for dealing with the Reminders table."""
 
 import logging
-from datetime import datetime, time
 from typing import AsyncGenerator, Optional
 
 from aiohttp import ClientSession
-from asyncache import cached
-from cachetools import LRUCache
-from discord import Member as DiscordMember
 
-from ledger_bot.models import Member, Reminder
+from ledger_bot.models import Reminder
+
+from .base_storage import BaseStorage
 
 log = logging.getLogger(__name__)
 
 
-class RemindersMixin:
+class RemindersMixin(BaseStorage):
+    reminders_url: str
+    bot_id: str
+
     def _list_all_reminders(
         self,
         filter_by_formula: Optional[str],
@@ -63,7 +64,7 @@ class RemindersMixin:
         record_id: str,
         reminder_record: dict,
         session: Optional[ClientSession] = None,
-    ):
+    ) -> dict:
         """
         Updates a specific reminder record.
 
@@ -83,7 +84,7 @@ class RemindersMixin:
             self.reminders_url + "/" + record_id, reminder_record, session
         )
 
-    async def save_reminder(self, reminder: Reminder, fields=None) -> Reminder:
+    async def save_reminder(self, reminder: Reminder, fields=None) -> dict:
         """
         Saves a reminder.
 

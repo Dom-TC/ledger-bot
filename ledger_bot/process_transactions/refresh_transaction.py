@@ -1,5 +1,4 @@
 """Refresh the specified transaction message."""
-import datetime
 import logging
 from typing import TYPE_CHECKING
 
@@ -7,7 +6,6 @@ import discord
 
 from ledger_bot.message_generators import generate_transaction_status_message
 from ledger_bot.models import BotMessage, Transaction
-from ledger_bot.storage import AirtableStorage
 
 from .send_message import send_message
 
@@ -40,7 +38,13 @@ async def refresh_transaction(client: "LedgerBot", row_id: int, channel_id: int 
 
     # Delete all previous bot messages, if they exist
     if bot_messages is not None:
-        for message_id in bot_messages:
+        for bot_message in bot_messages:
+            message_id = (
+                bot_message.record_id
+                if isinstance(bot_message, BotMessage)
+                else bot_message
+            )
+
             message_record = await client.storage.find_bot_message_by_record_id(
                 message_id
             )
@@ -50,13 +54,18 @@ async def refresh_transaction(client: "LedgerBot", row_id: int, channel_id: int 
             try:
                 channel = client.get_channel(bot_message.channel_id)
 
-                message = await channel.fetch_message(bot_message.bot_message_id)
+                if isinstance(channel, discord.TextChannel):
+                    message = await channel.fetch_message(bot_message.bot_message_id)
 
-                log.info(f"Deleting message: {bot_message.bot_message_id}")
-                await message.delete()
+                    log.info(f"Deleting message: {bot_message.bot_message_id}")
+                    await message.delete()
 
-                log.info(f"Deleting message record: {bot_message.record_id}")
-                await client.storage.delete_bot_message(bot_message.record_id)
+                    log.info(f"Deleting message record: {bot_message.record_id}")
+                    await client.storage.delete_bot_message(bot_message.record_id)
+                else:
+                    log.info(
+                        f"Channel {channel} is not a TextChannel, so has no messages"
+                    )
             except discord.errors.Forbidden as error:
                 log.error(f"You don't have permission to delete the message: {error}")
             except discord.errors.NotFound as error:
@@ -76,6 +85,14 @@ async def refresh_transaction(client: "LedgerBot", row_id: int, channel_id: int 
     log.info(
         f"Buyer Discord ID: {transaction.buyer_discord_id} / {type(transaction.buyer_discord_id)}"
     )
+
+    if transaction.seller_discord_id is None:
+        log.warning("No Seller Discord ID specified. Skipping")
+        return
+
+    if transaction.buyer_discord_id is None:
+        log.warning("No Buyer Discord ID specified. Skipping")
+        return
 
     seller = await client.fetch_user(transaction.seller_discord_id)
     buyer = await client.fetch_user(transaction.buyer_discord_id)

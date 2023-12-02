@@ -14,7 +14,7 @@ from .command_version import command_version
 from .get_dm_channel import get_dm_channel
 
 if TYPE_CHECKING:
-    from LedgerBot import LedgerBot
+    from ledger_bot.LedgerBot import LedgerBot
 
 log = logging.getLogger(__name__)
 

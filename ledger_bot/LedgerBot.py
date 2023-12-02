@@ -4,9 +4,9 @@ import logging
 
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
 from discord import app_commands
 
+from .models import Member
 from .process_dm import is_dm, process_dm
 from .process_transactions import (
     approve_transaction,
@@ -132,6 +132,14 @@ class LedgerBot(discord.Client):
         channel = self.get_channel(payload.channel_id)
         reactor = payload.member
 
+        if reactor is None:
+            log.warning("Payload contained no reactor. Ignoring payload.")
+            return
+
+        if not isinstance(channel, discord.TextChannel):
+            log.warning("Couldn't get channel information. Ignoring reaction.")
+            return
+
         # Check if in valid channel
         if (
             self.config["channels"].get("include")
@@ -157,16 +165,6 @@ class LedgerBot(discord.Client):
                 f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Invalid target message"
             )
             return
-        if target_transaction.buyer_id is None:
-            log.info(
-                f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Target message doesn't contain valid buyer_id"
-            )
-            return
-        if target_transaction.seller_id is None:
-            log.info(
-                f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Target message doesn't contain valid seller_id"
-            )
-            return
 
         # After this point all are checks are slow, so we add the reaction now.
         # The valid message check above is also pretty slow, but we'd then add the reaction to every message that received 👍
@@ -180,11 +178,15 @@ class LedgerBot(discord.Client):
 
         # Get buyer & seller discord.Member objects
         buyer_id = await self.storage.get_member_from_record_id(
-            target_transaction.buyer_id
+            target_transaction.buyer_id.record_id
+            if isinstance(target_transaction.buyer_id, Member)
+            else target_transaction.buyer_id
         )
         buyer = await self.fetch_user(buyer_id.discord_id)
         seller_id = await self.storage.get_member_from_record_id(
-            target_transaction.seller_id
+            target_transaction.seller_id.record_id
+            if isinstance(target_transaction.seller_id, Member)
+            else target_transaction.seller_id
         )
         seller = await self.fetch_user(seller_id.discord_id)
 

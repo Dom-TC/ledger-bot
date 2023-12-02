@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from discord import Message
 
 if TYPE_CHECKING:
-    from LedgerBot import LedgerBot
+    from .LedgerBot import LedgerBot
 
 log = logging.getLogger(__name__)
 

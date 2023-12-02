@@ -2,38 +2,41 @@
 
 import logging
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Dict, List
 
 from .bot_message import BotMessage
 from .member import Member
+
+if TYPE_CHECKING:
+    from .reminder import Reminder
 
 log = logging.getLogger(__name__)
 
 
 @dataclass
 class Transaction:
-    record_id: Optional[str] = None
-    row_id: Optional[str] = None
-    seller_id: Optional[str] = None
-    seller_discord_id: Optional[int] = None
-    buyer_id: Optional[str] = None
-    buyer_discord_id: Optional[int] = None
-    wine: Optional[str] = None
-    price: Optional[float] = None
-    sale_approved: Optional[bool] = None
-    buyer_marked_delivered: Optional[bool] = None
-    seller_marked_delivered: Optional[bool] = None
-    buyer_marked_paid: Optional[bool] = None
-    seller_marked_paid: Optional[bool] = None
-    cancelled: Optional[bool] = None
-    creation_date: Optional[str] = None
-    approved_date: Optional[str] = None
-    paid_date: Optional[str] = None
-    delivered_date: Optional[str] = None
-    cancelled_date: Optional[str] = None
-    bot_messages: Optional[BotMessage] = None
-    reminders: Optional[str] = None
-    bot_id: Optional[str] = None
+    seller_id: str | Member
+    buyer_id: str | Member
+    wine: str
+    price: float
+    record_id: str | None = None
+    row_id: str | None = None
+    seller_discord_id: int | None = None
+    buyer_discord_id: int | None = None
+    sale_approved: bool | None = None
+    buyer_marked_delivered: bool | None = None
+    seller_marked_delivered: bool | None = None
+    buyer_marked_paid: bool | None = None
+    seller_marked_paid: bool | None = None
+    cancelled: bool | None = None
+    creation_date: str | None = None
+    approved_date: str | None = None
+    paid_date: str | None = None
+    delivered_date: str | None = None
+    cancelled_date: str | None = None
+    bot_messages: List[str | BotMessage] | None = None
+    reminders: "List[str | Reminder] | None" = None
+    bot_id: str | None = None
 
     @classmethod
     def from_airtable(cls, data: dict) -> "Transaction":
@@ -89,7 +92,8 @@ class Transaction:
                 "bot_messages",
             ]
         )
-        data = {}
+
+        data: Dict[str, str | List] = {}
 
         if "seller_id" in fields:
             data["seller_id"] = [
@@ -104,7 +108,7 @@ class Transaction:
                 else self.buyer_id
             ]
 
-        if "bot_messages" in fields:
+        if "bot_messages" in fields and self.bot_messages is not None:
             data["bot_messages"] = [
                 self.bot_messages.record_id
                 if isinstance(self.bot_messages, BotMessage)

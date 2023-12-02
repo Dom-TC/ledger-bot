@@ -160,6 +160,12 @@ def generate_stats_message(
         seller_dataframe["is_cancelled"]
     ].shape[0]
 
+    # User purchase stats
+    user_average_purchase_price: float | None = None
+    user_total_purchase_price: float | None = None
+    user_max_purchase_wine_name: str | None = None
+    user_max_purchase_wine_seller: str | None = None
+    user_max_purchase_wine_price: float | None = None
     if buyer_has_transactions:
         user_average_purchase_price = buyer_dataframe[~buyer_dataframe["is_cancelled"]][
             "price"
@@ -168,17 +174,34 @@ def generate_stats_message(
             "price"
         ].sum()
 
-        user_max_purchase_wine_name = buyer_dataframe.loc[
-            buyer_dataframe[~buyer_dataframe["is_cancelled"]]["price"].idxmax(), "wine"
-        ]
-        user_max_purchase_wine_seller = buyer_dataframe.loc[
-            buyer_dataframe[~buyer_dataframe["is_cancelled"]]["price"].idxmax(),
-            "seller_discord_id",
-        ]
-        user_max_purchase_wine_price = buyer_dataframe.loc[
-            buyer_dataframe[~buyer_dataframe["is_cancelled"]]["price"].idxmax(), "price"
-        ]
+        buyer_max_price_idx = (
+            buyer_dataframe[~buyer_dataframe["is_cancelled"]]
+            .dropna(subset=["price"])["price"]
+            .idxmax()
+        )
 
+        user_max_purchase_wine_name = str(
+            buyer_dataframe[~buyer_dataframe["is_cancelled"]]
+            .dropna(subset=["price"])
+            .at[buyer_max_price_idx, "wine"]
+        )
+        user_max_purchase_wine_seller = str(
+            buyer_dataframe[~buyer_dataframe["is_cancelled"]]
+            .dropna(subset=["price"])
+            .at[buyer_max_price_idx, "seller_discord_id"]
+        )
+        user_max_purchase_wine_price = float(
+            buyer_dataframe[~buyer_dataframe["is_cancelled"]]
+            .dropna(subset=["price"])
+            .at[buyer_max_price_idx, "price"]
+        )
+
+    # User sale stats
+    user_average_sale_price: float | None = None
+    user_total_sale_price: float | None = None
+    user_max_sale_wine_name: str | None = None
+    user_max_sale_wine_buyer: str | None = None
+    user_max_sale_wine_price: float | None = None
     if seller_has_transactions:
         user_average_sale_price = seller_dataframe[~seller_dataframe["is_cancelled"]][
             "price"
@@ -187,18 +210,27 @@ def generate_stats_message(
             "price"
         ].sum()
 
-        user_max_sale_wine_name = seller_dataframe.loc[
-            seller_dataframe[~seller_dataframe["is_cancelled"]]["price"].idxmax(),
-            "wine",
-        ]
-        user_max_sale_wine_buyer = seller_dataframe.loc[
-            seller_dataframe[~seller_dataframe["is_cancelled"]]["price"].idxmax(),
-            "buyer_discord_id",
-        ]
-        user_max_sale_wine_price = seller_dataframe.loc[
-            seller_dataframe[~seller_dataframe["is_cancelled"]]["price"].idxmax(),
-            "price",
-        ]
+        seller_max_price_idx = (
+            seller_dataframe[~seller_dataframe["is_cancelled"]]
+            .dropna(subset=["price"])["price"]
+            .idxmax()
+        )
+
+        user_max_sale_wine_name = str(
+            seller_dataframe[~seller_dataframe["is_cancelled"]]
+            .dropna(subset=["price"])
+            .at[seller_max_price_idx, "wine"]
+        )
+        user_max_sale_wine_buyer = str(
+            seller_dataframe[~seller_dataframe["is_cancelled"]]
+            .dropna(subset=["price"])
+            .at[seller_max_price_idx, "buyer_discord_id"]
+        )
+        user_max_sale_wine_price = float(
+            seller_dataframe[~seller_dataframe["is_cancelled"]]
+            .dropna(subset=["price"])
+            .at[seller_max_price_idx, "price"]
+        )
 
     # Server Stats
     server_count_all = dataframe.shape[0]
