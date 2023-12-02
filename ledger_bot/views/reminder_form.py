@@ -20,12 +20,12 @@ class StoreReminderButton(discord.ui.Button["SetFilterView"]):
 
     async def callback(self, interaction: discord.Interaction):
         # Get the reminder from the parent view
-        assert self.view is not None
-        view: SetFilterView = self.view
+        if self.view is not None:
+            view: SetFilterView = self.view
 
-        log.debug(f"Creating reminder {view.reminder}")
-        await view.reminder_manager.create_reminder(reminder=view.reminder)
-        await interaction.response.send_message("Successfully added reminder!")
+            log.debug(f"Creating reminder {view.reminder}")
+            await view.reminder_manager.create_reminder(reminder=view.reminder)
+            await interaction.response.send_message("Successfully added reminder!")
 
 
 class StatusDropdown(discord.ui.Select):
@@ -51,13 +51,13 @@ class StatusDropdown(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         # Set the status paramater of the reminder instance stored in the parent view to the value of the selection
-        assert self.view is not None
-        view: SetFilterView = self.view
-        status_value = self.values[0].lower()
-        view.reminder.status = status_value
-        log.debug(f"Setting status of {view.reminder} to {status_value}")
+        if self.view is not None:
+            view: SetFilterView = self.view
+            status_value = self.values[0].lower()
+            view.reminder.status = status_value
+            log.debug(f"Setting status of {view.reminder} to {status_value}")
 
-        await interaction.response.defer()
+            await interaction.response.defer()
 
 
 class SetFilterView(discord.ui.View):
