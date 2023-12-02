@@ -1,10 +1,16 @@
 """Tests for ledger_bot/config.py."""
 
+import os
 from typing import Dict
 
 import pytest
 
 from ledger_bot import config
+
+
+@pytest.fixture()
+def mock_os_getenv(monkeypatch):
+    monkeypatch.setattr(os, "getenv", lambda x: None)
 
 
 @pytest.fixture
@@ -61,19 +67,19 @@ def default_config():
     }
 
 
-def test_parse_with_provided_none(default_config):
+def test_parse_with_provided_none(default_config, mock_os_getenv):
     provided_config = None
     parsed_config = config.parse(provided_config)
     assert parsed_config == default_config
 
 
-def test_parse_with_provided_empty(default_config):
+def test_parse_with_provided_empty(default_config, mock_os_getenv):
     provided_config = {}
     parsed_config = config.parse(provided_config)
     assert parsed_config == default_config
 
 
-def test_parse_with_provided_input(default_config):
+def test_parse_with_provided_input(default_config, mock_os_getenv):
     provided_config = {
         "name": "TrackerBot",
         "channels": {"include": ["testing"]},
@@ -96,7 +102,7 @@ def test_parse_with_provided_input(default_config):
     assert parsed_config["cleanup_delay_hours"] == default_config["cleanup_delay_hours"]
 
 
-def test_parse_with_extra_input(default_config):
+def test_parse_with_extra_input(default_config, mock_os_getenv):
     provided_config = {"invalid_key": True}
 
     parsed_config = config.parse(provided_config)
