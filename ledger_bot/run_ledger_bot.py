@@ -47,7 +47,7 @@ def start_bot():
         log.debug(f"Config path: {config_path}")
         config_to_parse = {}
         if os.path.isfile(config_path):
-            with open(config_path, mode="r") as config_file:
+            with open(config_path) as config_file:
                 config_to_parse = json.load(config_file)
         config = parse(config_to_parse)
     except (OSError, ValueError) as err:
