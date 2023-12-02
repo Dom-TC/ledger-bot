@@ -8,13 +8,13 @@ from discord import app_commands
 
 from .models import Member
 from .process_dm import is_dm, process_dm
+from .process_message import process_message
 from .process_transactions import (
     approve_transaction,
     cancel_transaction,
     mark_transaction_delivered,
     mark_transaction_paid,
 )
-from .processs_message import process_message
 from .reactions import add_reaction, remove_reaction
 from .reminder_manager import ReminderManager
 from .scheduled_commands import cleanup

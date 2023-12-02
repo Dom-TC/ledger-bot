@@ -1,7 +1,6 @@
 """Exception raised when failing to interact with AirTable."""
 
 import logging
-from typing import Union
 
 from yarl import URL
 
