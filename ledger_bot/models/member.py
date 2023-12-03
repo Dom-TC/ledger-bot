@@ -9,15 +9,15 @@ log = logging.getLogger(__name__)
 
 @dataclass
 class Member:
-    record_id: str
-    row_id: str
-    discord_id: int
     username: str
-    nickname: str
-    sell_transactions: str
-    buy_transactions: str
-    reminders: List[str]
-    bot_id: str
+    discord_id: int
+    record_id: str | None = None
+    row_id: str | None = None
+    nickname: str | None = None
+    sell_transactions: List[str] | None = None
+    buy_transactions: List[str] | None = None
+    reminders: List[str] | None = None
+    bot_id: str | None = None
 
     @classmethod
     def from_airtable(cls, data: dict) -> "Member":

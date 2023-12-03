@@ -28,8 +28,8 @@ class Reminder:
             record_id=data["id"],
             row_id=fields.get("row_id"),
             date=datetime.strptime(fields.get("date"), "%Y-%m-%dT%H:%M:%S.%f%z"),
-            member_id=fields.get("member_id"),
-            transaction_id=fields.get("transaction_id"),
+            member_id=fields.get("member_id")[0],
+            transaction_id=fields.get("transaction_id")[0],
             status=fields.get("status"),
             bot_id=fields.get("bot_id"),
         )
@@ -43,6 +43,7 @@ class Reminder:
                 "member_id",
                 "transaction_id",
                 "status",
+                "row_id",
                 "bot_id",
             ]
         )
@@ -66,8 +67,14 @@ class Reminder:
                 else self.transaction_id
             ]
 
+        if "row_id" in fields and self.row_id is not None:
+            data["row_id"] = self.row_id
+
         if "status" in fields and self.status is not None:
             data["status"] = self.status
+
+        if "bot_id" in fields and self.bot_id is not None:
+            data["bot_id"] = self.bot_id
 
         return {
             "id": self.record_id,
