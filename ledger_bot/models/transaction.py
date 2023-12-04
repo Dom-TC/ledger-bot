@@ -1,6 +1,6 @@
 """The data model for a record in the `wines` table."""
-
 import logging
+from ast import literal_eval
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict, List
 
@@ -50,12 +50,12 @@ class Transaction:
             buyer_discord_id=int(fields.get("buyer_discord_id")[0]),
             wine=fields.get("wine"),
             price=float(fields.get("price")),
-            sale_approved=fields.get("sale_approved"),
-            buyer_marked_delivered=fields.get("buyer_marked_delivered"),
-            seller_marked_delivered=fields.get("seller_marked_delivered"),
-            buyer_marked_paid=fields.get("buyer_marked_paid"),
-            seller_marked_paid=fields.get("seller_marked_paid"),
-            cancelled=fields.get("cancelled"),
+            sale_approved=literal_eval(fields.get("sale_approved")),
+            buyer_marked_delivered=literal_eval(fields.get("buyer_marked_delivered")),
+            seller_marked_delivered=literal_eval(fields.get("seller_marked_delivered")),
+            buyer_marked_paid=literal_eval(fields.get("buyer_marked_paid")),
+            seller_marked_paid=literal_eval(fields.get("seller_marked_paid")),
+            cancelled=literal_eval(fields.get("cancelled")),
             creation_date=fields.get("creation_date"),
             approved_date=fields.get("approved_date"),
             paid_date=fields.get("paid_date"),
@@ -66,7 +66,7 @@ class Transaction:
             bot_id=fields.get("bot_id"),
         )
 
-    def to_airtable(self, fields=None) -> dict:
+    def to_airtable(self, fields: List | None = None) -> dict:
         fields = (
             fields
             if fields
@@ -74,9 +74,7 @@ class Transaction:
                 "wine",
                 "price",
                 "buyer_id",
-                "buyer_discord_id",
                 "seller_id",
-                "seller_discord_id",
                 "sale_approved",
                 "buyer_marked_delivered",
                 "seller_marked_delivered",
@@ -89,7 +87,6 @@ class Transaction:
                 "delivered_date",
                 "cancelled_date",
                 "bot_id",
-                "bot_messages",
             ]
         )
 
@@ -101,6 +98,7 @@ class Transaction:
                 if isinstance(self.seller_id, Member)
                 else self.seller_id
             ]
+
         if "buyer_id" in fields:
             data["buyer_id"] = [
                 self.buyer_id.record_id
@@ -120,8 +118,6 @@ class Transaction:
         standard_conversions = [
             "wine",
             "price",
-            "buyer_discord_id",
-            "seller_discord_id",
             "sale_approved",
             "buyer_marked_delivered",
             "seller_marked_delivered",
@@ -137,7 +133,7 @@ class Transaction:
         ]
         for attr in standard_conversions:
             if attr in fields:
-                data[attr] = getattr(self, attr)
+                data[attr] = str(getattr(self, attr))
 
         return {
             "id": self.record_id,
