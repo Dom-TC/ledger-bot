@@ -107,11 +107,22 @@ class Transaction:
             ]
 
         if "bot_messages" in fields and self.bot_messages is not None:
-            data["bot_messages"] = [
-                self.bot_messages.record_id
-                if isinstance(self.bot_messages, BotMessage)
-                else self.bot_messages
-            ]
+            bot_message_list = []
+            for bot_message in self.bot_messages:
+                bot_message_list.append(
+                    bot_message.record_id
+                    if isinstance(bot_message, BotMessage)
+                    else bot_message
+                )
+            data["bot_messages"] = bot_message_list
+
+        if "reminders" in fields and self.reminders is not None:
+            reminder_list = []
+            for reminder in self.reminders:
+                reminder_list.append(
+                    reminder.record_id if isinstance(reminder, Reminder) else reminder
+                )
+            data["reminders"] = reminder_list
 
         # For any attribute which is just assigned, without alteration we can list it here and iterate through the list
         # ie. anywhere we would do `data[attr] = self.attr`

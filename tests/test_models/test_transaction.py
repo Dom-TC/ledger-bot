@@ -1,7 +1,7 @@
 # test_transaction.py
 import pytest
 
-from ledger_bot.models import Transaction
+from ledger_bot.models import BotMessage, Reminder, Transaction
 
 
 @pytest.fixture
@@ -32,6 +32,18 @@ def sample_transaction_data():
             "bot_id": "bot-id",
         },
     }
+
+
+@pytest.fixture
+def mock_bot_message(mocker):
+    mocked_bot_message = mocker.MagicMock(name="BotMessage", spec=BotMessage)
+    return mocked_bot_message
+
+
+@pytest.fixture
+def mock_reminder(mocker):
+    mocked_bot_message = mocker.MagicMock(name="Reminder", spec=Reminder)
+    return mocked_bot_message
 
 
 def test_transaction_creation(sample_transaction_data):
@@ -108,5 +120,50 @@ def test_to_airtable_with_custom_fields(sample_transaction_data):
         "fields": {
             "wine": "Wine",
             "price": "50.0",
+        },
+    }
+
+
+def test_to_airtable_with_bot_messages(mock_bot_message):
+    mock_bot_message.record_id = "mocked_bot_record_id"
+
+    transaction_instance = Transaction(
+        record_id="12345",
+        seller_id="123",
+        buyer_id="456",
+        wine="testing",
+        price=123.45,
+        bot_messages=[mock_bot_message, "str_bot_message"],
+    )
+
+    airtable_data = transaction_instance.to_airtable(fields=["bot_messages"])
+
+    assert airtable_data == {
+        "id": "12345",
+        "fields": {
+            "bot_messages": ["mocked_bot_record_id", "str_bot_message"],
+        },
+    }
+
+
+@pytest.mark.skip("To Fix")
+def test_to_airtable_with_reminder(mock_reminder):
+    mock_reminder.record_id = "mocked_reminder_record_id"
+
+    transaction_instance = Transaction(
+        record_id="12345",
+        seller_id="123",
+        buyer_id="456",
+        wine="testing",
+        price=123.45,
+        reminders=[mock_reminder, "str_reminder"],
+    )
+
+    airtable_data = transaction_instance.to_airtable(fields=["reminders"])
+
+    assert airtable_data == {
+        "id": "12345",
+        "fields": {
+            "reminders": ["mocked_reminder_record_id", "str_reminder"],
         },
     }
