@@ -29,7 +29,7 @@ class BotMessagesMixin(BaseStorage):
         self,
         message: discord.Message | discord.interactions.InteractionMessage,
         transaction: Transaction,
-    ) -> Dict[str, str | List[str]]:
+    ) -> Dict[str, str | List[str]] | None:
         """Create a record in bot_messages for a given bot_message.
 
         Paramaters
@@ -44,6 +44,12 @@ class BotMessagesMixin(BaseStorage):
         dict
             A dictionary containing the inserted record
         """
+        if transaction.record_id is None:
+            log.info(
+                "Transaction doesn't have a record id. Can't store message. Skipping..."
+            )
+            return None
+
         data: Dict[str, str | List[str]] = {
             "bot_message_id": str(message.id),
             "channel_id": str(message.channel.id),
