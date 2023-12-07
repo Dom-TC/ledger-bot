@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 async def command_dev(
     client: "LedgerBot", message: discord.Message, dm_channel: discord.DMChannel
-):
+) -> None:
     """DM command - dev."""
     message_content = message.content.lower().strip()
 

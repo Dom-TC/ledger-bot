@@ -1,6 +1,7 @@
 """Helper function to send a message, removing all previous messages."""
 
 import logging
+from typing import Any, Dict
 
 import discord
 
@@ -17,8 +18,8 @@ async def send_message(
     target_transaction: Transaction,
     previous_message_id: int | None,
     storage: AirtableStorage,
-    config: dict,
-):
+    config: Dict[str, Any],
+) -> None:
     """Helper to send messages after updating transactions."""
     log.info("Attempting to send message")
     try:
@@ -47,7 +48,7 @@ async def send_message(
             )
 
             if previous_bot_message_record is not None:
-                previous_bot_message_record_id = previous_bot_message_record["id"]
+                previous_bot_message_record_id = str(previous_bot_message_record["id"])
                 await storage.delete_bot_message(previous_bot_message_record_id)
         except discord.Forbidden as error:
             log.error(f"You don't have permission to send to that channel: {error}")

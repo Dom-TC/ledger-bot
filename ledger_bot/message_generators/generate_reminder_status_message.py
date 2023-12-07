@@ -1,6 +1,7 @@
 """Helper functions for generating messages to be sent."""
 
 import logging
+from typing import Any, Dict
 
 import discord
 
@@ -12,14 +13,14 @@ def generate_reminder_status_message(
     buyer: discord.User,
     wine_name: str,
     wine_price: float,
-    config: dict,
+    config: Dict[str, Any],
     is_approved: bool | None = False,
     is_marked_paid_by_buyer: bool | None = False,
     is_marked_paid_by_seller: bool | None = False,
     is_marked_delivered_by_buyer: bool | None = False,
     is_marked_delivered_by_seller: bool | None = False,
     is_cancelled: bool | None = False,
-):
+) -> str:
     """Generate a status message for use in reminders."""
     log.info("Generating transaction status message...")
 

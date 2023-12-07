@@ -1,0 +1,36 @@
+name: Run Tests
+
+on:
+  pull_request:
+    paths:
+      - "**/*.py"
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11.x
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --with dev
+
+      - name: Run pytest
+        run: poetry run pytest tests/
+
+      - name: Run bandit
+        run: poetry run bandit -c pyproject.toml -r ledger_bot
+
+      - name: Run mypy
+        run: poetry run mypy ledger_bot

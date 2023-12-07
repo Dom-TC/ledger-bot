@@ -1,6 +1,7 @@
 """Register our slash commands with Discord."""
 
 import logging
+from typing import Any, Dict
 
 import discord
 from discord import app_commands
@@ -8,7 +9,6 @@ from discord import app_commands
 from ledger_bot.LedgerBot import LedgerBot
 from ledger_bot.storage import AirtableStorage
 
-from .command_add_user import command_add_user
 from .command_hello import command_hello
 from .command_help import command_help
 from .command_list import command_list
@@ -19,7 +19,9 @@ from .command_stats import command_stats
 log = logging.getLogger(__name__)
 
 
-def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
+def setup_slash(
+    client: LedgerBot, config: Dict[str, Any], storage: AirtableStorage
+) -> None:
     """
     Builds the available slash commands.
 
@@ -38,7 +40,7 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
     client.tree.clear_commands(guild=client.guild)
 
     @client.tree.command(guild=client.guild)
-    async def hello(interaction: discord.Interaction):
+    async def hello(interaction: discord.Interaction[Any]) -> None:
         """Says hello."""
         await command_hello(
             client=client, config=config, storage=storage, interaction=interaction
@@ -53,11 +55,11 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
         price="The price of the wine",
     )
     async def new_sale(
-        interaction: discord.Interaction,
+        interaction: discord.Interaction[Any],
         wine_name: str,
         buyer: discord.Member,
         price: float,
-    ):
+    ) -> None:
         await command_new_sale(
             client=client,
             config=config,
@@ -84,7 +86,7 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
         buyer_6="The name of the the sixth person you're selling to.",
     )
     async def new_split(
-        interaction: discord.Interaction,
+        interaction: discord.Interaction[Any],
         wine_name: str,
         price: float,
         buyer_1: discord.Member,
@@ -93,7 +95,7 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
         buyer_4: discord.Member,
         buyer_5: discord.Member,
         buyer_6: discord.Member,
-    ):
+    ) -> None:
         log.info(f"Recognised command: /new_split from {interaction.user.name}")
         buyers = [buyer_1, buyer_2, buyer_3, buyer_4, buyer_5, buyer_6]
         await command_new_split(
@@ -119,13 +121,13 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
         buyer_3="The name of the the third person you're selling to.",
     )
     async def new_split_3(
-        interaction: discord.Interaction,
+        interaction: discord.Interaction[Any],
         wine_name: str,
         price: float,
         buyer_1: discord.Member,
         buyer_2: discord.Member,
         buyer_3: discord.Member,
-    ):
+    ) -> None:
         log.info(f"Recognised command: /new_split_3 from {interaction.user.name}")
         buyers = [buyer_1, buyer_2, buyer_3]
         await command_new_split(
@@ -160,7 +162,7 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
         buyer_12="The name of the the twelfth person you're selling to.",
     )
     async def new_split_12(
-        interaction: discord.Interaction,
+        interaction: discord.Interaction[Any],
         wine_name: str,
         price: float,
         buyer_1: discord.Member,
@@ -175,7 +177,7 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
         buyer_10: discord.Member,
         buyer_11: discord.Member,
         buyer_12: discord.Member,
-    ):
+    ) -> None:
         log.info(f"Recognised command: /new_split_12 from {interaction.user.name}")
         buyers = [
             buyer_1,
@@ -204,7 +206,7 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
     @client.tree.command(
         guild=client.guild, name="help", description="Get help information"
     )
-    async def slash_help(interaction: discord.Interaction):
+    async def slash_help(interaction: discord.Interaction[Any]) -> None:
         """Gets help information."""
         await command_help(
             client=client, config=config, storage=storage, interaction=interaction
@@ -213,7 +215,7 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
     @client.tree.command(
         guild=client.guild, name="list", description="List your transactions"
     )
-    async def slash_list(interaction: discord.Interaction):
+    async def slash_list(interaction: discord.Interaction[Any]) -> None:
         """Returns a list of the users transactions."""
         log.info(f"Recognised command: /list from {interaction.user.name}")
         await command_list(
@@ -223,7 +225,7 @@ def setup_slash(client: LedgerBot, config: dict, storage: AirtableStorage):
     @client.tree.command(
         guild=client.guild, name="stats", description="View your stats"
     )
-    async def stats(interaction: discord.Interaction):
+    async def stats(interaction: discord.Interaction[Any]) -> None:
         """Returns a list of the users transactions."""
         log.info(f"Recognised command: /stats from {interaction.user.name}")
         await command_stats(

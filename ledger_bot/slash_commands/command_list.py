@@ -1,7 +1,7 @@
 """DM command - list."""
 
 import logging
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Any, Dict, List
 
 import discord
 
@@ -18,10 +18,10 @@ log = logging.getLogger(__name__)
 
 async def command_list(
     client: "LedgerBot",
-    config: dict,
+    config: Dict[str, Any],
     storage: AirtableStorage,
-    interaction: discord.Interaction,
-):
+    interaction: discord.Interaction[Any],
+) -> None:
     """DM command - list."""
     log.info(
         f"Getting transactions for user {interaction.user.name} ({interaction.user.id})"

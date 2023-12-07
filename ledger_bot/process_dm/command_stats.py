@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 async def command_stats(
     client: "LedgerBot", message: discord.Message, dm_channel: discord.DMChannel
-):
+) -> None:
     """DM command - stats."""
     log.info(f"Getting stats for user {message.author.name} ({message.author.id})")
 

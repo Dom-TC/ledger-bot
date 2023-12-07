@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+from typing import Any, Dict
 
 import discord
 
@@ -18,12 +19,12 @@ async def mark_transaction_paid(
     reactor: discord.Member,
     buyer: discord.User,
     seller: discord.User,
-    payload,
+    payload: discord.RawReactionActionEvent,
     channel: discord.abc.GuildChannel,
     target_transaction: Transaction,
-    config: dict,
+    config: Dict[str, Any],
     storage: AirtableStorage,
-):
+) -> None:
     """
     Mark the specified transaction as paid.
 

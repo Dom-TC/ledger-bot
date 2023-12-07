@@ -2,7 +2,7 @@
 
 import logging
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Dict
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class BotMessage:
     bot_id: str
 
     @classmethod
-    def from_airtable(cls, data: dict) -> "BotMessage":
+    def from_airtable(cls, data: Dict[str, Any]) -> "BotMessage":
         fields = data["fields"]
         return cls(
             record_id=data["id"],

@@ -1,8 +1,8 @@
 """The data model for a record in the `wines` table."""
-
 import logging
+from ast import literal_eval
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List
 
 from .bot_message import BotMessage
 from .member import Member
@@ -39,7 +39,7 @@ class Transaction:
     bot_id: str | None = None
 
     @classmethod
-    def from_airtable(cls, data: dict) -> "Transaction":
+    def from_airtable(cls, data: Dict[str, Any]) -> "Transaction":
         fields = data["fields"]
         return cls(
             record_id=data["id"],
@@ -50,12 +50,12 @@ class Transaction:
             buyer_discord_id=int(fields.get("buyer_discord_id")[0]),
             wine=fields.get("wine"),
             price=float(fields.get("price")),
-            sale_approved=fields.get("sale_approved"),
-            buyer_marked_delivered=fields.get("buyer_marked_delivered"),
-            seller_marked_delivered=fields.get("seller_marked_delivered"),
-            buyer_marked_paid=fields.get("buyer_marked_paid"),
-            seller_marked_paid=fields.get("seller_marked_paid"),
-            cancelled=fields.get("cancelled"),
+            sale_approved=fields.get("sale_approved", False),
+            buyer_marked_delivered=fields.get("buyer_marked_delivered", False),
+            seller_marked_delivered=fields.get("seller_marked_delivered", False),
+            buyer_marked_paid=fields.get("buyer_marked_paid", False),
+            seller_marked_paid=fields.get("seller_marked_paid", False),
+            cancelled=fields.get("cancelled", False),
             creation_date=fields.get("creation_date"),
             approved_date=fields.get("approved_date"),
             paid_date=fields.get("paid_date"),
@@ -66,7 +66,7 @@ class Transaction:
             bot_id=fields.get("bot_id"),
         )
 
-    def to_airtable(self, fields=None) -> dict:
+    def to_airtable(self, fields: List[str] | None = None) -> Dict[str, Any]:
         fields = (
             fields
             if fields
@@ -74,9 +74,7 @@ class Transaction:
                 "wine",
                 "price",
                 "buyer_id",
-                "buyer_discord_id",
                 "seller_id",
-                "seller_discord_id",
                 "sale_approved",
                 "buyer_marked_delivered",
                 "seller_marked_delivered",
@@ -89,45 +87,49 @@ class Transaction:
                 "delivered_date",
                 "cancelled_date",
                 "bot_id",
-                "bot_messages",
             ]
         )
 
-        data: Dict[str, str | List] = {}
+        data: Dict[str, str | List[str]] = {}
 
         if "seller_id" in fields:
             data["seller_id"] = [
-                self.seller_id.record_id
+                str(self.seller_id.record_id)
                 if isinstance(self.seller_id, Member)
                 else self.seller_id
             ]
+
         if "buyer_id" in fields:
             data["buyer_id"] = [
-                self.buyer_id.record_id
+                str(self.buyer_id.record_id)
                 if isinstance(self.buyer_id, Member)
                 else self.buyer_id
             ]
 
         if "bot_messages" in fields and self.bot_messages is not None:
-            data["bot_messages"] = [
-                self.bot_messages.record_id
-                if isinstance(self.bot_messages, BotMessage)
-                else self.bot_messages
-            ]
+            bot_message_list = []
+            for bot_message in self.bot_messages:
+                bot_message_list.append(
+                    bot_message.record_id
+                    if isinstance(bot_message, BotMessage)
+                    else bot_message
+                )
+            data["bot_messages"] = bot_message_list
+
+        if "reminders" in fields and self.reminders is not None:
+            reminder_list = []
+            for reminder in self.reminders:
+                reminder_list.append(
+                    str(reminder.record_id)
+                    if isinstance(reminder, Reminder)
+                    else reminder
+                )
+            data["reminders"] = reminder_list
 
         # For any attribute which is just assigned, without alteration we can list it here and iterate through the list
         # ie. anywhere we would do `data[attr] = self.attr`
-        standard_conversions = [
+        str_conversions = [
             "wine",
-            "price",
-            "buyer_discord_id",
-            "seller_discord_id",
-            "sale_approved",
-            "buyer_marked_delivered",
-            "seller_marked_delivered",
-            "buyer_marked_paid",
-            "seller_marked_paid",
-            "cancelled",
             "creation_date",
             "approved_date",
             "paid_date",
@@ -135,7 +137,20 @@ class Transaction:
             "cancelled_date",
             "bot_id",
         ]
-        for attr in standard_conversions:
+        for attr in str_conversions:
+            if attr in fields:
+                data[attr] = str(getattr(self, attr))
+
+        bare_conversions = [
+            "price",
+            "sale_approved",
+            "buyer_marked_delivered",
+            "seller_marked_delivered",
+            "buyer_marked_paid",
+            "seller_marked_paid",
+            "cancelled",
+        ]
+        for attr in bare_conversions:
             if attr in fields:
                 data[attr] = getattr(self, attr)
 

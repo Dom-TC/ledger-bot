@@ -1,7 +1,7 @@
 """Mixin for dealing with the Members table."""
 
 import logging
-from typing import List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from aiohttp import ClientSession
 from asyncache import cached
@@ -21,15 +21,15 @@ class MembersMixin(BaseStorage):
 
     async def _list_members(
         self, filter_by_formula: str, session: Optional[ClientSession] = None
-    ):
+    ) -> List[Dict[str, Any]]:
         return await self._list(self.members_url, filter_by_formula, session)
 
-    def _list_all_members(
+    async def _list_all_members(
         self,
-        filter_by_formula: str,
-        sort: List[str],
+        filter_by_formula: Optional[str],
+        sort: Optional[list[str]] = None,
         session: Optional[ClientSession] = None,
-    ):
+    ) -> AsyncGenerator[Dict[str, Any], None]:
         return self._iterate(
             self.members_url,
             filter_by_formula=filter_by_formula,
@@ -39,7 +39,7 @@ class MembersMixin(BaseStorage):
 
     async def _find_member_by_discord_id(
         self, discord_id: str, session: Optional[ClientSession] = None
-    ):
+    ) -> Dict[str, Any] | None:
         log.debug(f"Finding member {discord_id}")
         members = await self._list_members(
             filter_by_formula="{{discord_id}}={value}".format(value=discord_id),
@@ -49,12 +49,12 @@ class MembersMixin(BaseStorage):
 
     async def _retrieve_member(
         self, member_id: str, session: Optional[ClientSession] = None
-    ):
+    ) -> Dict[str, Any]:
         return await self._get(f"{self.members_url}/{member_id}", session=session)
 
     async def _delete_members(
         self, members: List[str], session: ClientSession | None = None
-    ):
+    ) -> None:
         # AirTable API only allows us to batch delete 10 records at a time, so we need to split up requests
         member_ids_length = len(members)
         delete_batches = (
@@ -65,8 +65,8 @@ class MembersMixin(BaseStorage):
             await self._delete(self.members_url, records_to_delete, session)
 
     async def insert_member(
-        self, record: dict, session: Optional[ClientSession] = None
-    ) -> dict:
+        self, record: Dict[str, Any], session: Optional[ClientSession] = None
+    ) -> Dict[str, Any]:
         """
         Inserts a member into the table.
 

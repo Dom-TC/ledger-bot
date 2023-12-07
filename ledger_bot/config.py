@@ -5,18 +5,17 @@ module to process configs, defaults defined in the function, overwritten by prov
 
 import logging
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 log = logging.getLogger(__name__)
 
 
-def parse(config: Dict[str, Any]) -> dict:
+def parse(config: Dict[str, Any] | None) -> Dict[str, Any]:
     """
     Parse provided config, with defaults and env vars.
 
     Returns dict
     """
-    # defaults: Dict[str, str | int | bool | Dict[str, Any] | List[int] | None] = {
     defaults: Dict[str, Any] = {
         "id": None,
         "name": "Ledger-Bot",
@@ -68,12 +67,13 @@ def parse(config: Dict[str, Any]) -> dict:
         "cleanup_removes_transaction_records": False,
     }
 
-    # Update defaults from config file
-    for key in defaults.keys():
-        if isinstance(defaults[key], dict):
-            defaults[key].update(config.get(key, {}))
-        else:
-            defaults[key] = config.get(key, defaults[key])
+    if config is not None:
+        # Update defaults from config file
+        for key in defaults.keys():
+            if isinstance(defaults[key], dict):
+                defaults[key].update(config.get(key, {}))
+            else:
+                defaults[key] = config.get(key, defaults[key])
 
     # Environment variables override config files
     if token := os.getenv("BOT_DISCORD_TOKEN"):

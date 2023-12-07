@@ -2,25 +2,25 @@
 
 import logging
 from dataclasses import dataclass
-from typing import List
+from typing import Any, Dict, List
 
 log = logging.getLogger(__name__)
 
 
 @dataclass
 class Member:
-    record_id: str
-    row_id: str
-    discord_id: int
     username: str
-    nickname: str
-    sell_transactions: str
-    buy_transactions: str
-    reminders: List[str]
-    bot_id: str
+    discord_id: int
+    record_id: str | None = None
+    row_id: str | None = None
+    nickname: str | None = None
+    sell_transactions: List[str] | None = None
+    buy_transactions: List[str] | None = None
+    reminders: List[str] | None = None
+    bot_id: str | None = None
 
     @classmethod
-    def from_airtable(cls, data: dict) -> "Member":
+    def from_airtable(cls, data: Dict[str, Any]) -> "Member":
         fields = data["fields"]
         return cls(
             record_id=data["id"],
@@ -35,6 +35,6 @@ class Member:
         )
 
     @property
-    def display_name(self):
+    def display_name(self) -> str:
         name = self.nickname if self.nickname else self.username
         return f"{name}"

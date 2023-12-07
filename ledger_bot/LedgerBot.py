@@ -1,6 +1,7 @@
 """The LedgerBot class is the actual implimentation of the Discord bot.  Extends discord.Client."""
 
 import logging
+from typing import Any, Dict
 
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -8,13 +9,13 @@ from discord import app_commands
 
 from .models import Member
 from .process_dm import is_dm, process_dm
+from .process_message import process_message
 from .process_transactions import (
     approve_transaction,
     cancel_transaction,
     mark_transaction_delivered,
     mark_transaction_paid,
 )
-from .processs_message import process_message
 from .reactions import add_reaction, remove_reaction
 from .reminder_manager import ReminderManager
 from .scheduled_commands import cleanup
@@ -46,11 +47,11 @@ class LedgerBot(discord.Client):
 
     def __init__(
         self,
-        config: dict,
+        config: Dict[str, Any],
         storage: AirtableStorage,
         scheduler: AsyncIOScheduler,
         reminders: ReminderManager,
-    ):
+    ) -> None:
         self.config = config
         self.storage = storage
         self.guild = discord.Object(id=self.config["guild"])
@@ -85,7 +86,7 @@ class LedgerBot(discord.Client):
 
         self.tree = app_commands.CommandTree(self)
 
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         log.info(f"We have logged in as {self.user}")
 
         await self.change_presence(
@@ -98,10 +99,14 @@ class LedgerBot(discord.Client):
         log.info("Building slash commands")
         await self.tree.sync(guild=self.guild)
 
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message) -> None:
         # Process DMs
         if is_dm(message):
             await process_dm(self, message)
+            return
+
+        if isinstance(message.channel, (discord.DMChannel, discord.PartialMessageable)):
+            log.info("Can't get channel name, skipping...")
             return
 
         channel_name = message.channel.name
@@ -118,7 +123,9 @@ class LedgerBot(discord.Client):
         # Process messages
         await process_message(self, message)
 
-    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+    async def on_raw_reaction_add(
+        self, payload: discord.RawReactionActionEvent
+    ) -> None:
         # Check if valid reaction emoji
         if payload.emoji.name not in [
             self.config["emojis"]["approval"],
@@ -291,5 +298,5 @@ class LedgerBot(discord.Client):
             channel_obj=channel,
         )
 
-    async def on_disconnect(self):
+    async def on_disconnect(self) -> None:
         log.warning("Bot disconnected")

@@ -1,18 +1,21 @@
 """Generate help message text."""
 
 import logging
+from typing import Any, Dict
 
 log = logging.getLogger(__name__)
 
 
-def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
+def generate_help_message(
+    config: Dict[str, Any], has_dev_commands: bool = False
+) -> str:
     """Generates help text.
 
     Taking into account whether someone has access to dev commands
 
     Parameters
     ----------
-    config: dict
+    config: Dict[str, Any]
         The config dictionary
 
     has_dev_commands : bool, optional
@@ -189,15 +192,18 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
     }
 
     # Create comma seperated list, with "and" before final element
-    maintainers = (
-        "<@"
-        + ">, <@".join(
-            str(maintainer) for maintainer in list(config["maintainer_ids"])[:-1]
+    if len(config["maintainer_ids"]) > 1:
+        maintainers = (
+            "<@"
+            + ">, <@".join(
+                str(maintainer) for maintainer in list(config["maintainer_ids"])[:-1]
+            )
+            + ">, and <@"
+            + str(list(config["maintainer_ids"])[-1])
+            + ">"
         )
-        + ">, and <@"
-        + str(list(config["maintainer_ids"])[-1])
-        + ">"
-    )
+    else:
+        maintainers = f"<@{str(config['maintainer_ids'][0])}>"
 
     prefix = f"{config['name']} allows you to track in-progress sales to other users.\nCreate a new transaction with `/new_sale`. To update a transactions status, react to the message from {config['name']}."
     suffix = f"{config['name']} was built by {maintainers} and is hosted by <https://snailedit.dev/>."
@@ -231,7 +237,7 @@ def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
             reactions = sections[section]
             for reaction in reactions:
                 if reaction["requires_dev"] and not has_dev_commands:
-                    log.info(f"Skipping dev reaction: {reaction['command']}")
+                    log.info(f"Skipping dev reaction: {reaction['reaction']}")
                 else:
                     body += f"{reaction['reaction']}: {reaction['description']}\n"
 

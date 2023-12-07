@@ -2,3 +2,5 @@
 
 from .airtable_error import AirTableError
 from .signal_halt_error import SignalHaltError
+
+__all__ = ["AirTableError", "SignalHaltError"]

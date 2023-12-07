@@ -25,7 +25,6 @@ repos:
           - "--allow-missing-credentials"
       - id: detect-private-key
       - id: fix-byte-order-marker
-      - id: name-tests-test
   - repo: https://github.com/PyCQA/flake8
     rev: 3.9.2
     hooks:
@@ -68,3 +67,7 @@ repos:
         language_version: python3.11
       - id: poetry-export
         args: ["-f", "requirements.txt", "-o", "requirements.txt", "--without-hashes"]
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.15.0
+    hooks:
+      - id: pyupgrade

@@ -12,8 +12,8 @@ log = logging.getLogger(__name__)
 class SignalHaltError(SystemExit):
     def __init__(self, signal_enum: Signals):
         self.signal_enum = signal_enum
-        print(repr(self), file=stderr)
         super().__init__(self.exit_code)
+        stderr.write(repr(self))
 
     @property
     def exit_code(self) -> int:

@@ -1,6 +1,7 @@
 """Slash command - add_user."""
 
 import logging
+from typing import Any, Dict
 
 import discord
 
@@ -12,10 +13,10 @@ log = logging.getLogger(__name__)
 
 async def command_add_user(
     client: "LedgerBot",
-    config: dict,
+    config: Dict[str, Any],
     storage: AirtableStorage,
-    interaction: discord.Interaction,
-):
+    interaction: discord.Interaction[Any],
+) -> None:
     """Add user to Airtable."""
     if isinstance(interaction.channel, discord.channel.TextChannel):
         channel_name = interaction.channel.name

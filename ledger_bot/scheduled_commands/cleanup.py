@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-async def cleanup(client: "LedgerBot", storage: AirtableStorage):
+async def cleanup(client: "LedgerBot", storage: AirtableStorage) -> None:
     """
     Removes messages, message records, and (optionally) transaction records.
 

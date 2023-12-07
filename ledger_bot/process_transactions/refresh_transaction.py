@@ -15,7 +15,9 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-async def refresh_transaction(client: "LedgerBot", row_id: int, channel_id: int | None):
+async def refresh_transaction(
+    client: "LedgerBot", row_id: int, channel_id: int | None
+) -> str | None:
     """Removes all existing messages for a given transaction, and creates a new message with the current status."""
     log.info(f"Refreshing transaction: {row_id}")
 
@@ -88,11 +90,11 @@ async def refresh_transaction(client: "LedgerBot", row_id: int, channel_id: int 
 
     if transaction.seller_discord_id is None:
         log.warning("No Seller Discord ID specified. Skipping")
-        return
+        return None
 
     if transaction.buyer_discord_id is None:
         log.warning("No Buyer Discord ID specified. Skipping")
-        return
+        return None
 
     seller = await client.fetch_user(transaction.seller_discord_id)
     buyer = await client.fetch_user(transaction.buyer_discord_id)

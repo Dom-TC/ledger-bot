@@ -11,6 +11,6 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-async def process_message(client: "LedgerBot", message: Message):
+async def process_message(client: "LedgerBot", message: Message) -> None:
     """Processes the provided message."""
     pass

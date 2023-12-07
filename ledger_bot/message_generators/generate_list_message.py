@@ -10,7 +10,7 @@ from ledger_bot.storage import AirtableStorage
 log = logging.getLogger(__name__)
 
 
-def _split_text_on_newline(text, chunk_length) -> List:
+def _split_text_on_newline(text: str, chunk_length: int) -> List[str]:
     chunks = []
     current_chunk = ""
 
@@ -27,7 +27,9 @@ def _split_text_on_newline(text, chunk_length) -> List:
     return chunks
 
 
-async def _get_latest_message_link(transaction: Transaction, storage: AirtableStorage):
+async def _get_latest_message_link(
+    transaction: Transaction, storage: AirtableStorage
+) -> str:
     if transaction.bot_messages is None:
         return ""
 
@@ -48,7 +50,7 @@ async def _get_latest_message_link(transaction: Transaction, storage: AirtableSt
 
 async def _build_transaction_lists(
     transactions: List[Transaction], user_id: int, storage: AirtableStorage
-) -> Dict:
+) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
     """
     Converts a list of transactions into a filtered dictionary.
 

@@ -45,7 +45,7 @@ async def add_reaction(
     message_id: int,
     reaction: str,
     channel_obj: Optional[discord.TextChannel] = None,
-):
+) -> None:
     """Adds the specified reaction to the given message."""
     log.info(f"Adding {reaction} to message {message_id}")
 
@@ -72,7 +72,7 @@ async def _remove_reaction_from_channel(
     message_id: int,
     reaction: str,
     channel: discord.TextChannel,
-):
+) -> bool:
     try:
         log.info(f"Searching for {message_id} in {channel.name} - {channel.id}")
         message = await channel.fetch_message(message_id)
@@ -109,7 +109,7 @@ async def remove_reaction(
     message_id: int,
     reaction: str,
     channel_obj: Optional[discord.TextChannel] = None,
-):
+) -> None:
     """Removes the specified reaction from the given message."""
     log.info(f"Removing {reaction} from message {message_id}")
 

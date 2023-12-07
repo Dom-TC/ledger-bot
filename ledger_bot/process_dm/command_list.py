@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 async def command_list(
     client: "LedgerBot", message: discord.Message, dm_channel: discord.DMChannel
-):
+) -> None:
     """DM command - list."""
     log.info(f"Getting transactions for user {message.author.name}")
 

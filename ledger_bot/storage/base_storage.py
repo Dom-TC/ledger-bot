@@ -30,10 +30,10 @@ class BaseStorage:
     async def _get(
         self,
         url: str,
-        params: dict[str, str | List[str] | None] | None = None,
+        params: Dict[str, str | List[str] | None] | None = None,
         session: Optional[ClientSession] = None,
-    ):
-        async def run_fetch(session_to_use: ClientSession):
+    ) -> Dict[str, Any]:
+        async def run_fetch(session_to_use: ClientSession) -> Dict[str, Any]:
             async with session_to_use.get(
                 url,
                 params=params,
@@ -41,7 +41,7 @@ class BaseStorage:
             ) as r:
                 if r.status != 200:
                     raise AirTableError(r.url, await r.json())
-                response: dict = await r.json()
+                response: Dict[str, Any] = await r.json()
                 return response
 
         async with self.semaphore:
@@ -55,14 +55,14 @@ class BaseStorage:
         filter_by_formula: Optional[str],
         session: Optional[ClientSession] = None,
         view: Optional[str] = None,
-    ) -> List:
+    ) -> list[dict[str, Any]]:
         params: Dict[str, Any] = {}
         if filter_by_formula := filter_by_formula:
             params.update({"filterByFormula": filter_by_formula})
         if view := view:
             params.update({"view": view})
         response = await self._get(base_url, params, session)
-        records: List = response.get("records", [])
+        records: list[dict[str, Any]] = response.get("records", [])
 
         return records
 
@@ -74,8 +74,8 @@ class BaseStorage:
         sort: Optional[list[str]] = None,
         session: Optional[ClientSession] = None,
         fields: Optional[Union[list[str], str]] = None,
-    ) -> AsyncGenerator[dict, None]:
-        params: dict[str, str | List[str] | None] = {}
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        params: Dict[str, str | List[str] | None] = {}
 
         if filter_by_formula:
             params = {"filterByFormula": filter_by_formula}
@@ -84,7 +84,7 @@ class BaseStorage:
                 params[f"sort[{idx}][field]"] = field
                 params[f"sort[{idx}][direction]"] = "asc"
         if fields:
-            if isinstance(fields, list):
+            if isinstance(fields, List):
                 params["fields[]"] = fields
             else:
                 params["fields[]"] = [fields]
@@ -107,8 +107,8 @@ class BaseStorage:
         base_url: str,
         records_to_delete: List[str],
         session: Optional[ClientSession] = None,
-    ) -> Dict:
-        async def run_delete(session_to_use: ClientSession) -> Dict:
+    ) -> Dict[str, Any]:
+        async def run_delete(session_to_use: ClientSession) -> Dict[str, Any]:
             url = (
                 base_url
                 if len(records_to_delete) > 1
@@ -125,11 +125,11 @@ class BaseStorage:
             ) as r:
                 if r.status != 200:
                     raise AirTableError(r.url, await r.json())
-                response: dict = await r.json()
+                response: Dict[str, Any] = await r.json()
                 return response
 
         async with self.semaphore:
-            result: Dict = await run_request(run_delete, session)
+            result: Dict[str, Any] = await run_request(run_delete, session)
             await airtable_sleep()
             return result
 
@@ -137,14 +137,14 @@ class BaseStorage:
         self,
         url: str,
         method: Literal["post", "patch"],
-        record: dict,
+        record: Dict[str, Any],
         upsert_fields: Optional[list[str]],
         session: Optional[ClientSession] = None,
-    ) -> Dict:
-        async def run_insert(session_to_use: ClientSession) -> Dict:
+    ) -> Dict[str, Any]:
+        async def run_insert(session_to_use: ClientSession) -> Dict[str, Any]:
             is_single_record = "records" not in record
             has_fields = "fields" not in record
-            data: dict[str, Union[str, dict, list]] = (
+            data: Dict[str, Any] = (
                 {"fields": record} if is_single_record and has_fields else record
             )
             entity_url = url
@@ -167,28 +167,28 @@ class BaseStorage:
             ) as r:
                 if r.status != 200:
                     raise AirTableError(r.url, await r.json(), data)
-                response: dict = await r.json()
+                response: Dict[str, Any] = await r.json()
                 return response
 
         async with self.semaphore:
-            result: Dict = await run_request(run_insert, session)
+            result: Dict[str, Any] = await run_request(run_insert, session)
             await airtable_sleep()
             return result
 
     async def _insert(
         self,
         url: str,
-        record: dict,
+        record: Dict[str, Any],
         session: Optional[ClientSession] = None,
         upsert_fields: Optional[list[str]] = None,
-    ) -> Dict:
+    ) -> Dict[str, Any]:
         return await self._modify(url, "post", record, upsert_fields, session)
 
     async def _update(
         self,
         url: str,
-        record: dict,
+        record: Dict[str, Any],
         session: Optional[ClientSession] = None,
         upsert_fields: Optional[list[str]] = None,
-    ) -> Dict:
+    ) -> Dict[str, Any]:
         return await self._modify(url, "patch", record, upsert_fields, session)

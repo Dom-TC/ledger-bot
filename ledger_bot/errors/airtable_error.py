@@ -1,7 +1,7 @@
 """Exception raised when failing to interact with AirTable."""
 
 import logging
-from typing import Union
+from typing import Any, Dict
 
 from yarl import URL
 
@@ -9,8 +9,8 @@ log = logging.getLogger(__name__)
 
 
 class AirTableError(Exception):
-    def __init__(self, url: URL, response_dict: dict, *args: object) -> None:
-        error_dict: dict = response_dict["error"]
+    def __init__(self, url: URL, response_dict: Dict[str, Any], *args: object) -> None:
+        error_dict: Dict[str, Any] = response_dict["error"]
         self.url = url
         if type(error_dict) is dict:
             self.error_type = error_dict.get("type")
