@@ -48,7 +48,7 @@ class BotMessagesMixin(BaseStorage):
             "bot_message_id": str(message.id),
             "channel_id": str(message.channel.id),
             "guild_id": str(message.guild.id) if message.guild else "",
-            "transaction_id": str([transaction.record_id]),
+            "transaction_id": [transaction.record_id],
             "message_creation_date": str(datetime.datetime.utcnow().isoformat()),
             "bot_id": self.bot_id or "",
         }
