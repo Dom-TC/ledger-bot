@@ -95,7 +95,7 @@ def test_to_airtable_with_default_fields(sample_transaction_data):
             "seller_id": ["seller123"],
             "buyer_id": ["buyer456"],
             "wine": "Wine",
-            "price": "50.0",
+            "price": 50.0,
             "sale_approved": True,
             "buyer_marked_delivered": False,
             "seller_marked_delivered": True,
@@ -121,7 +121,7 @@ def test_to_airtable_with_custom_fields(sample_transaction_data):
         "id": "12345",
         "fields": {
             "wine": "Wine",
-            "price": "50.0",
+            "price": 50.0,
         },
     }
 

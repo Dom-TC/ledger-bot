@@ -130,7 +130,6 @@ class Transaction:
         # ie. anywhere we would do `data[attr] = self.attr`
         str_conversions = [
             "wine",
-            "price",
             "creation_date",
             "approved_date",
             "paid_date",
@@ -142,7 +141,8 @@ class Transaction:
             if attr in fields:
                 data[attr] = str(getattr(self, attr))
 
-        bool_conversions = [
+        bare_conversions = [
+            "price",
             "sale_approved",
             "buyer_marked_delivered",
             "seller_marked_delivered",
@@ -150,7 +150,7 @@ class Transaction:
             "seller_marked_paid",
             "cancelled",
         ]
-        for attr in bool_conversions:
+        for attr in bare_conversions:
             if attr in fields:
                 data[attr] = getattr(self, attr)
 
