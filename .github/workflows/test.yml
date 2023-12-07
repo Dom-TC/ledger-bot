@@ -26,7 +26,7 @@ jobs:
           poetry install --with dev
 
       - name: Run pytest
-        run: poetry run pytest test/
+        run: poetry run pytest tests/
 
       - name: Run bandit
         run: poetry run bandit -c pyproject.toml -r ledger_bot
