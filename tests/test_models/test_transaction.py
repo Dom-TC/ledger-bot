@@ -1,4 +1,6 @@
 # test_transaction.py
+from ast import literal_eval
+
 import pytest
 
 from ledger_bot.models import BotMessage, Reminder, Transaction
@@ -16,12 +18,12 @@ def sample_transaction_data():
             "buyer_discord_id": ["456"],
             "wine": "Wine",
             "price": "50.0",
-            "sale_approved": "True",
-            "buyer_marked_delivered": "False",
-            "seller_marked_delivered": "True",
-            "buyer_marked_paid": "False",
-            "seller_marked_paid": "True",
-            "cancelled": "False",
+            "sale_approved": True,
+            "buyer_marked_delivered": False,
+            "seller_marked_delivered": True,
+            "buyer_marked_paid": False,
+            "seller_marked_paid": True,
+            "cancelled": False,
             "creation_date": "2023-12-03T15:30:45.123456+00:00",
             "approved_date": "2023-12-03T15:30:45.123456+00:00",
             "paid_date": "2023-12-03T15:30:45.123456+00:00",
@@ -94,12 +96,12 @@ def test_to_airtable_with_default_fields(sample_transaction_data):
             "buyer_id": ["buyer456"],
             "wine": "Wine",
             "price": "50.0",
-            "sale_approved": "True",
-            "buyer_marked_delivered": "False",
-            "seller_marked_delivered": "True",
-            "buyer_marked_paid": "False",
-            "seller_marked_paid": "True",
-            "cancelled": "False",
+            "sale_approved": True,
+            "buyer_marked_delivered": False,
+            "seller_marked_delivered": True,
+            "buyer_marked_paid": False,
+            "seller_marked_paid": True,
+            "cancelled": False,
             "creation_date": "2023-12-03T15:30:45.123456+00:00",
             "approved_date": "2023-12-03T15:30:45.123456+00:00",
             "paid_date": "2023-12-03T15:30:45.123456+00:00",
@@ -167,3 +169,44 @@ def test_to_airtable_with_reminder(mock_reminder):
             "reminders": ["mocked_reminder_record_id", "str_reminder"],
         },
     }
+
+
+def test_from_airtable_minimal_fields():
+    data = {
+        "id": "12345",
+        "fields": {
+            "row_id": "56789",
+            "seller_id": ["seller123"],
+            "seller_discord_id": ["123"],
+            "buyer_id": ["buyer456"],
+            "buyer_discord_id": ["456"],
+            "wine": "Wine",
+            "price": "50.0",
+            "bot_id": "bot-id",
+        },
+    }
+
+    transaction = Transaction.from_airtable(data)
+
+    assert transaction.record_id == "12345"
+    assert transaction.row_id == "56789"
+    assert transaction.seller_id == "seller123"
+    assert transaction.seller_discord_id == 123
+    assert transaction.buyer_id == "buyer456"
+    assert transaction.buyer_discord_id == 456
+    assert transaction.wine == "Wine"
+    assert transaction.price == 50.0
+    assert transaction.sale_approved is False
+    assert transaction.buyer_marked_delivered is False
+    assert transaction.seller_marked_delivered is False
+    assert transaction.buyer_marked_paid is False
+    assert transaction.seller_marked_paid is False
+    assert transaction.cancelled is False
+    assert transaction.creation_date == None
+    assert transaction.approved_date == None
+    assert transaction.paid_date == None
+    assert transaction.delivered_date == None
+    assert transaction.cancelled_date == None
+    assert transaction.bot_messages == None
+    assert transaction.reminders == None
+    assert transaction.bot_id == "bot-id"

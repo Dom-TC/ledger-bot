@@ -50,12 +50,12 @@ class Transaction:
             buyer_discord_id=int(fields.get("buyer_discord_id")[0]),
             wine=fields.get("wine"),
             price=float(fields.get("price")),
-            sale_approved=literal_eval(fields.get("sale_approved")),
-            buyer_marked_delivered=literal_eval(fields.get("buyer_marked_delivered")),
-            seller_marked_delivered=literal_eval(fields.get("seller_marked_delivered")),
-            buyer_marked_paid=literal_eval(fields.get("buyer_marked_paid")),
-            seller_marked_paid=literal_eval(fields.get("seller_marked_paid")),
-            cancelled=literal_eval(fields.get("cancelled")),
+            sale_approved=fields.get("sale_approved", False),
+            buyer_marked_delivered=fields.get("buyer_marked_delivered", False),
+            seller_marked_delivered=fields.get("seller_marked_delivered", False),
+            buyer_marked_paid=fields.get("buyer_marked_paid", False),
+            seller_marked_paid=fields.get("seller_marked_paid", False),
+            cancelled=fields.get("cancelled", False),
             creation_date=fields.get("creation_date"),
             approved_date=fields.get("approved_date"),
             paid_date=fields.get("paid_date"),
@@ -128,15 +128,9 @@ class Transaction:
 
         # For any attribute which is just assigned, without alteration we can list it here and iterate through the list
         # ie. anywhere we would do `data[attr] = self.attr`
-        standard_conversions = [
+        str_conversions = [
             "wine",
             "price",
-            "sale_approved",
-            "buyer_marked_delivered",
-            "seller_marked_delivered",
-            "buyer_marked_paid",
-            "seller_marked_paid",
-            "cancelled",
             "creation_date",
             "approved_date",
             "paid_date",
@@ -144,9 +138,21 @@ class Transaction:
             "cancelled_date",
             "bot_id",
         ]
-        for attr in standard_conversions:
+        for attr in str_conversions:
             if attr in fields:
                 data[attr] = str(getattr(self, attr))
+
+        bool_conversions = [
+            "sale_approved",
+            "buyer_marked_delivered",
+            "seller_marked_delivered",
+            "buyer_marked_paid",
+            "seller_marked_paid",
+            "cancelled",
+        ]
+        for attr in bool_conversions:
+            if attr in fields:
+                data[attr] = getattr(self, attr)
 
         return {
             "id": self.record_id,
