@@ -13,6 +13,7 @@ from asyncio.events import AbstractEventLoop
 from functools import partial
 from signal import SIGINT, SIGTERM, Signals
 from sys import platform
+from typing import Any, Dict
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -26,7 +27,7 @@ from .storage import AirtableStorage
 log = logging.getLogger(__name__)
 
 
-async def _run_bot(client: LedgerBot, config: dict):
+async def _run_bot(client: LedgerBot, config: Dict[str, Any]) -> None:
     """Run ledger-bot."""
     async with client:
         await client.start(config["authentication"]["discord"])
@@ -39,7 +40,7 @@ def _stop_bot(signal_enum: Signals, loop: AbstractEventLoop) -> None:
     raise SignalHaltError(signal_enum=signal_enum)
 
 
-def start_bot():
+def start_bot() -> None:
     """Start ledger-bot."""
     # Get configs
     try:

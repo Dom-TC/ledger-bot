@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 async def command_version(
     client: "LedgerBot", message: discord.Message, dm_channel: discord.DMChannel
-):
+) -> None:
     """DM command - version."""
     git_version = os.getenv("BOT_VERSION", client.config["emojis"]["unknown_version"])
 

@@ -15,5 +15,6 @@ log = logging.getLogger(__name__)
 
 async def command_reminder(
     client: "LedgerBot", message: discord.Message, dm_channel: discord.DMChannel
-):
+) -> None:
     """DM command - watch."""
+    raise NotImplementedError

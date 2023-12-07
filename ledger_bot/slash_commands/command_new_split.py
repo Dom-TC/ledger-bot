@@ -2,7 +2,7 @@
 
 import datetime
 import logging
-from typing import List
+from typing import Any, Dict, List
 
 import discord
 
@@ -18,13 +18,13 @@ log = logging.getLogger(__name__)
 
 async def command_new_split(
     client: "LedgerBot",
-    config: dict,
+    config: Dict[str, Any],
     storage: AirtableStorage,
-    interaction: discord.Interaction,
+    interaction: discord.Interaction[Any],
     wine_name: str,
     buyers: List[discord.Member],
     price: float,
-):
+) -> None:
     """Add transaction to Airtable."""
     log.debug(f"Processing command {interaction.command}")
 

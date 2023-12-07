@@ -2,7 +2,7 @@
 
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Any, Dict, List
 
 import arrow
 import discord
@@ -24,7 +24,7 @@ class ReminderManager:
 
     def __init__(
         self,
-        config: dict,
+        config: Dict[str, Any],
         scheduler: AsyncIOScheduler,
         storage: AirtableStorage,
     ):
@@ -48,17 +48,17 @@ class ReminderManager:
 
         scheduler.add_listener(self.handle_scheduler_event, events.EVENT_JOB_MISSED)
 
-    def set_client(self, client: "LedgerBot"):
+    def set_client(self, client: "LedgerBot") -> None:
         self.client = client
 
-    def handle_scheduler_event(self, event: events.JobEvent):
+    def handle_scheduler_event(self, event: events.JobEvent) -> None:
         """Handle events from scheduler."""
         job = self.scheduler.get_job(event.job_id)
         if job is not None and job.name.startswith("Reminder:"):
             log.debug(f"Adding job {event.job_id} to missed_job_ids")
             self.missed_job_ids.append(event.job_id)
 
-    async def refresh_reminders(self):
+    async def refresh_reminders(self) -> None:
         """Creates jobs for all stored reminders."""
         reminders_processed = 0
         async for reminder in self.storage.retrieve_reminders():
@@ -82,7 +82,7 @@ class ReminderManager:
 
     async def send_reminder(
         self, reminder_id: str, member_id: str, transaction_id: str, status: str
-    ):
+    ) -> None:
         log.debug(f"reminder_id: {reminder_id}")
         log.debug(f"member_id: {member_id}")
         log.debug(f"transaction_id: {transaction_id}")
@@ -182,7 +182,7 @@ class ReminderManager:
         member: discord.Member | None = None,
         transaction: Transaction | None = None,
         status: str | None = None,
-    ):
+    ) -> Reminder:
         """
         Add a reminder to the store and schedule it.
 
@@ -230,8 +230,8 @@ class ReminderManager:
         log.info(f"Created reminder {created_reminder}")
         return created_reminder
 
-    async def list_reminders(self):
+    async def list_reminders(self) -> NotImplementedError:
         raise NotImplementedError
 
-    async def remove_reminder(self):
+    async def remove_reminder(self) -> NotImplementedError:
         raise NotImplementedError

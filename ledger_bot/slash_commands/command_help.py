@@ -1,7 +1,7 @@
 """Slash command - help."""
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict
 
 import discord
 
@@ -16,10 +16,10 @@ log = logging.getLogger(__name__)
 
 async def command_help(
     client: "LedgerBot",
-    config: dict,
+    config: Dict[str, Any],
     storage: AirtableStorage,
-    interaction: discord.Interaction,
-):
+    interaction: discord.Interaction[Any],
+) -> None:
     """Return a help message."""
     if isinstance(interaction.channel, discord.channel.TextChannel):
         channel_name = interaction.channel.name

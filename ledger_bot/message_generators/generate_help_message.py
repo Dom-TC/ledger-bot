@@ -1,18 +1,21 @@
 """Generate help message text."""
 
 import logging
+from typing import Any, Dict
 
 log = logging.getLogger(__name__)
 
 
-def generate_help_message(config: dict, has_dev_commands: bool = False) -> str:
+def generate_help_message(
+    config: Dict[str, Any], has_dev_commands: bool = False
+) -> str:
     """Generates help text.
 
     Taking into account whether someone has access to dev commands
 
     Parameters
     ----------
-    config: dict
+    config: Dict[str, Any]
         The config dictionary
 
     has_dev_commands : bool, optional

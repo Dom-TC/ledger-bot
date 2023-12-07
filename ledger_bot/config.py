@@ -10,7 +10,7 @@ from typing import Any, Dict
 log = logging.getLogger(__name__)
 
 
-def parse(config: Dict[str, Any] | None) -> dict:
+def parse(config: Dict[str, Any] | None) -> Dict[str, Any]:
     """
     Parse provided config, with defaults and env vars.
 

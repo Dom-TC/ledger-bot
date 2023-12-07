@@ -1,7 +1,7 @@
 """Mixin for dealing with the Reminders table."""
 
 import logging
-from typing import AsyncGenerator, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from aiohttp import ClientSession
 
@@ -21,7 +21,7 @@ class RemindersMixin(BaseStorage):
         filter_by_formula: Optional[str],
         sort: Optional[list[str]] = None,
         session: Optional[ClientSession] = None,
-    ) -> AsyncGenerator[dict, None]:
+    ) -> AsyncGenerator[Dict[str, Any], None]:
         return self._iterate(
             self.reminders_url,
             filter_by_formula=filter_by_formula,
@@ -39,8 +39,8 @@ class RemindersMixin(BaseStorage):
         return Reminder.from_airtable(result)
 
     async def insert_reminder(
-        self, record: dict, session: Optional[ClientSession] = None
-    ) -> dict:
+        self, record: Dict[str, Any], session: Optional[ClientSession] = None
+    ) -> Dict[str, Any]:
         """
         Inserts a member into the table.
 
@@ -62,9 +62,9 @@ class RemindersMixin(BaseStorage):
     async def update_reminder(
         self,
         record_id: str,
-        reminder_record: dict,
+        reminder_record: Dict[str, Any],
         session: Optional[ClientSession] = None,
-    ) -> dict:
+    ) -> Dict[str, Any]:
         """
         Updates a specific reminder record.
 
@@ -84,7 +84,9 @@ class RemindersMixin(BaseStorage):
             self.reminders_url + "/" + record_id, reminder_record, session
         )
 
-    async def save_reminder(self, reminder: Reminder, fields=None) -> dict:
+    async def save_reminder(
+        self, reminder: Reminder, fields: List[str] | None = None
+    ) -> Dict[str, str | List[str]]:
         """
         Saves a reminder.
 
@@ -125,7 +127,7 @@ class RemindersMixin(BaseStorage):
             log.info("Adding reminder to Airtable")
             return await self.insert_reminder(reminder_data["fields"])
 
-    async def remove_reminder(self, *reminder_ids: str):
+    async def remove_reminder(self, *reminder_ids: str) -> None:
         log.debug(f"Deleting reminders: {reminder_ids}")
         await self._delete(self.reminders_url, list(reminder_ids))
         log.debug(f"Deleted reminders: {reminder_ids}")

@@ -6,3 +6,5 @@ from .command_help import command_help
 from .command_list import command_list
 from .command_new_sale import command_new_sale
 from .setup_slash import setup_slash
+
+__all__ = ["setup_slash"]

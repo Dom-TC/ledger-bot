@@ -2,7 +2,7 @@
 
 import logging
 import traceback
-from typing import Optional
+from typing import Any
 
 import arrow
 import discord
@@ -18,7 +18,7 @@ class StoreReminderButton(discord.ui.Button["SetFilterView"]):
     def __init__(self, label: str):
         super().__init__(label=label)
 
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: discord.Interaction[Any]) -> None:
         # Get the reminder from the parent view
         if self.view is not None:
             view: SetFilterView = self.view
@@ -28,8 +28,8 @@ class StoreReminderButton(discord.ui.Button["SetFilterView"]):
             await interaction.response.send_message("Successfully added reminder!")
 
 
-class StatusDropdown(discord.ui.Select):
-    def __init__(self):
+class StatusDropdown(discord.ui.Select[Any]):
+    def __init__(self) -> None:
         # Set the options that will be presented inside the dropdown
         options = [
             discord.SelectOption(label="Approved"),
@@ -49,7 +49,7 @@ class StatusDropdown(discord.ui.Select):
             options=options,
         )
 
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: discord.Interaction[Any]) -> None:
         # Set the status paramater of the reminder instance stored in the parent view to the value of the selection
         if self.view is not None:
             view: SetFilterView = self.view
@@ -92,14 +92,14 @@ class ReminderForm(discord.ui.Modal, title="Create Reminder In..."):
 
         super().__init__()
 
-    days_input: discord.ui.TextInput = discord.ui.TextInput(
+    days_input: discord.ui.TextInput[Any] = discord.ui.TextInput(
         label="Days", required=False
     )
-    hours_input: discord.ui.TextInput = discord.ui.TextInput(
+    hours_input: discord.ui.TextInput[Any] = discord.ui.TextInput(
         label="Hours", required=False
     )
 
-    async def on_submit(self, interaction: discord.Interaction):
+    async def on_submit(self, interaction: discord.Interaction[Any]) -> None:
         # hours and days need to be ints
         try:
             hours = int(self.hours_input.value)
@@ -155,9 +155,9 @@ class ReminderForm(discord.ui.Modal, title="Create Reminder In..."):
 
     async def on_error(
         self,
-        interaction: discord.Interaction,
+        interaction: discord.Interaction[Any],
         error: Exception,
-        item: discord.ui.Item | None = None,
+        item: discord.ui.Item[Any] | None = None,
     ) -> None:
         await interaction.response.send_message(
             "Oops! Something went wrong.", ephemeral=True
@@ -183,8 +183,8 @@ class CreateReminderButton(discord.ui.View):
 
     @discord.ui.button(label="Create Reminder")
     async def set_time(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
+        self, interaction: discord.Interaction[Any], button: discord.ui.Button[Any]
+    ) -> None:
         await interaction.response.send_modal(
             ReminderForm(
                 storage=self.storage,

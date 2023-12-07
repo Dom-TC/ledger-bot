@@ -1,7 +1,7 @@
 """Mixin for dealing with the Transactions table."""
 
 import logging
-from typing import Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from aiohttp import ClientSession
 
@@ -20,9 +20,9 @@ class TransactionsMixin(BaseStorage):
     async def update_transaction(
         self,
         record_id: str,
-        transaction_record: dict,
+        transaction_record: Dict[str, Any],
         session: Optional[ClientSession] = None,
-    ):
+    ) -> Dict[str, Any]:
         """
         Updates a specific transaction record.
 
@@ -42,7 +42,9 @@ class TransactionsMixin(BaseStorage):
             self.wines_url + "/" + record_id, transaction_record, session
         )
 
-    async def save_transaction(self, transaction: Transaction, fields=None):
+    async def save_transaction(
+        self, transaction: Transaction, fields: List[str] | None = None
+    ) -> Dict[str, Any]:
         """
         Saves the provided Transaction.
 
@@ -95,18 +97,18 @@ class TransactionsMixin(BaseStorage):
 
     async def _list_transactions(
         self, filter_by_formula: str, session: Optional[ClientSession] = None
-    ):
+    ) -> list[dict[str, Any]]:
         return await self._list(self.wines_url, filter_by_formula, session)
 
     async def _retrieve_transaction(
         self, transaction_id: str, session: Optional[ClientSession] = None
-    ):
+    ) -> Dict[str, Any]:
         log.debug(f"Retrieving transaction with id {transaction_id}")
         return await self._get(f"{self.wines_url}/{transaction_id}", session=session)
 
     async def insert_transaction(
-        self, record: dict, session: Optional[ClientSession] = None
-    ) -> dict:
+        self, record: Dict[str, Any], session: Optional[ClientSession] = None
+    ) -> Dict[str, Any]:
         """
         Inserts a transaction into the table.
 
@@ -143,7 +145,7 @@ class TransactionsMixin(BaseStorage):
 
     async def delete_transaction(
         self, record_id: str, session: ClientSession | None = None
-    ):
+    ) -> None:
         """Delete the specified bot_message record."""
         records_to_delete = [record_id]
         log.info(f"Deleting records {records_to_delete}")
@@ -151,7 +153,7 @@ class TransactionsMixin(BaseStorage):
 
     async def get_completed_transactions(
         self, hours_completed: int = 0
-    ) -> Optional[List[dict]]:
+    ) -> Optional[List[Dict[str, Any]]]:
         """
         Get a list of transactions that are completed.
 
@@ -169,16 +171,22 @@ class TransactionsMixin(BaseStorage):
         """
         filter_formula = f"AND({{sale_approved}},{{buyer_marked_delivered}},{{buyer_marked_paid}},{{seller_marked_delivered}},{{seller_marked_paid}},IF(DATETIME_DIFF(TODAY(),{{delivered_date}},'hours')>{hours_completed},TRUE(),FALSE()),IF(DATETIME_DIFF(TODAY(),{{paid_date}},'hours')>{hours_completed},TRUE(),FALSE()))"
 
-        transactions: List = await self._list_transactions(filter_formula)
+        transactions: List[Dict[str, Any]] = await self._list_transactions(
+            filter_formula
+        )
         if len(transactions) == 0:
             return None
         else:
             return transactions
 
-    async def get_users_transaction(self, user_id: str) -> Optional[List[dict]]:
+    async def get_users_transaction(
+        self, user_id: str
+    ) -> Optional[List[Dict[str, Any]]]:
         filter_formula = f"OR(IF({{seller_discord_id}}={user_id},TRUE(),FALSE()),IF({{buyer_discord_id}}={user_id},TRUE(),FALSE()))"
 
-        transactions: List = await self._list_transactions(filter_formula)
+        transactions: List[Dict[str, Any]] = await self._list_transactions(
+            filter_formula
+        )
 
         log.debug(f"transactions: {transactions} / {type(transactions)}")
         if len(transactions) == 0:
@@ -192,21 +200,23 @@ class TransactionsMixin(BaseStorage):
         transaction_object = await self._retrieve_transaction(record_id)
         return Transaction.from_airtable(transaction_object)
 
-    async def get_all_transactions(self) -> List[dict] | None:
+    async def get_all_transactions(self) -> List[Dict[str, Any]] | None:
         log.info("Getting all transactions")
-        transactions: List = await self._list_transactions("")
+        transactions: List[Dict[str, Any]] = await self._list_transactions("")
         if len(transactions) == 0:
             return None
         else:
             return transactions
 
-    async def get_transaction_by_row_id(self, row_id: int) -> dict | None:
+    async def get_transaction_by_row_id(self, row_id: int) -> Dict[str, Any] | None:
         """Returns the transaction with the corrosponding row id."""
         log.info(f"Getting transactions with row_id {row_id}")
 
         filter_formula = f"IF(row_id={row_id},TRUE(), FALSE())"
 
-        transactions: List[Dict] = await self._list_transactions(filter_formula)
+        transactions: List[Dict[str, Any]] = await self._list_transactions(
+            filter_formula
+        )
         if len(transactions) == 0:
             return None
         else:

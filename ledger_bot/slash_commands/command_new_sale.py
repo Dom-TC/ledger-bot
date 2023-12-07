@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+from typing import Any, Dict
 
 import discord
 
@@ -16,13 +17,13 @@ log = logging.getLogger(__name__)
 
 async def command_new_sale(
     client: "LedgerBot",
-    config: dict,
+    config: Dict[str, Any],
     storage: AirtableStorage,
-    interaction: discord.Interaction,
+    interaction: discord.Interaction[Any],
     wine_name: str,
     buyer: discord.Member,
     price: float,
-):
+) -> None:
     """Add transaction to Airtable."""
     if isinstance(interaction.channel, discord.channel.TextChannel):
         channel_name = interaction.channel.name

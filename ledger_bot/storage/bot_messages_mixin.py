@@ -2,7 +2,7 @@
 
 import datetime
 import logging
-from typing import Optional
+from typing import Dict, List, Optional
 
 import discord
 from aiohttp import ClientSession
@@ -19,15 +19,17 @@ class BotMessagesMixin(BaseStorage):
     bot_id: str
 
     async def _insert_bot_message(
-        self, record: dict, session: Optional[ClientSession] = None
-    ) -> dict:
+        self,
+        record: Dict[str, str | List[str]],
+        session: Optional[ClientSession] = None,
+    ) -> Dict[str, str | List[str]]:
         return await self._insert(self.bot_messages_url, record, session)
 
     async def record_bot_message(
         self,
         message: discord.Message | discord.interactions.InteractionMessage,
         transaction: Transaction,
-    ):
+    ) -> Dict[str, str | List[str]]:
         """Create a record in bot_messages for a given bot_message.
 
         Paramaters
@@ -42,12 +44,12 @@ class BotMessagesMixin(BaseStorage):
         dict
             A dictionary containing the inserted record
         """
-        data = {
+        data: Dict[str, str | List[str]] = {
             "bot_message_id": str(message.id),
             "channel_id": str(message.channel.id),
-            "guild_id": str(message.guild.id) if message.guild else None,
-            "transaction_id": [transaction.record_id],
-            "message_creation_date": datetime.datetime.utcnow().isoformat(),
+            "guild_id": str(message.guild.id) if message.guild else "",
+            "transaction_id": str([transaction.record_id]),
+            "message_creation_date": str(datetime.datetime.utcnow().isoformat()),
             "bot_id": self.bot_id or "",
         }
         log.info(f"Storing bot_message: {data}")
@@ -55,12 +57,12 @@ class BotMessagesMixin(BaseStorage):
 
     async def _list_bot_messages(
         self, filter_by_formula: str, session: Optional[ClientSession] = None
-    ):
+    ) -> List[Dict[str, str | List[str]]]:
         return await self._list(self.bot_messages_url, filter_by_formula, session)
 
     async def find_bot_message_by_message_id(
         self, bot_message_id: str, session: Optional[ClientSession] = None
-    ):
+    ) -> Dict[str, str | List[str]] | None:
         log.debug(f"Finding bot_message with id {bot_message_id}")
         bot_messages = await self._list_bot_messages(
             filter_by_formula="{{bot_message_id}}={value}".format(value=bot_message_id),
@@ -70,7 +72,7 @@ class BotMessagesMixin(BaseStorage):
 
     async def delete_bot_message(
         self, record_id: str, session: ClientSession | None = None
-    ):
+    ) -> None:
         """Delete the specified bot_message record."""
         records_to_delete = [record_id]
         log.info(f"Deleting records {records_to_delete}")
@@ -78,6 +80,6 @@ class BotMessagesMixin(BaseStorage):
 
     async def find_bot_message_by_record_id(
         self, record_id: str, session: Optional[ClientSession] = None
-    ):
+    ) -> Dict[str, str | List[str]]:
         log.debug(f"Finding bot_message with record {record_id}")
         return await self._get(f"{self.bot_messages_url}/{record_id}", session=session)

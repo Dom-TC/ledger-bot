@@ -3,7 +3,7 @@
 # flake8: noqa
 
 import logging
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import discord
 
@@ -15,7 +15,7 @@ def generate_transaction_status_message(
     buyer: discord.Member | discord.User,
     wine_name: str,
     wine_price: float,
-    config: dict,
+    config: Dict[str, Any],
     is_update: Optional[bool] = False,
     is_approved: Optional[bool] = False,
     is_marked_paid_by_buyer: Optional[bool] = False,
@@ -23,7 +23,7 @@ def generate_transaction_status_message(
     is_marked_delivered_by_buyer: Optional[bool] = False,
     is_marked_delivered_by_seller: Optional[bool] = False,
     is_cancelled: Optional[bool] = False,
-):
+) -> str:
     """
     Generates the text for displaying a transaction status.
 

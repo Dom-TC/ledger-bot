@@ -2,7 +2,7 @@
 import logging
 from ast import literal_eval
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List
 
 from .bot_message import BotMessage
 from .member import Member
@@ -39,7 +39,7 @@ class Transaction:
     bot_id: str | None = None
 
     @classmethod
-    def from_airtable(cls, data: dict) -> "Transaction":
+    def from_airtable(cls, data: Dict[str, Any]) -> "Transaction":
         fields = data["fields"]
         return cls(
             record_id=data["id"],
@@ -66,7 +66,7 @@ class Transaction:
             bot_id=fields.get("bot_id"),
         )
 
-    def to_airtable(self, fields: List | None = None) -> dict:
+    def to_airtable(self, fields: List[str] | None = None) -> Dict[str, Any]:
         fields = (
             fields
             if fields
@@ -90,18 +90,18 @@ class Transaction:
             ]
         )
 
-        data: Dict[str, str | List] = {}
+        data: Dict[str, str | List[str]] = {}
 
         if "seller_id" in fields:
             data["seller_id"] = [
-                self.seller_id.record_id
+                str(self.seller_id.record_id)
                 if isinstance(self.seller_id, Member)
                 else self.seller_id
             ]
 
         if "buyer_id" in fields:
             data["buyer_id"] = [
-                self.buyer_id.record_id
+                str(self.buyer_id.record_id)
                 if isinstance(self.buyer_id, Member)
                 else self.buyer_id
             ]
@@ -120,7 +120,9 @@ class Transaction:
             reminder_list = []
             for reminder in self.reminders:
                 reminder_list.append(
-                    reminder.record_id if isinstance(reminder, Reminder) else reminder
+                    str(reminder.record_id)
+                    if isinstance(reminder, Reminder)
+                    else reminder
                 )
             data["reminders"] = reminder_list
 
