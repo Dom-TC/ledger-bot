@@ -22,7 +22,8 @@ async def command_version(
 
     git_path = which("git")
     if git_path is None:
-        response = "Can't find git command"
+        response = client.config["emojis"]["unknown_version"]
+        log.error("Can't find git path.")
     else:
         try:
             # If tagged version, use that instead.
@@ -35,8 +36,8 @@ async def command_version(
             log.warning(f"Git command failed with code: {error.returncode}")
         except FileNotFoundError:
             log.warning("Git command not found")
-        response = f"Version: {git_version}"
-        if bot_id := client.config["id"]:
-            response = f"{response} ({bot_id})"
+    response = f"Version: {git_version}"
+    if bot_id := client.config["id"]:
+        response = f"{response} ({bot_id})"
 
     await dm_channel.send(response)
