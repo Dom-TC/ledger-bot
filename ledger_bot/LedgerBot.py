@@ -7,6 +7,7 @@ import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from discord import app_commands
 
+from .mixins import ExtendedClient
 from .models import Member
 from .process_dm import is_dm, process_dm
 from .process_message import process_message
@@ -25,7 +26,7 @@ from .views import CreateReminderButton
 log = logging.getLogger(__name__)
 
 
-class LedgerBot(discord.Client):
+class LedgerBot(ExtendedClient):
     """
     The main bot class.
 
@@ -138,7 +139,7 @@ class LedgerBot(discord.Client):
         ]:
             return
 
-        channel = self.get_channel(payload.channel_id)
+        channel = self.get_or_fetch_channel(payload.channel_id)
         reactor = payload.member
 
         if reactor is None:
@@ -191,13 +192,13 @@ class LedgerBot(discord.Client):
             if isinstance(target_transaction.buyer_id, Member)
             else target_transaction.buyer_id
         )
-        buyer = await self.fetch_user(buyer_id.discord_id)
+        buyer = await self.get_or_fetch_user(buyer_id.discord_id)
         seller_id = await self.storage.get_member_from_record_id(
             target_transaction.seller_id.record_id
             if isinstance(target_transaction.seller_id, Member)
             else target_transaction.seller_id
         )
-        seller = await self.fetch_user(seller_id.discord_id)
+        seller = await self.get_or_fetch_user(seller_id.discord_id)
 
         # Check if buyer or seller
         if reactor.id != buyer.id and reactor.id != seller.id:

@@ -92,7 +92,7 @@ class ReminderManager:
 
         log.debug(f"{member_record} / {type(member_record)}")
 
-        user = await self.client.fetch_user(member_record.discord_id)
+        user = await self.client.get_or_fetch_user(member_record.discord_id)
 
         log.info(f"Sending reminder '{reminder_id}' to {user.name}")
 
@@ -147,8 +147,12 @@ class ReminderManager:
             return
 
         status_message = generate_reminder_status_message(
-            seller=await self.client.fetch_user(transaction_record.seller_discord_id),
-            buyer=await self.client.fetch_user(transaction_record.buyer_discord_id),
+            seller=await self.client.get_or_fetch_user(
+                transaction_record.seller_discord_id
+            ),
+            buyer=await self.client.get_or_fetch_user(
+                transaction_record.buyer_discord_id
+            ),
             wine_name=transaction_record.wine,
             wine_price=transaction_record.price,
             config=self.config,

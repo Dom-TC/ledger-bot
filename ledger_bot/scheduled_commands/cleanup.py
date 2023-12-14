@@ -63,7 +63,9 @@ async def cleanup(client: "LedgerBot", storage: AirtableStorage) -> None:
                             )
                             bot_message = BotMessage.from_airtable(bot_message_record)
 
-                            channel = client.get_channel(bot_message.channel_id)
+                            channel = client.get_or_fetch_channel(
+                                bot_message.channel_id
+                            )
 
                             if isinstance(channel, discord.TextChannel):
 

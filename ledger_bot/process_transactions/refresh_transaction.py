@@ -36,7 +36,9 @@ async def refresh_transaction(
     bot_messages = transaction.bot_messages
 
     # We overwrite this with the channel from the bot_message, if it's provided
-    channel = client.get_channel(channel_id) if channel_id is not None else None
+    channel = (
+        client.get_or_fetch_channel(channel_id) if channel_id is not None else None
+    )
 
     # Delete all previous bot messages, if they exist
     if bot_messages is not None:
@@ -54,7 +56,7 @@ async def refresh_transaction(
             log.debug(f"Message: {bot_message}")
 
             try:
-                channel = client.get_channel(bot_message.channel_id)
+                channel = client.get_or_fetch_channel(bot_message.channel_id)
 
                 if isinstance(channel, discord.TextChannel):
                     message = await channel.fetch_message(bot_message.bot_message_id)
@@ -96,8 +98,8 @@ async def refresh_transaction(
         log.warning("No Buyer Discord ID specified. Skipping")
         return None
 
-    seller = await client.fetch_user(transaction.seller_discord_id)
-    buyer = await client.fetch_user(transaction.buyer_discord_id)
+    seller = await client.get_or_fetch_user(transaction.seller_discord_id)
+    buyer = await client.get_or_fetch_user(transaction.buyer_discord_id)
 
     log.info(f"Seller: {seller} / {type(seller)}")
     log.info(f"Buyer: {buyer} / {type(buyer)}")
