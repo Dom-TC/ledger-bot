@@ -37,7 +37,9 @@ async def refresh_transaction(
 
     # We overwrite this with the channel from the bot_message, if it's provided
     channel = (
-        client.get_or_fetch_channel(channel_id) if channel_id is not None else None
+        await client.get_or_fetch_channel(channel_id)
+        if channel_id is not None
+        else None
     )
 
     # Delete all previous bot messages, if they exist
@@ -56,7 +58,7 @@ async def refresh_transaction(
             log.debug(f"Message: {bot_message}")
 
             try:
-                channel = client.get_or_fetch_channel(bot_message.channel_id)
+                channel = await client.get_or_fetch_channel(bot_message.channel_id)
 
                 if isinstance(channel, discord.TextChannel):
                     message = await channel.fetch_message(bot_message.bot_message_id)

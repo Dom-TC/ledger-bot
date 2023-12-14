@@ -64,10 +64,6 @@ class LedgerBot(ReactionRoles, ExtendedClient):
         log.info(f"Set guild: {self.config['guild']}")
         log.info(f"Watching channels: {self.config['channels']}")
 
-        intents = discord.Intents(
-            messages=True, guilds=True, reactions=True, message_content=True
-        )
-
         log.info("Scheduling jobs...")
         scheduler.add_job(
             func=cleanup,
@@ -80,12 +76,21 @@ class LedgerBot(ReactionRoles, ExtendedClient):
             timezone="UTC",
         )
 
+        intents = discord.Intents(
+            messages=True, guilds=True, reactions=True, message_content=True
+        )
+
+        super().__init__(
+            intents=intents,
+            config=self.config,
+            scheduler=self.scheduler,
+            reaction_roles_storage=self.reaction_roles_storage,
+        )
+
         scheduler.start()
 
         if not scheduler.running:
             log.warning("The scheduler is not running")
-
-        super().__init__(intents=intents)
 
     async def on_ready(self) -> None:
         log.info(f"We have logged in as {self.user}")
@@ -127,6 +132,31 @@ class LedgerBot(ReactionRoles, ExtendedClient):
     async def on_raw_reaction_add(
         self, payload: discord.RawReactionActionEvent
     ) -> None:
+        channel = await self.get_or_fetch_channel(payload.channel_id)
+        reactor = payload.member
+        guild_id = payload.guild_id
+
+        if reactor is None:
+            log.warning("Payload contained no reactor. Ignoring payload.")
+            return
+
+        if not isinstance(channel, discord.TextChannel):
+            log.warning("Couldn't get channel information. Ignoring reaction.")
+            return
+
+        if guild_id is None:
+            log.debug("Reaction on non-guild message. Ignoring")
+            return
+
+        guild = self.get_guild(guild_id)
+        if guild is None:
+            log.error(f"Guild with ID '{guild_id}' not found!")
+            return
+
+        handled_role_reaction = await self.handle_role_reaction(payload)
+        if handled_role_reaction:
+            return
+
         # Check if valid reaction emoji
         if payload.emoji.name not in [
             self.config["emojis"]["approval"],
@@ -135,17 +165,6 @@ class LedgerBot(ReactionRoles, ExtendedClient):
             self.config["emojis"]["delivered"],
             self.config["emojis"]["reminder"],
         ]:
-            return
-
-        channel = self.get_or_fetch_channel(payload.channel_id)
-        reactor = payload.member
-
-        if reactor is None:
-            log.warning("Payload contained no reactor. Ignoring payload.")
-            return
-
-        if not isinstance(channel, discord.TextChannel):
-            log.warning("Couldn't get channel information. Ignoring reaction.")
             return
 
         # Check if in valid channel
