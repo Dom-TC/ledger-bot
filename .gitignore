@@ -168,3 +168,5 @@ discord/bot.py
 
 # Ignore local config file
 config.json
+
+.vscode
