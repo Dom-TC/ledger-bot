@@ -7,7 +7,7 @@ import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from discord import app_commands
 
-from .mixins import ExtendedClient
+from .mixins import ExtendedClient, ReactionRoles
 from .models import Member
 from .process_dm import is_dm, process_dm
 from .process_message import process_message
@@ -26,7 +26,7 @@ from .views import CreateReminderButton
 log = logging.getLogger(__name__)
 
 
-class LedgerBot(ExtendedClient):
+class LedgerBot(ReactionRoles, ExtendedClient):
     """
     The main bot class.
 
@@ -86,8 +86,6 @@ class LedgerBot(ExtendedClient):
             log.warning("The scheduler is not running")
 
         super().__init__(intents=intents)
-
-        self.tree = app_commands.CommandTree(self)
 
     async def on_ready(self) -> None:
         log.info(f"We have logged in as {self.user}")
