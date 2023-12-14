@@ -19,7 +19,7 @@ from .process_transactions import (
 from .reactions import add_reaction, remove_reaction
 from .reminder_manager import ReminderManager
 from .scheduled_commands import cleanup
-from .storage import AirtableStorage
+from .storage import AirtableStorage, ReactionRolesStorage
 from .views import CreateReminderButton
 
 log = logging.getLogger(__name__)
@@ -49,11 +49,13 @@ class LedgerBot(discord.Client):
         self,
         config: Dict[str, Any],
         storage: AirtableStorage,
+        reaction_roles_storage: ReactionRolesStorage,
         scheduler: AsyncIOScheduler,
         reminders: ReminderManager,
     ) -> None:
         self.config = config
         self.storage = storage
+        self.reaction_roles_storage = reaction_roles_storage
         self.guild = discord.Object(id=self.config["guild"])
         self.scheduler = scheduler
         self.reminders = reminders

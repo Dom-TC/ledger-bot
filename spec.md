@@ -74,3 +74,14 @@ Price: <price>
 3. Process reminder at correct time
 4. DM command to list reminders
 5. DM command to remove reminders
+
+## Reaction Roles
+
+- Get watched message IDs
+  - Daily
+  - DM command
+  - Whenever a new role is added
+- Assign Role
+  - If message ID and reaction are valid, assign the user the appropriate role
+- Add Role
+  - Admin only command
