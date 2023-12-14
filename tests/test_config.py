@@ -63,6 +63,11 @@ def default_config():
             "minute": "0",
             "second": "0",
         },
+        "reaction_role_refresh_time": {
+            "hour": "*",
+            "minute": "*/30",
+            "second": "0",
+        },
         "cleanup_removes_transaction_records": False,
     }
 

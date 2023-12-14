@@ -7,6 +7,7 @@ import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from discord import app_commands
 
+from .mixins import ExtendedClient, ReactionRoles
 from .models import Member
 from .process_dm import is_dm, process_dm
 from .process_message import process_message
@@ -19,13 +20,13 @@ from .process_transactions import (
 from .reactions import add_reaction, remove_reaction
 from .reminder_manager import ReminderManager
 from .scheduled_commands import cleanup
-from .storage import AirtableStorage
+from .storage import AirtableStorage, ReactionRolesStorage
 from .views import CreateReminderButton
 
 log = logging.getLogger(__name__)
 
 
-class LedgerBot(discord.Client):
+class LedgerBot(ReactionRoles, ExtendedClient):
     """
     The main bot class.
 
@@ -49,21 +50,19 @@ class LedgerBot(discord.Client):
         self,
         config: Dict[str, Any],
         storage: AirtableStorage,
+        reaction_roles_storage: ReactionRolesStorage,
         scheduler: AsyncIOScheduler,
         reminders: ReminderManager,
     ) -> None:
         self.config = config
         self.storage = storage
+        self.reaction_roles_storage = reaction_roles_storage
         self.guild = discord.Object(id=self.config["guild"])
         self.scheduler = scheduler
         self.reminders = reminders
 
         log.info(f"Set guild: {self.config['guild']}")
         log.info(f"Watching channels: {self.config['channels']}")
-
-        intents = discord.Intents(
-            messages=True, guilds=True, reactions=True, message_content=True
-        )
 
         log.info("Scheduling jobs...")
         scheduler.add_job(
@@ -77,14 +76,21 @@ class LedgerBot(discord.Client):
             timezone="UTC",
         )
 
+        intents = discord.Intents(
+            messages=True, guilds=True, reactions=True, message_content=True
+        )
+
+        super().__init__(
+            intents=intents,
+            config=self.config,
+            scheduler=self.scheduler,
+            reaction_roles_storage=self.reaction_roles_storage,
+        )
+
         scheduler.start()
 
         if not scheduler.running:
             log.warning("The scheduler is not running")
-
-        super().__init__(intents=intents)
-
-        self.tree = app_commands.CommandTree(self)
 
     async def on_ready(self) -> None:
         log.info(f"We have logged in as {self.user}")
@@ -126,6 +132,31 @@ class LedgerBot(discord.Client):
     async def on_raw_reaction_add(
         self, payload: discord.RawReactionActionEvent
     ) -> None:
+        channel = await self.get_or_fetch_channel(payload.channel_id)
+        reactor = payload.member
+        guild_id = payload.guild_id
+
+        if reactor is None:
+            log.warning("Payload contained no reactor. Ignoring payload.")
+            return
+
+        if not isinstance(channel, discord.TextChannel):
+            log.warning("Couldn't get channel information. Ignoring reaction.")
+            return
+
+        if guild_id is None:
+            log.debug("Reaction on non-guild message. Ignoring")
+            return
+
+        guild = self.get_guild(guild_id)
+        if guild is None:
+            log.error(f"Guild with ID '{guild_id}' not found!")
+            return
+
+        handled_role_reaction = await self.handle_role_reaction(payload)
+        if handled_role_reaction:
+            return
+
         # Check if valid reaction emoji
         if payload.emoji.name not in [
             self.config["emojis"]["approval"],
@@ -134,17 +165,6 @@ class LedgerBot(discord.Client):
             self.config["emojis"]["delivered"],
             self.config["emojis"]["reminder"],
         ]:
-            return
-
-        channel = self.get_channel(payload.channel_id)
-        reactor = payload.member
-
-        if reactor is None:
-            log.warning("Payload contained no reactor. Ignoring payload.")
-            return
-
-        if not isinstance(channel, discord.TextChannel):
-            log.warning("Couldn't get channel information. Ignoring reaction.")
             return
 
         # Check if in valid channel
@@ -189,13 +209,13 @@ class LedgerBot(discord.Client):
             if isinstance(target_transaction.buyer_id, Member)
             else target_transaction.buyer_id
         )
-        buyer = await self.fetch_user(buyer_id.discord_id)
+        buyer = await self.get_or_fetch_user(buyer_id.discord_id)
         seller_id = await self.storage.get_member_from_record_id(
             target_transaction.seller_id.record_id
             if isinstance(target_transaction.seller_id, Member)
             else target_transaction.seller_id
         )
-        seller = await self.fetch_user(seller_id.discord_id)
+        seller = await self.get_or_fetch_user(seller_id.discord_id)
 
         # Check if buyer or seller
         if reactor.id != buyer.id and reactor.id != seller.id:
