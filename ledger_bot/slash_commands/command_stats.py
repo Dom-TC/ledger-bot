@@ -29,7 +29,7 @@ async def command_stats(
     await interaction.response.defer(ephemeral=True)
 
     try:
-        transactions_dict = await client.storage.get_all_transactions()
+        transactions_dict = await client.transaction_storage.get_all_transactions()
     except AirTableError as error:
         log.error(f"There was an error processing the AirTable request: {error}")
         await interaction.response.send_message(
@@ -48,7 +48,7 @@ async def command_stats(
         response = generate_stats_message(
             transactions=transactions,
             user_id=interaction.user.id,
-            storage=client.storage,
+            storage=client.transaction_storage,
         )
 
         await interaction.followup.send(response, ephemeral=True)

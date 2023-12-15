@@ -22,7 +22,7 @@ async def command_stats(
     log.info(f"Getting stats for user {message.author.name} ({message.author.id})")
 
     try:
-        transactions_dict = await client.storage.get_all_transactions()
+        transactions_dict = await client.transaction_storage.get_all_transactions()
     except AirTableError as error:
         log.error(f"There was an error processing the AirTable request: {error}")
         await dm_channel.send("An unexpected error occured.")
@@ -37,7 +37,9 @@ async def command_stats(
             transactions.append(Transaction.from_airtable(transaction_record))
 
         response = generate_stats_message(
-            transactions=transactions, user_id=message.author.id, storage=client.storage
+            transactions=transactions,
+            user_id=message.author.id,
+            storage=client.transaction_storage,
         )
 
         await dm_channel.send(response)

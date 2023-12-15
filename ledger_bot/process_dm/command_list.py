@@ -22,7 +22,7 @@ async def command_list(
     log.info(f"Getting transactions for user {message.author.name}")
 
     try:
-        transactions_dict = await client.storage.get_users_transaction(
+        transactions_dict = await client.transaction_storage.get_users_transaction(
             str(message.author.id)
         )
     except AirTableError as error:
@@ -39,7 +39,9 @@ async def command_list(
             transactions.append(Transaction.from_airtable(transaction_record))
 
         response = await generate_list_message(
-            transactions=transactions, user_id=message.author.id, storage=client.storage
+            transactions=transactions,
+            user_id=message.author.id,
+            storage=client.transaction_storage,
         )
 
         for transmit_message in response:
