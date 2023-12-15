@@ -3,14 +3,10 @@
 import logging
 from typing import Any, Dict
 
-import arrow
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from discord import app_commands
 
 from ledger_bot.models import Member
-from ledger_bot.process_dm import is_dm, process_dm
-from ledger_bot.process_message import process_message
 from ledger_bot.process_transactions import (
     approve_transaction,
     cancel_transaction,
@@ -59,6 +55,15 @@ class TransactionsClient(ExtendedClient):
     ) -> bool:
         channel = await self.get_or_fetch_channel(payload.channel_id)
         reactor = payload.member
+
+        # Repeating checks to deal with mypy warnings
+        if reactor is None:
+            log.warning("Payload contained no reactor. Ignoring payload.")
+            return False
+
+        if not isinstance(channel, discord.TextChannel):
+            log.warning("Couldn't get channel information. Ignoring reaction.")
+            return False
 
         # Check if valid reaction emoji
         if payload.emoji.name not in [
