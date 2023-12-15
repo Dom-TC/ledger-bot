@@ -22,7 +22,9 @@ async def refresh_transaction(
     log.info(f"Refreshing transaction: {row_id}")
 
     # Get transaction record
-    transaction_record = await client.storage.get_transaction_by_row_id(row_id=row_id)
+    transaction_record = await client.transaction_storage.get_transaction_by_row_id(
+        row_id=row_id
+    )
 
     if transaction_record is None:
         log.info(f"No transaction found with row_id {row_id}")
@@ -51,8 +53,10 @@ async def refresh_transaction(
                 else bot_message
             )
 
-            message_record = await client.storage.find_bot_message_by_record_id(
-                message_id
+            message_record = (
+                await client.transaction_storage.find_bot_message_by_record_id(
+                    message_id
+                )
             )
             bot_message = BotMessage.from_airtable(message_record)
             log.debug(f"Message: {bot_message}")
@@ -67,7 +71,9 @@ async def refresh_transaction(
                     await message.delete()
 
                     log.info(f"Deleting message record: {bot_message.record_id}")
-                    await client.storage.delete_bot_message(bot_message.record_id)
+                    await client.transaction_storage.delete_bot_message(
+                        bot_message.record_id
+                    )
                 else:
                     log.info(
                         f"Channel {channel} is not a TextChannel, so has no messages"
@@ -78,7 +84,9 @@ async def refresh_transaction(
                 log.error(f"The message has already been deleted: {error}")
 
                 log.info(f"Deleting message record: {bot_message.record_id}")
-                await client.storage.delete_bot_message(bot_message.record_id)
+                await client.transaction_storage.delete_bot_message(
+                    bot_message.record_id
+                )
             except discord.errors.HTTPException as error:
                 log.error(f"An error occured deleting the message: {error}")
 
@@ -127,7 +135,7 @@ async def refresh_transaction(
         channel=channel,
         target_transaction=transaction,
         previous_message_id=None,
-        storage=client.storage,
+        storage=client.transaction_storage,
         config=client.config,
     )
 

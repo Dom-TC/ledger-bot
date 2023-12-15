@@ -56,7 +56,7 @@ def start_bot() -> None:
         exit(1)
 
     # Create storage
-    storage = AirtableStorage(
+    transaction_storage = AirtableStorage(
         config["authentication"]["airtable_base"],
         config["authentication"]["airtable_key"],
         config["id"],
@@ -73,13 +73,13 @@ def start_bot() -> None:
 
     # Create reminder_manager
     reminder_manager = ReminderManager(
-        config=config, scheduler=scheduler, storage=storage
+        config=config, scheduler=scheduler, storage=transaction_storage
     )
 
     # Create client
     client = LedgerBot(
         config=config,
-        storage=storage,
+        transaction_storage=transaction_storage,
         reaction_roles_storage=reaction_roles_storage,
         scheduler=scheduler,
         reminders=reminder_manager,
@@ -89,7 +89,7 @@ def start_bot() -> None:
     reminder_manager.set_client(client)
 
     # Build slash commands
-    setup_slash(client, config, storage)
+    setup_slash(client, config, transaction_storage)
 
     # Run bot
     loop = asyncio.get_event_loop()

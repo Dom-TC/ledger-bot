@@ -32,7 +32,7 @@ async def command_list(
     await interaction.response.defer(ephemeral=True)
 
     try:
-        transactions_dict = await client.storage.get_users_transaction(
+        transactions_dict = await client.transaction_storage.get_users_transaction(
             str(interaction.user.id)
         )
     except AirTableError as error:
@@ -53,7 +53,7 @@ async def command_list(
         response = await generate_list_message(
             transactions=transactions,
             user_id=interaction.user.id,
-            storage=client.storage,
+            storage=client.transaction_storage,
         )
 
         for transmit_message in response:

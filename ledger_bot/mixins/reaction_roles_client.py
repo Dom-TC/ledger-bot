@@ -14,7 +14,7 @@ from .extended_client import ExtendedClient
 log = logging.getLogger(__name__)
 
 
-class ReactionRoles(ExtendedClient):
+class ReactionRolesClient(ExtendedClient):
     def __init__(
         self,
         config: Dict[str, Any],
