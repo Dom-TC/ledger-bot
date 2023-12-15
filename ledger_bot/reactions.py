@@ -1,17 +1,18 @@
 """Additional functions for dealing with reactions."""
 
 import logging
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import discord
 
-from ledger_bot.mixins import ExtendedClient
+if TYPE_CHECKING:
+    from ledger_bot.mixins import ExtendedClient
 
 log = logging.getLogger(__name__)
 
 
 async def _add_reaction_to_channel(
-    client: ExtendedClient,
+    client: "ExtendedClient",
     message_id: int,
     reaction: str,
     channel: discord.TextChannel,
@@ -40,7 +41,7 @@ async def _add_reaction_to_channel(
 
 
 async def add_reaction(
-    client: ExtendedClient,
+    client: "ExtendedClient",
     message_id: int,
     reaction: str,
     channel_obj: Optional[discord.TextChannel] = None,
@@ -67,7 +68,7 @@ async def add_reaction(
 
 
 async def _remove_reaction_from_channel(
-    client: ExtendedClient,
+    client: "ExtendedClient",
     message_id: int,
     reaction: str,
     channel: discord.TextChannel,
@@ -104,7 +105,7 @@ async def _remove_reaction_from_channel(
 
 
 async def remove_reaction(
-    client: ExtendedClient,
+    client: "ExtendedClient",
     message_id: int,
     reaction: str,
     channel_obj: Optional[discord.TextChannel] = None,
