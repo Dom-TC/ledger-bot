@@ -7,8 +7,9 @@ import discord
 from discord import app_commands
 
 from ledger_bot.LedgerBot import LedgerBot
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage import AirtableStorage, ReactionRolesStorage
 
+from .command_add_role import command_add_role
 from .command_hello import command_hello
 from .command_help import command_help
 from .command_list import command_list
@@ -20,7 +21,10 @@ log = logging.getLogger(__name__)
 
 
 def setup_slash(
-    client: LedgerBot, config: Dict[str, Any], storage: AirtableStorage
+    client: LedgerBot,
+    config: Dict[str, Any],
+    transaction_storage: AirtableStorage,
+    reaction_roles_storage: ReactionRolesStorage,
 ) -> None:
     """
     Builds the available slash commands.
@@ -43,7 +47,10 @@ def setup_slash(
     async def hello(interaction: discord.Interaction[Any]) -> None:
         """Says hello."""
         await command_hello(
-            client=client, config=config, storage=storage, interaction=interaction
+            client=client,
+            config=config,
+            storage=transaction_storage,
+            interaction=interaction,
         )
 
     @client.tree.command(
@@ -63,7 +70,7 @@ def setup_slash(
         await command_new_sale(
             client=client,
             config=config,
-            storage=storage,
+            storage=transaction_storage,
             interaction=interaction,
             wine_name=wine_name,
             buyer=buyer,
@@ -101,7 +108,7 @@ def setup_slash(
         await command_new_split(
             client=client,
             config=config,
-            storage=storage,
+            storage=transaction_storage,
             interaction=interaction,
             wine_name=wine_name,
             buyers=buyers,
@@ -133,7 +140,7 @@ def setup_slash(
         await command_new_split(
             client=client,
             config=config,
-            storage=storage,
+            storage=transaction_storage,
             interaction=interaction,
             wine_name=wine_name,
             buyers=buyers,
@@ -196,7 +203,7 @@ def setup_slash(
         await command_new_split(
             client=client,
             config=config,
-            storage=storage,
+            storage=transaction_storage,
             interaction=interaction,
             wine_name=wine_name,
             buyers=buyers,
@@ -209,7 +216,10 @@ def setup_slash(
     async def slash_help(interaction: discord.Interaction[Any]) -> None:
         """Gets help information."""
         await command_help(
-            client=client, config=config, storage=storage, interaction=interaction
+            client=client,
+            config=config,
+            storage=transaction_storage,
+            interaction=interaction,
         )
 
     @client.tree.command(
@@ -219,7 +229,10 @@ def setup_slash(
         """Returns a list of the users transactions."""
         log.info(f"Recognised command: /list from {interaction.user.name}")
         await command_list(
-            client=client, config=config, storage=storage, interaction=interaction
+            client=client,
+            config=config,
+            storage=transaction_storage,
+            interaction=interaction,
         )
 
     @client.tree.command(
@@ -229,5 +242,57 @@ def setup_slash(
         """Returns a list of the users transactions."""
         log.info(f"Recognised command: /stats from {interaction.user.name}")
         await command_stats(
-            client=client, config=config, storage=storage, interaction=interaction
+            client=client,
+            config=config,
+            storage=transaction_storage,
+            interaction=interaction,
         )
+
+    def check_is_admin_or_maintainer(interaction: discord.Interaction) -> bool:
+        if isinstance(interaction.user, discord.Member):
+            return (interaction.user.get_role(config["admin_role"]) is not None) or (
+                interaction.user.id in config["maintainer_ids"]
+            )
+        else:
+            return False
+
+    @client.tree.command(
+        guild=client.guild,
+        name="add_role",
+        description="Admin: add a role to the reactions database.",
+    )
+    @app_commands.check(check_is_admin_or_maintainer)
+    @app_commands.describe(
+        role="The role to add to the database",
+        emoji="The emoji for the reaction",
+        message_id="The message to monitor for reactions.",
+    )
+    async def add_role(
+        interaction: discord.Interaction[Any],
+        role: discord.Role,
+        emoji: str,
+        message_id: str,
+    ) -> None:
+        """Add a role to the reactions database."""
+        log.info(f"Recognised command: /add_role from {interaction.user.name}")
+        await command_add_role(
+            client=client,
+            config=config,
+            storage=reaction_roles_storage,
+            interaction=interaction,
+            role=role,
+            emoji=emoji,
+            message_id=int(message_id),
+        )
+
+    @add_role.error
+    async def add_role_error(interaction: discord.Interaction[Any], error: Exception):
+        if isinstance(error, discord.app_commands.CheckFailure):
+            log.error(
+                f"User {interaction.user.name} doesn't have permission to add a role."
+            )
+            await interaction.response.send_message(
+                "You don't have permission to add a role.", ephemeral=True
+            )
+        else:
+            log.error("An unhandled error occured", exc_info=error)

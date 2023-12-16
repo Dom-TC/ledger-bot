@@ -89,7 +89,12 @@ def start_bot() -> None:
     reminder_manager.set_client(client)
 
     # Build slash commands
-    setup_slash(client, config, transaction_storage)
+    setup_slash(
+        client=client,
+        config=config,
+        transaction_storage=transaction_storage,
+        reaction_roles_storage=reaction_roles_storage,
+    )
 
     # Run bot
     loop = asyncio.get_event_loop()
