@@ -69,6 +69,7 @@ def default_config():
             "second": "0",
         },
         "cleanup_removes_transaction_records": False,
+        "admin_role": 1184878800408948847,
     }
 
 

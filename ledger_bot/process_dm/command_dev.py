@@ -46,7 +46,7 @@ async def command_dev(
 
     elif request.startswith("clean"):
         await dm_channel.send("Cleaning records")
-        await cleanup(client=client, storage=client.storage)
+        await cleanup(client=client, storage=client.transaction_storage)
 
     elif request.startswith("refresh_reminders"):
         await dm_channel.send("Refreshing reminders")

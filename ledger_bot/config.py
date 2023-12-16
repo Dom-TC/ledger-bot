@@ -70,6 +70,7 @@ def parse(config: Dict[str, Any] | None) -> Dict[str, Any]:
             "second": "0",
         },
         "cleanup_removes_transaction_records": False,
+        "admin_role": 1184878800408948847,
     }
 
     if config is not None:

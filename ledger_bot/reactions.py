@@ -1,18 +1,26 @@
 """Additional functions for dealing with reactions."""
 
 import logging
+import re
 from typing import TYPE_CHECKING, Optional
 
 import discord
+from emoji import is_emoji
 
 if TYPE_CHECKING:
-    from .LedgerBot import LedgerBot
+    from ledger_bot.mixins import ExtendedClient
 
 log = logging.getLogger(__name__)
 
 
-async def _add_reaction_to_channel(
-    client: "LedgerBot",
+def is_valid_emoji(emoji: str) -> bool:
+    """Check if the provided string is either a unicode emoji, or a valid discord custom emoji."""
+    pattern = re.compile(r"^<:[a-zA-Z0-9_]+:\d+>$")
+    return is_emoji(emoji) or bool(pattern.match(emoji))
+
+
+async def _add_reaction_with_channel(
+    client: "ExtendedClient",
     message_id: int,
     reaction: str,
     channel: discord.TextChannel,
@@ -41,7 +49,7 @@ async def _add_reaction_to_channel(
 
 
 async def add_reaction(
-    client: "LedgerBot",
+    client: "ExtendedClient",
     message_id: int,
     reaction: str,
     channel_obj: Optional[discord.TextChannel] = None,
@@ -50,13 +58,13 @@ async def add_reaction(
     log.info(f"Adding {reaction} to message {message_id}")
 
     if channel_obj is not None:
-        await _add_reaction_to_channel(
+        await _add_reaction_with_channel(
             client=client, message_id=message_id, reaction=reaction, channel=channel_obj
         )
     else:
         for guild in client.guilds:
             for channel in guild.text_channels:
-                success = await _add_reaction_to_channel(
+                success = await _add_reaction_with_channel(
                     client=client,
                     message_id=message_id,
                     reaction=reaction,
@@ -67,8 +75,8 @@ async def add_reaction(
                     break
 
 
-async def _remove_reaction_from_channel(
-    client: "LedgerBot",
+async def _remove_reaction_with_channel(
+    client: "ExtendedClient",
     message_id: int,
     reaction: str,
     channel: discord.TextChannel,
@@ -105,7 +113,7 @@ async def _remove_reaction_from_channel(
 
 
 async def remove_reaction(
-    client: "LedgerBot",
+    client: "ExtendedClient",
     message_id: int,
     reaction: str,
     channel_obj: Optional[discord.TextChannel] = None,
@@ -114,7 +122,7 @@ async def remove_reaction(
     log.info(f"Removing {reaction} from message {message_id}")
 
     if channel_obj is not None:
-        await _remove_reaction_from_channel(
+        await _remove_reaction_with_channel(
             client=client, message_id=message_id, reaction=reaction, channel=channel_obj
         )
     else:
@@ -122,7 +130,7 @@ async def remove_reaction(
 
         for guild in client.guilds:
             for channel in guild.text_channels:
-                success = await _remove_reaction_from_channel(
+                success = await _remove_reaction_with_channel(
                     client=client,
                     message_id=message_id,
                     reaction=reaction,

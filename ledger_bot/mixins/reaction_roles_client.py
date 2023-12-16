@@ -14,7 +14,7 @@ from .extended_client import ExtendedClient
 log = logging.getLogger(__name__)
 
 
-class ReactionRoles(ExtendedClient):
+class ReactionRolesClient(ExtendedClient):
     def __init__(
         self,
         config: Dict[str, Any],
@@ -64,7 +64,7 @@ class ReactionRoles(ExtendedClient):
         reaction_role = await self.reaction_roles_storage.get_reaction_role(
             server_id=str(payload.guild_id),
             msg_id=str(payload.message_id),
-            reaction=payload.emoji.name,
+            reaction=payload.emoji,
         )
         log.debug(f"Reaction role: {reaction_role}")
 
