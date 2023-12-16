@@ -80,7 +80,7 @@ async def command_new_sale(
         log.error(
             f"interaction.user isn't a discord.Member. {interaction.user} / {type(interaction.user)}"
         )
-        await interaction.response.send_message(
+        await interaction.followup.send(
             content="An unexpected error occured. Please try again later.",
             ephemeral=True,
         )
