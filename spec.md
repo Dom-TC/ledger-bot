@@ -85,3 +85,58 @@ Price: <price>
   - If message ID and reaction are valid, assign the user the appropriate role
 - Add Role
   - Admin only command
+
+## Events Spec
+Commands:
+- Create Event
+    - Name: string
+    - Date: datetime
+    - Max Guests: int, optional
+    - Location: str, optional
+    1. Create Event object
+    2. Create private channel with host.
+        - Named: `<name>-<date>-<location>`
+    3. Create buttons in channel:
+        - Set Max Guests
+        - Set Menu Option
+        - Set Deposit
+    4. Create Discord Event?
+         
+- Join Event
+- Leave Event
+- Add Wine
+- Remove Wine
+- Get Event Details
+- List Events
+- Cancel Event
+- Change Event Date
+- Set Deposit Amount
+- Mark Deposit Paid
+- Add Menu Choice
+- Select Menu Choice
+- Manage Event
+
+Events Table Schema:
+- Row ID: int, auto-increment
+- Name: string
+- Host: Member Record, single record
+- Max Guests: int
+- Guests: Member Record, multiple records
+- Event Date: datetime
+- Channel ID: str
+- Bot ID: string
+
+Event Wines Table Schema:
+- Row ID: int, auto-increment
+- Event ID: Event Record, single record
+- Member:  Member Record, single record
+- Wine: str
+- Bot ID: string
+
+Event Deposits Table Scema
+- Row ID: int, auto-increment
+- Event ID: Event Record, single record
+- Member:  Member Record, single record
+- Deposit Paid: bool
+- Deposit Confirmed Paid: bool
+- Bot ID: string
