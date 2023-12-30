@@ -1,13 +1,20 @@
 """An extension to discord.pys base client."""
 
-from typing import Any, Optional, Union
+import logging
+from typing import Any, Dict, Optional, Union
 
 import discord
 from discord import app_commands
 from discord.abc import GuildChannel, PrivateChannel
 
+log = logging.getLogger(__name__)
+
 
 class ExtendedClient(discord.Client):
+    guild: discord.Guild | discord.Object | None  # In reality, this will only ever be a discord.Guild object once the bot is running, but we temporarily set it to discord.Object during setup.
+
+    config: Dict[str, Any]
+
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         self.tree = app_commands.CommandTree(self)
@@ -25,3 +32,19 @@ class ExtendedClient(discord.Client):
             return user
         else:
             return await self.fetch_user(user_id)
+
+    async def is_admin_or_maintainer(self, user_id: int) -> bool:
+        if isinstance(self.guild, discord.Guild):
+            member = self.guild.get_member(user_id)
+
+            if member is not None:
+                return (member.get_role(self.config["admin_role"]) is not None) or (
+                    member.id in self.config["maintainer_ids"]
+                )
+            else:
+                return False
+        else:
+            log.info(
+                "Guild hasn't been instantised, so can't check if user is an admin"
+            )
+            return False

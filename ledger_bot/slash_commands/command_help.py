@@ -26,19 +26,7 @@ async def command_help(
     else:
         channel_name = "DM"
 
-    if (
-        config["channels"].get("include")
-        and channel_name not in config["channels"]["include"]
-    ):
-        log.info(
-            f"Ignoring slash command from {interaction.user.name} in {channel_name}  - Channel not in include list"
-        )
-        await interaction.response.send_message(
-            content=f"{config['name']} is not available in this channel.",
-            ephemeral=True,
-        )
-        return
-    elif channel_name in config["channels"].get("exclude", []):
+    if channel_name in config["channels"].get("exclude", []):
         log.info(
             f"Ignoring slash command from {interaction.user.name} in {channel_name}  - Channel in exclude list"
         )
@@ -49,5 +37,10 @@ async def command_help(
         return
 
     has_dev_commands = interaction.user.id in client.config["maintainer_ids"]
-    response = generate_help_message(client.config, has_dev_commands)
+    has_admin_commands = await client.is_admin_or_maintainer(interaction.user.id)
+    response = generate_help_message(
+        client.config,
+        has_dev_commands=has_dev_commands,
+        has_admin_commands=has_admin_commands,
+    )
     await interaction.response.send_message(response, ephemeral=True)

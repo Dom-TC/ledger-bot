@@ -5,8 +5,6 @@ from typing import TYPE_CHECKING
 
 import discord
 
-from ledger_bot.message_generators import generate_help_message
-
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
 
