@@ -32,7 +32,7 @@ async def command_list(
     await interaction.response.defer(ephemeral=True)
 
     try:
-        transactions_dict = await client.transaction_storage.get_users_transaction(
+        transactions = await client.transaction_storage.get_users_transaction(
             str(interaction.user.id)
         )
     except AirTableError as error:
@@ -42,14 +42,9 @@ async def command_list(
         )
         return
 
-    if transactions_dict is None:
+    if transactions is None:
         await interaction.response.send_message("You don't have any transactions.")
     else:
-        transactions: List[Transaction] = []
-        for transaction_record in transactions_dict:
-            log.debug(transaction_record)
-            transactions.append(Transaction.from_airtable(transaction_record))
-
         response = await generate_list_message(
             transactions=transactions,
             user_id=interaction.user.id,

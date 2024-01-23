@@ -40,9 +40,7 @@ async def cleanup(client: "LedgerBot", storage: AirtableStorage) -> None:
         else:
             log.info(f"Cleaning {len(transactions)} transactions")
 
-            for transaction_record in transactions:
-                transaction = Transaction.from_airtable(transaction_record)
-
+            for transaction in transactions:
                 log.info(f"Cleaning transaction {transaction.record_id}")
 
                 # If bot_messages exist, remove them.
@@ -91,7 +89,7 @@ async def cleanup(client: "LedgerBot", storage: AirtableStorage) -> None:
                     client.config["cleanup_removes_transaction_records"]
                     and transaction.record_id is not None
                 ):
-                    log.info(f"Deleting transaction record: {transaction_record}")
+                    log.info(f"Deleting transaction record: {transaction}")
                     await storage.delete_transaction(transaction.record_id)
 
     except AirTableError as error:

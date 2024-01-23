@@ -22,7 +22,7 @@ async def command_list(
     log.info(f"Getting transactions for user {message.author.name}")
 
     try:
-        transactions_dict = await client.transaction_storage.get_users_transaction(
+        transactions = await client.transaction_storage.get_users_transaction(
             str(message.author.id)
         )
     except AirTableError as error:
@@ -30,14 +30,9 @@ async def command_list(
         await dm_channel.send("An unexpected error occured.")
         return
 
-    if transactions_dict is None:
+    if transactions is None:
         await dm_channel.send("You don't have any transactions.")
     else:
-        transactions: List[Transaction] = []
-        for transaction_record in transactions_dict:
-            log.debug(transaction_record)
-            transactions.append(Transaction.from_airtable(transaction_record))
-
         response = await generate_list_message(
             transactions=transactions,
             user_id=message.author.id,

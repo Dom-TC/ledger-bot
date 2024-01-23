@@ -22,15 +22,13 @@ async def refresh_transaction(
     log.info(f"Refreshing transaction: {row_id}")
 
     # Get transaction record
-    transaction_record = await client.transaction_storage.get_transaction_by_row_id(
+    transaction = await client.transaction_storage.get_transaction_by_row_id(
         row_id=row_id
     )
 
-    if transaction_record is None:
+    if transaction is None:
         log.info(f"No transaction found with row_id {row_id}")
         return "No transaction found."
-
-    transaction = Transaction.from_airtable(transaction_record)
 
     log.debug(f"Transaction: {transaction}")
 
