@@ -29,7 +29,7 @@ async def command_stats(
     await interaction.response.defer(ephemeral=True)
 
     try:
-        transactions_dict = await client.transaction_storage.get_all_transactions()
+        transactions = await client.transaction_storage.get_all_transactions()
     except AirTableError as error:
         log.error(f"There was an error processing the AirTable request: {error}")
         await interaction.response.send_message(
@@ -37,14 +37,10 @@ async def command_stats(
         )
         return
 
-    if transactions_dict is None:
+    if transactions is None:
         await interaction.response.send_message("No transactions have been recorded.")
 
     else:
-        transactions: List[Transaction] = []
-        for transaction_record in transactions_dict:
-            transactions.append(Transaction.from_airtable(transaction_record))
-
         response = generate_stats_message(
             transactions=transactions,
             user_id=interaction.user.id,

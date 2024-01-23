@@ -125,12 +125,9 @@ async def command_new_sale(
         "creation_date",
     ]
 
-    transaction_response = await storage.save_transaction(
+    transaction_record = await storage.save_transaction(
         transaction=transaction, fields=transaction_fields
     )
-
-    # Convert response in dict form to Transaction object for future use
-    transaction_record = Transaction.from_airtable(transaction_response)
 
     response_contents = generate_transaction_status_message(
         seller=interaction.user,
