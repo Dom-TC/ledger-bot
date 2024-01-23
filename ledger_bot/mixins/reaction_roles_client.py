@@ -57,6 +57,10 @@ class ReactionRolesClient(ExtendedClient):
         if str(payload.message_id) not in watched_message_ids:
             return False
 
+        if self.user is await self.get_or_fetch_user(payload.user_id):
+            log.info("Ignoring role-reaction from self")
+            return False
+
         log.info(
             f"Handling reaction role request - {payload.emoji} on {payload.message_id} from {payload.member}"
         )

@@ -122,12 +122,12 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
             log.error(f"Guild with ID '{guild_id}' not found!")
             return
 
-        handled_role_reaction = await self.handle_role_reaction(payload)
-        if handled_role_reaction:
-            return
-
         hangled_transaction_reaction = await self.handle_transaction_reaction(payload)
         if hangled_transaction_reaction:
+            return
+
+        handled_role_reaction = await self.handle_role_reaction(payload)
+        if handled_role_reaction:
             return
 
         log.info(f"Failed to match any commands on {payload.emoji}")
