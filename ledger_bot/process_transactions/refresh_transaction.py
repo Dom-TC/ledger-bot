@@ -53,12 +53,11 @@ async def refresh_transaction(
                 else bot_message
             )
 
-            message_record = (
+            bot_message = (
                 await client.transaction_storage.find_bot_message_by_record_id(
                     message_id
                 )
             )
-            bot_message = BotMessage.from_airtable(message_record)
             log.debug(f"Message: {bot_message}")
 
             try:
