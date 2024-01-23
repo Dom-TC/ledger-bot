@@ -224,11 +224,9 @@ class ReminderManager:
         reminder_fields = ["date", "member_id", "transaction_id", "status", "bot_id"]
         log.debug(f"Creating reminder: {reminder}, with fields {reminder_fields}")
 
-        reminder_record = await self.storage.save_reminder(
+        created_reminder = await self.storage.save_reminder(
             reminder=reminder, fields=reminder_fields
         )
-
-        created_reminder = Reminder.from_airtable(reminder_record)
 
         log.info(f"Created reminder {created_reminder}")
         return created_reminder
