@@ -36,7 +36,7 @@ class ReactionRolesClient(ExtendedClient):
             next_run_time=initial_refresh_time,
             misfire_grace_time=10,
         )
-        super().__init__(**kwargs)
+        super().__init__(config=config, scheduler=scheduler, **kwargs)
 
     async def refresh_reaction_role_caches(self) -> None:
         log.info("Refreshing reaction-role watched messages")

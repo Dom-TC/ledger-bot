@@ -101,6 +101,7 @@ def start_bot() -> None:
         config=config,
         transaction_storage=transaction_storage,
         reaction_roles_storage=reaction_roles_storage,
+        event_storage=event_storage,
     )
 
     # Run bot

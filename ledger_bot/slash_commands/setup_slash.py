@@ -7,7 +7,7 @@ import discord
 from discord import app_commands
 
 from ledger_bot.LedgerBot import LedgerBot
-from ledger_bot.storage import ReactionRolesStorage, TransactionStorage
+from ledger_bot.storage import EventStorage, ReactionRolesStorage, TransactionStorage
 
 from .command_add_role import command_add_role
 from .command_hello import command_hello
@@ -25,21 +25,9 @@ def setup_slash(
     config: Dict[str, Any],
     transaction_storage: TransactionStorage,
     reaction_roles_storage: ReactionRolesStorage,
+    event_storage: EventStorage,
 ) -> None:
-    """
-    Builds the available slash commands.
-
-    Paramaters
-    ----------
-    client : LedgerBot
-        The client which is building the commands
-
-    config : dict
-        The configuration settings
-
-    storage : AirtableStorage
-        The Airtable storage
-    """
+    """Builds the available slash commands."""
     client.tree.clear_commands(guild=None)
     client.tree.clear_commands(guild=client.guild)
 
