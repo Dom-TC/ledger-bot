@@ -116,7 +116,7 @@ Commands:
 - Select Menu Choice
 - Manage Event
 
-Events Table Schema:
+Event Table Schema:
 - Row ID: int, auto-increment
 - Name: string
 - Host: Member Record, single record
@@ -137,6 +137,6 @@ Event Deposits Table Scema
 - Row ID: int, auto-increment
 - Event ID: Event Record, single record
 - Member:  Member Record, single record
-- Deposit Paid: bool
-- Deposit Confirmed Paid: bool
+- Paid: bool
+- Confirmed Paid: bool
 - Bot ID: string
