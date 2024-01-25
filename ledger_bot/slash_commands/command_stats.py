@@ -8,7 +8,7 @@ import discord
 from ledger_bot.errors import AirTableError
 from ledger_bot.message_generators import generate_stats_message
 from ledger_bot.models import Transaction
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage import TransactionStorage
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 async def command_stats(
     client: "LedgerBot",
     config: Dict[str, Any],
-    storage: AirtableStorage,
+    storage: TransactionStorage,
     interaction: discord.Interaction[Any],
 ) -> None:
     """DM command - stats."""

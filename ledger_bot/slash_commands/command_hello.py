@@ -6,7 +6,7 @@ from typing import Any, Dict
 import discord
 
 from ledger_bot.LedgerBot import LedgerBot
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage import TransactionStorage
 
 log = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 async def command_hello(
     client: "LedgerBot",
     config: Dict[str, Any],
-    storage: AirtableStorage,
+    storage: TransactionStorage,
     interaction: discord.Interaction[Any],
 ) -> None:
     """Says hello."""

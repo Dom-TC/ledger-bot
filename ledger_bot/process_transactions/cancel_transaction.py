@@ -7,7 +7,7 @@ import discord
 
 from ledger_bot.message_generators import generate_transaction_status_message
 from ledger_bot.models import Transaction
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage import TransactionStorage
 
 from .send_message import send_message
 
@@ -22,7 +22,7 @@ async def cancel_transaction(
     channel: discord.abc.GuildChannel,
     target_transaction: Transaction,
     config: Dict[str, Any],
-    storage: AirtableStorage,
+    storage: TransactionStorage,
 ) -> None:
     """
     Cancel the specified transaction.

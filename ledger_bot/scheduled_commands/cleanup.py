@@ -7,7 +7,7 @@ import discord
 
 from ledger_bot.errors import AirTableError
 from ledger_bot.models import BotMessage, Transaction
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage import TransactionStorage
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-async def cleanup(client: "LedgerBot", storage: AirtableStorage) -> None:
+async def cleanup(client: "LedgerBot", storage: TransactionStorage) -> None:
     """
     Removes messages, message records, and (optionally) transaction records.
 

@@ -10,7 +10,7 @@ from .transactions_mixin import TransactionsMixin
 log = logging.getLogger(__name__)
 
 
-class AirtableStorage(
+class TransactionStorage(
     RemindersMixin, BotMessagesMixin, TransactionsMixin, MembersMixin
 ):
     """
@@ -30,17 +30,6 @@ class AirtableStorage(
         The endpoint for the bot_messages table
     auth_header :
         The authentication header
-
-    Methods
-    -------
-    insert_member(record, session)
-        Creates a new member entry
-
-    get_or_add_member(member)
-        Either returns the record for the given member, or creates an entry and returns that
-
-    insert_transaction(record, session)
-        Creates a new transaction entry
 
     """
 
