@@ -39,10 +39,7 @@ async def _get_latest_message_link(
         if isinstance(latest_message_record, BotMessage)
         else latest_message_record
     )
-    message_record = await storage.find_bot_message_by_record_id(
-        latest_message_record_id
-    )
-    message = BotMessage.from_airtable(message_record)
+    message = await storage.find_bot_message_by_record_id(latest_message_record_id)
 
     link = f"- https://discord.com/channels/{message.guild_id}/{message.channel_id}/{message.bot_message_id}"
     return link

@@ -11,8 +11,15 @@ from .run_ledger_bot import start_bot
 # Load environment variables from .env
 load_dotenv()
 
+# Set the log level based on the environment variable
+log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+numeric_level = getattr(logging, log_level, None)
+if not isinstance(numeric_level, int):
+    raise ValueError(f"Invalid log level: {log_level}")
+
 # Configure logging
 logging.config.fileConfig(fname="log.conf", disable_existing_loggers=False)
+logging.getLogger().setLevel(numeric_level)
 logging.getLogger("discord").setLevel(logging.ERROR)
 logging.getLogger("discord.gateway").setLevel(logging.INFO)
 logging.getLogger("asyncio").setLevel(logging.CRITICAL)

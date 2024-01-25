@@ -7,7 +7,9 @@ log = logging.getLogger(__name__)
 
 
 def generate_help_message(
-    config: Dict[str, Any], has_dev_commands: bool = False
+    config: Dict[str, Any],
+    has_dev_commands: bool = False,
+    has_admin_commands: bool = False,
 ) -> str:
     """Generates help text.
 
@@ -30,34 +32,39 @@ def generate_help_message(
 
     # The sections of the message
     # Outer array is list of sections, each containing a list of commands or reactions
-    # Each command is a dict, containing "command", "args", "description", "requires_dev"
-    # Each reaction is a dict, containing "reaction", "description", "requires_dev"
+    # Each command is a dict, containing "command", "args", "description", "requires_dev", "requires_admin"
+    # Each reaction is a dict, containing "reaction", "description", "requires_dev", "requires_admin"
     sections = {
         "Reactions": [
             {
                 "reaction": config["emojis"]["approval"],
                 "description": "Approve a transaction.",
                 "requires_dev": False,
+                "requires_admin": False,
             },
             {
                 "reaction": config["emojis"]["cancel"],
                 "description": "Cancel a transaction.",
                 "requires_dev": False,
+                "requires_admin": False,
             },
             {
                 "reaction": config["emojis"]["paid"],
                 "description": "Mark a transaction as paid.",
                 "requires_dev": False,
+                "requires_admin": False,
             },
             {
                 "reaction": config["emojis"]["delivered"],
                 "description": "Mark a transaction as delivered.",
                 "requires_dev": False,
+                "requires_admin": False,
             },
             {
                 "reaction": config["emojis"]["reminder"],
                 "description": "Set a reminder for a transaction.",
                 "requires_dev": False,
+                "requires_admin": False,
             },
         ],
         "Channel Commands": [
@@ -66,6 +73,7 @@ def generate_help_message(
                 "args": ["wine_name", "buyer", "price"],
                 "description": "Creates a new sale transaction.",
                 "requires_dev": False,
+                "requires_admin": False,
             },
             {
                 "command": "/new_split",
@@ -81,6 +89,7 @@ def generate_help_message(
                 ],
                 "description": "Creates a new six bottle split.",
                 "requires_dev": False,
+                "requires_admin": False,
             },
             {
                 "command": "/new_split_3",
@@ -93,6 +102,7 @@ def generate_help_message(
                 ],
                 "description": "Creates a new three bottle split.",
                 "requires_dev": False,
+                "requires_admin": False,
             },
             {
                 "command": "/new_split_12",
@@ -107,30 +117,42 @@ def generate_help_message(
                 ],
                 "description": "Creates a new twelve bottle split.",
                 "requires_dev": False,
+                "requires_admin": False,
             },
             {
                 "command": "/hello",
                 "args": [],
                 "description": "Says hello",
                 "requires_dev": False,
+                "requires_admin": False,
             },
             {
                 "command": "/help",
                 "args": [],
                 "description": "Returns this message",
                 "requires_dev": False,
+                "requires_admin": False,
             },
             {
                 "command": "/list",
                 "args": [],
                 "description": "Returns a list of your transactions",
                 "requires_dev": False,
+                "requires_admin": False,
             },
             {
                 "command": "/stats",
                 "args": [],
                 "description": f"Returns stats about {config['name']}",
                 "requires_dev": False,
+                "requires_admin": False,
+            },
+            {
+                "command": "/add_role",
+                "args": ["role", "emoji", "message_id"],
+                "description": "Add a new role reaction. Emoji is the reaction users will user to add the role, message_id is the id of the message they will react against.",
+                "requires_dev": False,
+                "requires_admin": True,
             },
         ],
         "DM Commands": [
@@ -139,54 +161,63 @@ def generate_help_message(
                 "args": [],
                 "description": f"Returns the current version of {config['name']}.",
                 "requires_dev": False,
+                "requires_admin": False,
             },
             {
                 "command": "!dev add_reaction",
                 "args": ["message_id", "reaction"],
                 "description": "Applies the specified reaction to the given message",
                 "requires_dev": True,
+                "requires_admin": False,
             },
             {
                 "command": "!help",
                 "args": [],
                 "description": "Returns this message",
                 "requires_dev": False,
+                "requires_admin": False,
             },
             {
                 "command": "!dev get_jobs",
                 "args": [],
                 "description": "Returns a list of the currently scheduled jobs",
                 "requires_dev": True,
+                "requires_admin": False,
             },
             {
                 "command": "!dev clean",
                 "args": [],
                 "description": f"Cleans completed transactions older than {config['cleanup_delay_hours']}",
                 "requires_dev": True,
+                "requires_admin": False,
             },
             {
                 "command": "!list",
                 "args": [],
                 "description": "Returns a list of your transactions",
                 "requires_dev": False,
+                "requires_admin": False,
             },
             {
                 "command": "!dev refresh_reminders",
                 "args": [],
                 "description": "Refreshes the scheduled reminders",
                 "requires_dev": True,
+                "requires_admin": False,
             },
             {
                 "command": "!stats",
                 "args": [],
                 "description": f"Returns stats about {config['name']}",
                 "requires_dev": False,
+                "requires_admin": False,
             },
             {
                 "command": "!dev refresh_message",
                 "args": ["transaction_row_id", "optional: channel_id"],
                 "description": "Deletes all existing messages for a given transaction, and posts a new status update",
                 "requires_dev": False,
+                "requires_admin": False,
             },
         ],
     }
@@ -224,6 +255,8 @@ def generate_help_message(
             for command in commands:
                 if command["requires_dev"] and not has_dev_commands:
                     log.info(f"Skipping dev command: {command['command']}")
+                elif command["requires_admin"] and not has_admin_commands:
+                    log.info(f"Skipping admin command: {command['command']}")
                 else:
                     body += f"`{command['command']}"
 

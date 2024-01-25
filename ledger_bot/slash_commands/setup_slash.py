@@ -1,7 +1,7 @@
 """Register our slash commands with Discord."""
 
 import logging
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
 
 import discord
 from discord import app_commands
@@ -248,13 +248,11 @@ def setup_slash(
             interaction=interaction,
         )
 
-    def check_is_admin_or_maintainer(interaction: discord.Interaction) -> bool:
-        if isinstance(interaction.user, discord.Member):
-            return (interaction.user.get_role(config["admin_role"]) is not None) or (
-                interaction.user.id in config["maintainer_ids"]
-            )
-        else:
-            return False
+    async def check_is_admin_or_maintainer(interaction: discord.Interaction) -> bool:
+        log.debug(
+            f"Checking if user {interaction.user.name} is either an admin or a maintainer"
+        )
+        return await client.is_admin_or_maintainer(user_id=interaction.user.id)
 
     @client.tree.command(
         guild=client.guild,

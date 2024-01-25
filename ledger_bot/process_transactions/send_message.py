@@ -48,7 +48,9 @@ async def send_message(
             )
 
             if previous_bot_message_record is not None:
-                previous_bot_message_record_id = str(previous_bot_message_record["id"])
+                previous_bot_message_record_id = str(
+                    previous_bot_message_record.record_id
+                )
                 await storage.delete_bot_message(previous_bot_message_record_id)
         except discord.Forbidden as error:
             log.error(f"You don't have permission to send to that channel: {error}")

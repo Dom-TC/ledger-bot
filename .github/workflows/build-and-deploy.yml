@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
     tags:
       - v*
   workflow_dispatch:
@@ -87,6 +88,7 @@ jobs:
           script: |
             # Set environment variables
             echo "LOG_TO_FILE=${{ vars.LOG_TO_FILE }}" > /opt/ledger-bot/env_file
+            echo "LOG_LEVEL=${{ vars.LOG_LEVEL }}" > /opt/dev-ledger-bot/env_file
             echo "LOG_FOLDER_PATH=${{ vars.LOG_FOLDER_PATH }}" > /opt/ledger-bot/env_file
             echo "BOT_CONFIG=${{ vars.BOT_CONFIG }}" >> /opt/ledger-bot/env_file
             echo "BOT_AIRTABLE_KEY=${{ secrets.BOT_AIRTABLE_KEY }}" >> /opt/ledger-bot/env_file
@@ -135,6 +137,7 @@ jobs:
           script: |
             # Set environment variables
             echo "LOG_TO_FILE=${{ vars.LOG_TO_FILE }}" > /opt/dev-ledger-bot/env_file
+            echo "LOG_LEVEL=${{ vars.DEV_LOG_LEVEL }}" > /opt/dev-ledger-bot/env_file
             echo "LOG_FOLDER_PATH=${{ vars.LOG_FOLDER_PATH }}" > /opt/dev-ledger-bot/env_file
             echo "BOT_CONFIG=${{ vars.BOT_CONFIG }}" >> /opt/dev-ledger-bot/env_file
             echo "BOT_AIRTABLE_KEY=${{ secrets.DEV_BOT_AIRTABLE_KEY }}" >> /opt/dev-ledger-bot/env_file

@@ -27,15 +27,21 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
         self.config = config
         self.transaction_storage = transaction_storage
         self.reaction_roles_storage = reaction_roles_storage
-        self.guild = discord.Object(id=self.config["guild"])
         self.scheduler = scheduler
         self.reminders = reminders
+
+        # We need a guild object for various uses but can't get the full guild object until the bot is connected and on_ready is called, so use this as a tempory object.
+        self.guild = discord.Object(id=self.config["guild"])
 
         log.info(f"Set guild: {self.config['guild']}")
         log.info(f"Watching channels: {self.config['channels']}")
 
         intents = discord.Intents(
-            messages=True, guilds=True, reactions=True, message_content=True
+            messages=True,
+            guilds=True,
+            reactions=True,
+            message_content=True,
+            members=True,
         )
 
         super().__init__(
@@ -61,6 +67,9 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
                 name=self.config["watching_status"],
             )
         )
+
+        # Properly set the guild object
+        self.guild = self.get_guild(self.config["guild"])
 
         log.info("Building slash commands")
         await self.tree.sync(guild=self.guild)
@@ -113,12 +122,12 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
             log.error(f"Guild with ID '{guild_id}' not found!")
             return
 
-        handled_role_reaction = await self.handle_role_reaction(payload)
-        if handled_role_reaction:
-            return
-
         hangled_transaction_reaction = await self.handle_transaction_reaction(payload)
         if hangled_transaction_reaction:
+            return
+
+        handled_role_reaction = await self.handle_role_reaction(payload)
+        if handled_role_reaction:
             return
 
         log.info(f"Failed to match any commands on {payload.emoji}")

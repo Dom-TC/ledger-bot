@@ -40,7 +40,7 @@ class RemindersMixin(BaseStorage):
 
     async def insert_reminder(
         self, record: Dict[str, Any], session: Optional[ClientSession] = None
-    ) -> Dict[str, Any]:
+    ) -> Reminder:
         """
         Inserts a member into the table.
 
@@ -57,14 +57,15 @@ class RemindersMixin(BaseStorage):
         dict
             A Dictionary containing the inserted record
         """
-        return await self._insert(self.reminders_url, record, session)
+        record = await self._insert(self.reminders_url, record, session)
+        return Reminder.from_airtable(record)
 
     async def update_reminder(
         self,
         record_id: str,
         reminder_record: Dict[str, Any],
         session: Optional[ClientSession] = None,
-    ) -> Dict[str, Any]:
+    ) -> Reminder:
         """
         Updates a specific reminder record.
 
@@ -80,13 +81,14 @@ class RemindersMixin(BaseStorage):
             The ClientSession to use
 
         """
-        return await self._update(
+        record = await self._update(
             self.reminders_url + "/" + record_id, reminder_record, session
         )
+        return Reminder.from_airtable(record)
 
     async def save_reminder(
         self, reminder: Reminder, fields: List[str] | None = None
-    ) -> Dict[str, str | List[str]]:
+    ) -> Reminder:
         """
         Saves a reminder.
 
