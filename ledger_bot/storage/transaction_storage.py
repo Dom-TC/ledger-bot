@@ -2,10 +2,7 @@
 
 import logging
 
-from .bot_messages_mixin import BotMessagesMixin
-from .members_mixin import MembersMixin
-from .reminders_mixin import RemindersMixin
-from .transactions_mixin import TransactionsMixin
+from .mixins import BotMessagesMixin, MembersMixin, RemindersMixin, TransactionsMixin
 
 log = logging.getLogger(__name__)
 
