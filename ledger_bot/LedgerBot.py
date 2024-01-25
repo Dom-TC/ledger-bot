@@ -6,7 +6,7 @@ from typing import Any, Dict
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from .mixins import ExtendedClient, ReactionRolesClient, TransactionsClient
+from .clients import ExtendedClient, ReactionRolesClient, TransactionsClient
 from .process_dm import is_dm, process_dm
 from .process_message import process_message
 from .reminder_manager import ReminderManager
