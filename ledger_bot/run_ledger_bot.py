@@ -22,7 +22,7 @@ from .errors import SignalHaltError
 from .LedgerBot import LedgerBot
 from .reminder_manager import ReminderManager
 from .slash_commands import setup_slash
-from .storage import ReactionRolesStorage, TransactionStorage
+from .storage import EventStorage, ReactionRolesStorage, TransactionStorage
 
 log = logging.getLogger(__name__)
 
@@ -68,6 +68,12 @@ def start_bot() -> None:
         config["id"],
     )
 
+    event_storage = EventStorage(
+        config["authentication"]["airtable_base"],
+        config["authentication"]["airtable_key"],
+        config["id"],
+    )
+
     # Create scheduler
     scheduler = AsyncIOScheduler(timezone="utc")
 
@@ -81,6 +87,7 @@ def start_bot() -> None:
         config=config,
         transaction_storage=transaction_storage,
         reaction_roles_storage=reaction_roles_storage,
+        event_storage=event_storage,
         scheduler=scheduler,
         reminders=reminder_manager,
     )

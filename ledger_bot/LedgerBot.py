@@ -10,7 +10,7 @@ from .mixins import ExtendedClient, ReactionRolesClient, TransactionsClient
 from .process_dm import is_dm, process_dm
 from .process_message import process_message
 from .reminder_manager import ReminderManager
-from .storage import ReactionRolesStorage, TransactionStorage
+from .storage import EventStorage, ReactionRolesStorage, TransactionStorage
 
 log = logging.getLogger(__name__)
 
@@ -21,12 +21,14 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
         config: Dict[str, Any],
         transaction_storage: TransactionStorage,
         reaction_roles_storage: ReactionRolesStorage,
+        event_storage: EventStorage,
         scheduler: AsyncIOScheduler,
         reminders: ReminderManager,
     ) -> None:
         self.config = config
         self.transaction_storage = transaction_storage
         self.reaction_roles_storage = reaction_roles_storage
+        self.event_storage = event_storage
         self.scheduler = scheduler
         self.reminders = reminders
 
@@ -50,6 +52,7 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
             scheduler=self.scheduler,
             reaction_roles_storage=self.reaction_roles_storage,
             transaction_storage=self.transaction_storage,
+            event_storage=self.event_storage,
             reminders=self.reminders,
         )
 

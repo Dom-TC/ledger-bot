@@ -2,33 +2,21 @@
 
 import logging
 
-from .mixins import BotMessagesMixin, MembersMixin, RemindersMixin, TransactionsMixin
+from .mixins import (
+    BaseStorage,
+    BotMessagesMixin,
+    MembersMixin,
+    RemindersMixin,
+    TransactionsMixin,
+)
 
 log = logging.getLogger(__name__)
 
 
 class TransactionStorage(
-    RemindersMixin, BotMessagesMixin, TransactionsMixin, MembersMixin
+    RemindersMixin, BotMessagesMixin, TransactionsMixin, MembersMixin, BaseStorage
 ):
-    """
-    A class to interface with AirTable.
-
-    Attributes
-    ----------
-    airtable_key : str
-        The authentication key to connect to the base
-    bot_id : str
-        The id of ledger-bot
-    users_url : str
-        The endpoint for the users table
-    wines_url : str
-        The endpoint for the wines table
-    bot_messages_url : str
-        The endpoint for the bot_messages table
-    auth_header :
-        The authentication header
-
-    """
+    """A class to interface with AirTable."""
 
     def __init__(
         self,
