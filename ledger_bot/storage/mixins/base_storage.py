@@ -10,7 +10,7 @@ from aiohttp import ClientSession
 
 from ledger_bot.errors import AirTableError
 
-from ._storage_helpers import airtable_sleep, run_request
+from .._storage_helpers import airtable_sleep, run_request
 
 log = logging.getLogger(__name__)
 

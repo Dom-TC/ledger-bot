@@ -8,7 +8,7 @@ import discord
 from emoji import is_emoji
 
 if TYPE_CHECKING:
-    from ledger_bot.mixins import ExtendedClient
+    from ledger_bot.clients import ExtendedClient
 
 log = logging.getLogger(__name__)
 

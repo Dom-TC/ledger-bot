@@ -10,7 +10,7 @@ from cachetools import LRUCache
 
 from ledger_bot.models import ReactionRole
 
-from .base_storage import BaseStorage
+from .mixins import BaseStorage
 
 log = logging.getLogger(__name__)
 
