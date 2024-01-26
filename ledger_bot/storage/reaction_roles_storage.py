@@ -30,7 +30,7 @@ class ReactionRolesStorage(BaseStorage):
         self.watched_message_ids: set[str] = set()
         self.reaction_roles_lock = asyncio.Lock()
 
-    async def list_watched_message_ids(self) -> List[str]:
+    async def list_watched_message_ids(self) -> set[str]:
         log.debug("Listing watched message ids")
         async with self.reaction_roles_lock:
             reaction_roles_iterator = self._iterate(
@@ -43,7 +43,7 @@ class ReactionRolesStorage(BaseStorage):
                 async for reaction_role in reaction_roles_iterator
             ]
             self.watched_message_ids = set(reaction_role_entries)
-        return reaction_role_entries
+        return set(reaction_role_entries)
 
     async def _list_reaction_roles(
         self, filter_by_formula: str, session: Optional[ClientSession] = None
