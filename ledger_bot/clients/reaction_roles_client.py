@@ -150,13 +150,17 @@ class ReactionRolesClient(ExtendedClient):
             return False
 
         role = guild.get_role(int(reaction_role.role_id))
+        member = guild.get_member(payload.user_id)
 
         if role is None:
             log.warning(f"No role found with ID {reaction_role.role_id}")
             return False
 
+        if member is None:
+            log.warning(f"No role found with ID {payload.user_id}")
+            return False
+
         try:
-            member = guild.get_member(payload.user_id)
             if role in member.roles:
                 await member.remove_roles(role, reason="Reaction role", atomic=False)
         except discord.Forbidden as err:
