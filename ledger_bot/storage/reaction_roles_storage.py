@@ -10,7 +10,7 @@ from cachetools import LRUCache
 
 from ledger_bot.models import ReactionRole
 
-from .base_storage import BaseStorage
+from .mixins import BaseStorage
 
 log = logging.getLogger(__name__)
 
@@ -58,11 +58,13 @@ class ReactionRolesStorage(BaseStorage):
         reaction: str,
         session: Optional[ClientSession] = None,
     ) -> ReactionRole | None:
+        reaction_bytecode = str(reaction).encode("unicode-escape").decode("ASCII")
+
         log.debug(
-            f"Finding reaction_role with guild {server_id}, message_id {msg_id}, and emoji {reaction}"
+            f"Finding reaction_role with guild {server_id}, message_id {msg_id}, and emoji {reaction} / {reaction_bytecode}"
         )
         raw_reaction_role = await self._list_reaction_roles(
-            filter_by_formula=f'AND(server_id={server_id},message_id={msg_id},reaction_name="{reaction}")',
+            filter_by_formula=f'AND(server_id={server_id},OR(reaction_name="{reaction}",reaction_bytecode="{reaction_bytecode}"))',
             session=session,
         )
 
@@ -93,10 +95,14 @@ class ReactionRolesStorage(BaseStorage):
     async def find_reaction_role_by_reaction(
         self, server_id: int, reaction: str, session: Optional[ClientSession] = None
     ) -> ReactionRole | None:
-        log.debug(f"Finding ReactionRole with reaction {reaction}")
+        reaction_bytecode = reaction.encode("unicode-escape").decode("ASCII")
+
+        log.debug(
+            f"Finding ReactionRole with reaction {reaction} / {reaction_bytecode}"
+        )
 
         raw_reaction_role = await self._list_reaction_roles(
-            filter_by_formula=f'AND(server_id={server_id},reaction_name="{reaction}")',
+            filter_by_formula=f'AND(server_id={server_id},OR(reaction_name="{reaction}",reaction_bytecode="{reaction_bytecode}"))',
             session=session,
         )
 
@@ -133,6 +139,7 @@ class ReactionRolesStorage(BaseStorage):
             "server_id",
             "message_id",
             "reaction_name",
+            "reaction_bytecode",
             "role_id",
             "role_name",
             "bot_id",

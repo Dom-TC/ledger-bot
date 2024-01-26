@@ -10,7 +10,7 @@ from ledger_bot.reactions import add_reaction, is_valid_emoji
 from ledger_bot.storage import ReactionRolesStorage
 
 if TYPE_CHECKING:
-    from ledger_bot.mixins import ReactionRolesClient
+    from ledger_bot.clients import ReactionRolesClient
 
 log = logging.getLogger(__name__)
 
