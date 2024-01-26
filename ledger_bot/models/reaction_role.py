@@ -16,6 +16,7 @@ class ReactionRole:
     role_name: str
     record_id: str | None = None
     row_id: int | None = None
+    reaction_bytecode: str | None = None
     bot_id: str | None = None
 
     @classmethod
@@ -25,7 +26,8 @@ class ReactionRole:
             record_id=data["id"],
             server_id=int(fields["server_id"]),
             message_id=int(fields["message_id"]),
-            reaction_name=fields["reaction_name"],
+            reaction_name=fields.get("reaction_name"),
+            reaction_bytecode=fields.get("reaction_bytecode"),
             role_id=int(fields["role_id"]),
             role_name=fields["role_name"],
             row_id=int(fields["row_id"]),
@@ -40,6 +42,7 @@ class ReactionRole:
                 "server_id",
                 "message_id",
                 "reaction_name",
+                "reaction_bytecode",
                 "role_id",
                 "role_name",
                 "bot_id",
@@ -61,6 +64,11 @@ class ReactionRole:
         for attr in bare_conversions:
             if attr in fields:
                 data[attr] = str(getattr(self, attr))
+
+        if "reaction_bytecode" in fields:
+            data["reaction_bytecode"] = self.reaction_name.encode(
+                "unicode-escape"
+            ).decode("ASCII")
 
         return {
             "id": self.record_id,

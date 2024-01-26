@@ -168,10 +168,9 @@ class ReminderManager:
         if transaction_record.bot_messages is not None:
             latest_message_record_id = transaction_record.bot_messages[-1]
             if isinstance(latest_message_record_id, str):
-                message_record = await self.storage.find_bot_message_by_record_id(
+                message = await self.storage.find_bot_message_by_record_id(
                     latest_message_record_id
                 )
-                message = BotMessage.from_airtable(message_record)
             else:
                 message = latest_message_record_id
 
@@ -225,11 +224,9 @@ class ReminderManager:
         reminder_fields = ["date", "member_id", "transaction_id", "status", "bot_id"]
         log.debug(f"Creating reminder: {reminder}, with fields {reminder_fields}")
 
-        reminder_record = await self.storage.save_reminder(
+        created_reminder = await self.storage.save_reminder(
             reminder=reminder, fields=reminder_fields
         )
-
-        created_reminder = Reminder.from_airtable(reminder_record)
 
         log.info(f"Created reminder {created_reminder}")
         return created_reminder

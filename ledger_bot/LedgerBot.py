@@ -6,7 +6,7 @@ from typing import Any, Dict
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from .mixins import ExtendedClient, ReactionRolesClient, TransactionsClient
+from .clients import ExtendedClient, ReactionRolesClient, TransactionsClient
 from .process_dm import is_dm, process_dm
 from .process_message import process_message
 from .reminder_manager import ReminderManager
@@ -122,15 +122,49 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
             log.error(f"Guild with ID '{guild_id}' not found!")
             return
 
-        handled_role_reaction = await self.handle_role_reaction(payload)
-        if handled_role_reaction:
-            return
-
         hangled_transaction_reaction = await self.handle_transaction_reaction(payload)
         if hangled_transaction_reaction:
             return
 
+        handled_role_reaction = await self.handle_role_reaction(payload)
+        if handled_role_reaction:
+            return
+
         log.info(f"Failed to match any commands on {payload.emoji}")
+
+    async def on_raw_reaction_remove(
+        self, payload: discord.RawReactionActionEvent
+    ) -> None:
+        channel = await self.get_or_fetch_channel(payload.channel_id)
+        reactor = payload.user_id
+        guild_id = payload.guild_id
+
+        log.debug(payload)
+
+        if reactor is None:
+            log.warning("Payload contained no reactor. Ignoring payload.")
+            return
+
+        if not isinstance(channel, discord.TextChannel):
+            log.warning("Couldn't get channel information. Ignoring reaction removal.")
+            return
+
+        if guild_id is None:
+            log.debug("Reaction removal on non-guild message. Ignoring")
+            return
+
+        guild = self.get_guild(guild_id)
+        if guild is None:
+            log.error(f"Guild with ID '{guild_id}' not found!")
+            return
+
+        handled_role_reaction_removal = await self.handled_role_reaction_removal(
+            payload
+        )
+        if handled_role_reaction_removal:
+            return
+
+        log.info(f"Failed to match any commands on {payload.emoji} removal")
 
     async def on_disconnect(self) -> None:
         log.warning("Bot disconnected")

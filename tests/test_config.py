@@ -51,6 +51,7 @@ def default_config():
             699641132497371162,  # .henry_1
             963548418385543188,  # OllyDS
             881831177311387689,  # chilloutbar
+            127599224392122368,  # a5teenpoundz
         ],
         "cleanup_delay_hours": 24,  # How many hours must have passed between a transaction being completed and it being cleaned
         "run_cleanup_time": {
