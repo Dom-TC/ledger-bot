@@ -132,5 +132,39 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
 
         log.info(f"Failed to match any commands on {payload.emoji}")
 
+    async def on_raw_reaction_remove(
+        self, payload: discord.RawReactionActionEvent
+    ) -> None:
+        channel = await self.get_or_fetch_channel(payload.channel_id)
+        reactor = payload.user_id
+        guild_id = payload.guild_id
+
+        log.debug(payload)
+
+        if reactor is None:
+            log.warning("Payload contained no reactor. Ignoring payload.")
+            return
+
+        if not isinstance(channel, discord.TextChannel):
+            log.warning("Couldn't get channel information. Ignoring reaction removal.")
+            return
+
+        if guild_id is None:
+            log.debug("Reaction removal on non-guild message. Ignoring")
+            return
+
+        guild = self.get_guild(guild_id)
+        if guild is None:
+            log.error(f"Guild with ID '{guild_id}' not found!")
+            return
+
+        handled_role_reaction_removal = await self.handled_role_reaction_removal(
+            payload
+        )
+        if handled_role_reaction_removal:
+            return
+
+        log.info(f"Failed to match any commands on {payload.emoji} removal")
+
     async def on_disconnect(self) -> None:
         log.warning("Bot disconnected")
