@@ -101,7 +101,7 @@ Commands:
         - Set Menu Option
         - Set Deposit
     4. Create Discord Event?
-         
+
 - Join Event
 - Leave Event
 - Add Wine
@@ -109,12 +109,13 @@ Commands:
 - Get Event Details
 - List Events
 - Cancel Event
-- Change Event Date
-- Set Deposit Amount
 - Mark Deposit Paid
-- Add Menu Choice
-- Select Menu Choice
 - Manage Event
+  - Change Event Date
+  - Set Deposit Amount
+  - Add Menu Choice
+  - Select Menu Choice
+  - Change Max Guests
 
 Event Table Schema:
 - Row ID: int, auto-increment
