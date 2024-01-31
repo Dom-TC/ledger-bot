@@ -18,6 +18,8 @@ RUN pip install "poetry==$POETRY_VERSION"
 ARG bot_version
 ENV BOT_VERSION=$bot_version
 
+LABEL org.opencontainers.image.source=https://github.com/Dom-TC/ledger-bot
+
 COPY pyproject.toml poetry.lock README.md log.conf ./
 COPY ledger_bot ./ledger_bot
 COPY logs ./logs
