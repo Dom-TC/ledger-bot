@@ -107,3 +107,69 @@ class ReactionRolesClient(ExtendedClient):
             )
 
         return True
+
+    async def handled_role_reaction_removal(
+        self, payload: discord.RawReactionActionEvent
+    ) -> bool:
+        watched_message_ids = (
+            self.reaction_roles_storage.watched_message_ids
+            if len(self.reaction_roles_storage.watched_message_ids) > 0
+            else await self.reaction_roles_storage.list_watched_message_ids()
+        )
+
+        if str(payload.message_id) not in watched_message_ids:
+            return False
+
+        if self.user is await self.get_or_fetch_user(payload.user_id):
+            log.info("Ignoring role-reaction-removal from self")
+            return False
+
+        log.info(
+            f"Handling reaction role removal request - {payload.emoji} on {payload.message_id} from {payload.user_id}"
+        )
+
+        reaction_role = await self.reaction_roles_storage.get_reaction_role(
+            server_id=str(payload.guild_id),
+            msg_id=str(payload.message_id),
+            reaction=payload.emoji,
+        )
+        log.debug(f"Reaction role: {reaction_role}")
+
+        if reaction_role is None:
+            log.info("No reaction-role mapping found")
+            return False
+
+        # We've already done these checks for this function to be called, but we do it again now to handle MyPy's errors.
+        guild_id = payload.guild_id
+        if guild_id is None:
+            return False
+        guild = self.get_guild(guild_id)
+        if guild is None:
+            return False
+        if payload.user_id is None:
+            return False
+
+        role = guild.get_role(int(reaction_role.role_id))
+        member = guild.get_member(payload.user_id)
+
+        if role is None:
+            log.warning(f"No role found with ID {reaction_role.role_id}")
+            return False
+
+        if member is None:
+            log.warning(f"No role found with ID {payload.user_id}")
+            return False
+
+        try:
+            if role in member.roles:
+                await member.remove_roles(role, reason="Reaction role", atomic=False)
+        except discord.Forbidden as err:
+            log.error(
+                f"You don't have permission to remove the role {role} to {payload.member}: {err}"
+            )
+        except discord.HTTPException as err:
+            log.error(
+                f"An HTTP exception occured while removing the role {role} to {payload.member}: {err}"
+            )
+
+        return True

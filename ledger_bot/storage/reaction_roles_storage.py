@@ -30,7 +30,7 @@ class ReactionRolesStorage(BaseStorage):
         self.watched_message_ids: set[str] = set()
         self.reaction_roles_lock = asyncio.Lock()
 
-    async def list_watched_message_ids(self) -> List[str]:
+    async def list_watched_message_ids(self) -> set[str]:
         log.debug("Listing watched message ids")
         async with self.reaction_roles_lock:
             reaction_roles_iterator = self._iterate(
@@ -43,7 +43,7 @@ class ReactionRolesStorage(BaseStorage):
                 async for reaction_role in reaction_roles_iterator
             ]
             self.watched_message_ids = set(reaction_role_entries)
-        return reaction_role_entries
+        return set(reaction_role_entries)
 
     async def _list_reaction_roles(
         self, filter_by_formula: str, session: Optional[ClientSession] = None
@@ -58,11 +58,13 @@ class ReactionRolesStorage(BaseStorage):
         reaction: str,
         session: Optional[ClientSession] = None,
     ) -> ReactionRole | None:
+        reaction_bytecode = str(reaction).encode("unicode-escape").decode("ASCII")
+
         log.debug(
-            f"Finding reaction_role with guild {server_id}, message_id {msg_id}, and emoji {reaction}"
+            f"Finding reaction_role with guild {server_id}, message_id {msg_id}, and emoji {reaction} / {reaction_bytecode}"
         )
         raw_reaction_role = await self._list_reaction_roles(
-            filter_by_formula=f'AND(server_id={server_id},message_id={msg_id},reaction_name="{reaction}")',
+            filter_by_formula=f'AND(server_id={server_id},OR(reaction_name="{reaction}",reaction_bytecode="{reaction_bytecode}"))',
             session=session,
         )
 
@@ -93,10 +95,14 @@ class ReactionRolesStorage(BaseStorage):
     async def find_reaction_role_by_reaction(
         self, server_id: int, reaction: str, session: Optional[ClientSession] = None
     ) -> ReactionRole | None:
-        log.debug(f"Finding ReactionRole with reaction {reaction}")
+        reaction_bytecode = reaction.encode("unicode-escape").decode("ASCII")
+
+        log.debug(
+            f"Finding ReactionRole with reaction {reaction} / {reaction_bytecode}"
+        )
 
         raw_reaction_role = await self._list_reaction_roles(
-            filter_by_formula=f'AND(server_id={server_id},reaction_name="{reaction}")',
+            filter_by_formula=f'AND(server_id={server_id},OR(reaction_name="{reaction}",reaction_bytecode="{reaction_bytecode}"))',
             session=session,
         )
 
@@ -133,6 +139,7 @@ class ReactionRolesStorage(BaseStorage):
             "server_id",
             "message_id",
             "reaction_name",
+            "reaction_bytecode",
             "role_id",
             "role_name",
             "bot_id",

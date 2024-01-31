@@ -16,6 +16,11 @@ def _is_or_are(qty: int) -> str:
     return "are" if qty != 1 else "is"
 
 
+def _pluralise_word(qty: int, word: str) -> str:
+    """Returns a pluralised version of word if needed."""
+    return f"{word}s" if qty != 1 else word
+
+
 def _build_dataframe(transactions: List[Transaction]) -> pd.DataFrame:
     log.debug("Generating dataframe")
     transactions_df = pd.DataFrame(
@@ -266,9 +271,9 @@ def generate_stats_message(
     # Generate output
     log.debug("Building stats output")
     output = "**Personal Stats**\n"
-    output += f"You've made {user_count_buyer_all} purchases and {user_count_seller_all} Sales.\n"
+    output += f"You've made {user_count_buyer_all} {_pluralise_word(user_count_buyer_all, 'purchase')} and {user_count_seller_all} {_pluralise_word(user_count_seller_all, 'sale')}.\n"
     output += "\n"
-    output += f"Of your {user_count_buyer_all} purchases:\n"
+    output += f"Of your {user_count_buyer_all} {_pluralise_word(user_count_buyer_all, 'purchase')}:\n"
     output += (
         f"- {user_count_buyer_unapproved} {_is_or_are(user_count_buyer_unapproved)} unapproved\n"
         if user_count_buyer_unapproved > 0
@@ -300,7 +305,7 @@ def generate_stats_message(
         else ""
     )
     output += "\n"
-    output += f"Of your {user_count_seller_all} sales:\n"
+    output += f"Of your {user_count_seller_all} {_pluralise_word(user_count_seller_all, 'sale')}:\n"
     output += (
         f"- {user_count_seller_unapproved} {_is_or_are(user_count_seller_unapproved)} unapproved\n"
         if user_count_seller_unapproved > 0
