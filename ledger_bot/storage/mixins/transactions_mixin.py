@@ -143,12 +143,11 @@ class TransactionsMixin(BaseStorage):
     ) -> Transaction | None:
         """Takes a message and returns any associated Transactions, else returns None."""
         log.info(f"Searching for transactions relating to bot message {message_id}")
-        bot_message_record = await self.find_bot_message_by_message_id(message_id)
-        if bot_message_record is None:
+        bot_message = await self.find_bot_message_by_message_id(message_id)
+        if bot_message is None:
             log.info("No matching records found")
             return None
         else:
-            bot_message = BotMessage.from_airtable(bot_message_record)
             transaction = await self._retrieve_transaction(bot_message.transaction_id)
             return transaction or None
 
