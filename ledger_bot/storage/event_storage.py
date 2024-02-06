@@ -27,6 +27,7 @@ class EventStorage(
         super().__init__(airtable_base, airtable_key)
         self.airtable_key = airtable_key
         self.bot_id = bot_id
+        self.members_url = f"https://api.airtable.com/v0/{airtable_base}/members"
         self.events_url = f"https://api.airtable.com/v0/{airtable_base}/events"
         self.event_wines_url = (
             f"https://api.airtable.com/v0/{airtable_base}/event_wines"

@@ -1,7 +1,8 @@
 """Register our slash commands with Discord."""
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict
+from datetime import date, datetime
+from typing import Any, Dict
 
 import discord
 from discord import app_commands
@@ -13,6 +14,7 @@ from .command_add_role import command_add_role
 from .command_hello import command_hello
 from .command_help import command_help
 from .command_list import command_list
+from .command_new_event import command_new_event
 from .command_new_sale import command_new_sale
 from .command_new_split import command_new_split
 from .command_stats import command_stats
@@ -282,3 +284,31 @@ def setup_slash(
             )
         else:
             log.error("An unhandled error occured", exc_info=error)
+
+    @client.tree.command(
+        guild=client.guild, name="new_event", description="Create a new event"
+    )
+    @app_commands.describe(
+        name="The name of the event",
+        event_date="The date of the event",
+        max_attendees="Optional: The maximum number of attendees (including yourself)",
+        private="Optional: If true, the event is invite only and won't have a public signup message.",
+    )
+    async def new_event(
+        interaction: discord.Interaction[Any],
+        name: str,
+        event_date: str,
+        max_attendees: int | None = None,
+        private: bool = False,
+    ) -> None:
+        log.info(f"Recognised command: /new_event from {interaction.user.name}")
+        await command_new_event(
+            client=client,
+            config=config,
+            storage=event_storage,
+            interaction=interaction,
+            event_name=name,
+            event_date=event_date,
+            max_attendees=max_attendees,
+            private=private,
+        )

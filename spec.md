@@ -116,6 +116,7 @@ Commands:
   - Add Menu Choice
   - Select Menu Choice
   - Change Max Guests
+- Archive Event
 
 Event Table Schema:
 - Row ID: int, auto-increment

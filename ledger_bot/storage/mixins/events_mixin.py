@@ -41,11 +41,13 @@ class EventsMixin(BaseStorage):
             "event_name",
             "host",
             "event_date",
-            "max_guests",
+            "max_attendees",
+            "private",
             "guests",
             "location",
             "channel_id",
             "deposit_amount",
+            "creation_date",
             "bot_id",
         ]
 

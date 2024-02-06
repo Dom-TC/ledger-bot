@@ -1,6 +1,12 @@
 """Additional exceptions."""
 
 from .airtable_error import AirTableError
+from .datetime_errors import DatetimeParsingError, TimeTravelError
 from .signal_halt_error import SignalHaltError
 
-__all__ = ["AirTableError", "SignalHaltError"]
+__all__ = [
+    "AirTableError",
+    "SignalHaltError",
+    "DatetimeParsingError",
+    "TimeTravelError",
+]
