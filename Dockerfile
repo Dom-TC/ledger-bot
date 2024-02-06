@@ -26,6 +26,9 @@ COPY logs ./logs
 COPY pyproject.toml poetry.lock README.md log.conf ./
 COPY ledger_bot ./ledger_bot
 
+# Change ownership of all files to the app user
+RUN chown -R app:app .
+
 RUN poetry config virtualenvs.in-project true && \
     poetry install --only=main --no-root && \
     poetry build
