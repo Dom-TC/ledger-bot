@@ -170,3 +170,4 @@ discord/bot.py
 config.json
 
 .vscode
+/ledger-bot
