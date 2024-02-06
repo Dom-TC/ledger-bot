@@ -20,20 +20,19 @@ RUN pip install "poetry==$POETRY_VERSION"
 ARG bot_version
 ENV BOT_VERSION=$bot_version
 
-RUN addgroup --system app && adduser --system --ingroup app app
+RUN addgroup --system ledger-bot && adduser --system --ingroup ledger-bot ledger-bot
 
 COPY logs ./logs
 COPY pyproject.toml poetry.lock README.md log.conf ./
 COPY ledger_bot ./ledger_bot
 
-# Change ownership of all files to the app user
-RUN chown -R app:app . && \
+RUN chown -R ledger-bot:ledger-bot . && \
     chmod -R 755 ./logs
 
 RUN poetry config virtualenvs.in-project true && \
     poetry install --only=main --no-root && \
     poetry build
 
-USER app
+USER ledger-bot
 
 CMD [ "poetry", "run", "python", "-m", "ledger_bot"]
