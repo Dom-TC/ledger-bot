@@ -73,7 +73,7 @@ async def command_new_event(
         return
 
     # Discord Interactions need to be responded to in <3s or they time out.  We take longer, so defer the interaction.
-    await interaction.response.defer()
+    await interaction.response.defer(ephemeral=True)
 
     # Create event object
     log.info("Processing new event...")
@@ -89,16 +89,18 @@ async def command_new_event(
         creation_date=datetime.datetime.utcnow().isoformat(),
     )
 
-    # Create private channel, giving host access `TextChannel.set_permissions`
+    # Create private channel
     channel_overwrites = {
         client.guild.default_role: discord.PermissionOverwrite(read_messages=False),
         client.guild.me: discord.PermissionOverwrite(read_messages=True),
     }
-    channel_name = f"{event_name.replace(' ', '_')}_{parsed_date.strftime('%d_%b')}"
+    channel_name = (
+        f"{event_name.replace(' ', '_')}_{parsed_date.strftime('%d_%b')}".lower()
+    )
 
     try:
         event_channel = await client.guild.create_text_channel(
-            name=channel_name.lower(),
+            name=channel_name,
             overwrites=channel_overwrites,
             category=await client.get_or_fetch_channel(config["events_category"]),
             topic=f"Event: {channel_name}",
@@ -107,7 +109,8 @@ async def command_new_event(
     except discord.Forbidden as error:
         log.error(f"A discord.Forbidden error occured creating the channel: {error}")
         await interaction.followup.send(
-            "An unexpected error occured when creating the event channel."
+            "An unexpected error occured when creating the event channel.",
+            ephemeral=True,
         )
         return
     except discord.HTTPException as error:
@@ -115,13 +118,15 @@ async def command_new_event(
             f"A discord.HTTPException error occured creating the channel: {error}"
         )
         await interaction.followup.send(
-            "An unexpected error occured when creating the event channel."
+            "An unexpected error occured when creating the event channel.",
+            ephemeral=True,
         )
         return
     except TypeError as error:
         log.error(f"A TypeError occured creating the channel: {error}")
         await interaction.followup.send(
-            "An unexpected error occured when creating the event channel."
+            "An unexpected error occured when creating the event channel.",
+            ephemeral=True,
         )
         return
 
@@ -140,3 +145,85 @@ async def command_new_event(
     event_record = await storage.save_event(event=event, fields=event_fields)
 
     log.debug(event_record)
+
+    # Add host to channel
+    try:
+        log.info(
+            f"Assigning host '{interaction.user.name}' read permission in {channel_name}"
+        )
+        await event_channel.set_permissions(
+            interaction.user,
+            read_messages=True,
+        )
+    except discord.Forbidden as error:
+        log.error(
+            f"A discord.Forbidden error occured assigning host {interaction.user.name} read access to channel {channel_name}: {error}"
+        )
+        await interaction.followup.send(
+            "An unexpected error occured when assigning you to the event channel.",
+            ephemeral=True,
+        )
+        return
+    except discord.NotFound as error:
+        log.error(
+            f"A discord.NotFound error occured assigning host {interaction.user.name} read access to channel {channel_name}: {error}"
+        )
+        await interaction.followup.send(
+            "An unexpected error occured when assigning you to the event channel.",
+            ephemeral=True,
+        )
+    except discord.HTTPException as error:
+        log.error(
+            f"A discord.HTTPException error occured assigning host {interaction.user.name} read access to channel {channel_name}: {error}"
+        )
+        await interaction.followup.send(
+            "An unexpected error occured when assigning you to the event channel.",
+            ephemeral=True,
+        )
+        return
+    except TypeError as error:
+        log.error(
+            f"A TypeError occured assigning host {interaction.user.name} read access to channel {channel_name}: {error}"
+        )
+        await interaction.followup.send(
+            "An unexpected error occured when assigning you to the event channel.",
+            ephemeral=True,
+        )
+        return
+    except ValueError as error:
+        log.error(
+            f"A ValueError occured assigning host {interaction.user.name} read access to channel {channel_name}: {error}"
+        )
+        await interaction.followup.send(
+            "An unexpected error occured when assigning you to the event channel.",
+            ephemeral=True,
+        )
+
+    # Create buttons in channel
+
+    return
+
+    # # Create status post
+    # response_contents = generate_event_status_message(
+    #     seller=interaction.user,
+    #     buyer=buyer,
+    #     wine_name=wine_name,
+    #     wine_price=price,
+    #     config=config,
+    # )
+    # try:
+    #     await interaction.followup.send(response_contents)
+
+    #     # We have to call a different command to get the message we just posted
+    #     bot_message = await interaction.original_response()
+
+    #     await storage.record_bot_message(
+    #         message=bot_message, transaction=transaction_record
+    #     )
+
+    # except discord.HTTPException as error:
+    #     log.error(f"An error occured sending the message: {error}")
+    # except discord.ClientException as error:
+    #     log.error(f"Couldn't get response message channel: {error}")
+    # except AirTableError as error:
+    #     log.error(f"An error occured storing the content in AirTable: {error}")
