@@ -110,6 +110,9 @@ jobs:
             docker compose -f /opt/ledger-bot/docker-compose.yml pull
             docker compose -f /opt/ledger-bot/docker-compose.yml up -d
 
+            # Prune old images
+            docker image prune -a --force --filter "until=72h"
+
   deploy-dev:
     runs-on: ubuntu-latest
     needs: build-and-push
