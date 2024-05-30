@@ -1,7 +1,7 @@
 """Mixin for dealing with the Transactions table."""
 
 import logging
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, AsyncGenerator, Callable, Dict, List, Optional
 
 from aiohttp import ClientSession
 
@@ -109,6 +109,19 @@ class TransactionsMixin(BaseStorage):
 
         return transactions
 
+    async def _list_all_transactions(
+        self,
+        filter_by_formula: Optional[str] = None,
+        sort: Optional[list[str]] = None,
+        session: Optional[ClientSession] = None,
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        return self._iterate(
+            self.wines_url,
+            filter_by_formula=filter_by_formula,
+            sort=sort,
+            session=session,
+        )
+
     async def _retrieve_transaction(
         self, transaction_id: str, session: Optional[ClientSession] = None
     ) -> Transaction:
@@ -201,13 +214,15 @@ class TransactionsMixin(BaseStorage):
         transaction = await self._retrieve_transaction(record_id)
         return transaction
 
-    async def get_all_transactions(self) -> List[Transaction] | None:
+    async def get_all_transactions(self) -> Optional[List[Transaction]]:
         log.info("Getting all transactions")
-        transactions = await self._list_transactions("")
-        if len(transactions) == 0:
-            return None
-        else:
-            return transactions
+
+        transactions = []
+        async for record in await self._list_all_transactions():
+            transaction = Transaction.from_airtable(record)
+            transactions.append(transaction)
+
+        return transactions if transactions else None
 
     async def get_transaction_by_row_id(self, row_id: int) -> Transaction | None:
         """Returns the transaction with the corrosponding row id."""
