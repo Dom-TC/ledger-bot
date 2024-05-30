@@ -116,6 +116,7 @@ Commands:
   - Add Menu Choice
   - Select Menu Choice
   - Change Max Guests
+  - Chase Deposits
 - Archive Event
 
 Event Table Schema:
