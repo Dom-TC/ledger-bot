@@ -80,6 +80,13 @@ jobs:
         run: echo "RELEASE_VERSION=`git describe --tags`" >> $GITHUB_ENV
         continue-on-error: true
 
+      - name: Connect to Tailnet
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:github-ci
+
       - name: Deploy to main
         uses: appleboy/ssh-action@master
         with:
@@ -128,6 +135,13 @@ jobs:
       - name: Set Bot Version
         run: echo "RELEASE_VERSION=`git describe --tags`" >> $GITHUB_ENV
         continue-on-error: true
+
+      - name: Connect to Tailnet
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:github-ci
 
       - name: Deploy to dev
         uses: appleboy/ssh-action@master
