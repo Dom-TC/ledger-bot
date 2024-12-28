@@ -9,7 +9,7 @@ packages = [{include = "ledger_bot"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-discord-py = "^2.3.2"
+discord-py = "^2.4.0"
 python-dotenv = "^1.0.1"
 apscheduler = "^3.10.4"
 cachetools = "^5.5.0"
