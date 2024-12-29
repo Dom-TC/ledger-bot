@@ -113,7 +113,7 @@ Commands:
 - List Events
 - Cancel Event
 - Mark Deposit Paid
-- Manage Event
+- Manage Event (buttons)
   - Change Event Date
   - Set Deposit Amount
   - Add Menu Choice
@@ -149,3 +149,9 @@ Event Deposits Table Scema
 - Paid: bool
 - Confirmed Paid: bool
 - Bot ID: string
+
+To Do:
+
+- Create Events Storage
+- Create Event Client
+- Create slash commands
