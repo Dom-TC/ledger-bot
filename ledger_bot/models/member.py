@@ -1,8 +1,15 @@
 """The data model for a record in the `members` table."""
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List
+
+if TYPE_CHECKING:
+    from .event import Event
+    from .event_deposit import EventDeposit
+    from .event_wine import EventWine
 
 log = logging.getLogger(__name__)
 
@@ -14,17 +21,17 @@ class Member:
     record_id: str | None = None
     row_id: str | None = None
     nickname: str | None = None
-    sell_transactions: List[str] | None = None
-    buy_transactions: List[str] | None = None
-    host_events: List[str] | None = None
-    guest_events: List[str] | None = None
-    event_wines: List[str] | None = None
-    event_deposits: List[str] | None = None
-    reminders: List[str] | None = None
+    sell_transactions: list[str] | None = None
+    buy_transactions: list[str] | None = None
+    host_events: list[str | Event] | None = None
+    guest_events: list[str | Event] | None = None
+    event_wines: list[str | EventWine] | None = None
+    event_deposits: list[str | EventDeposit] | None = None
+    reminders: list[str] | None = None
     bot_id: str | None = None
 
     @classmethod
-    def from_airtable(cls, data: Dict[str, Any]) -> "Member":
+    def from_airtable(cls, data: dict[str, Any]) -> Member:
         fields = data["fields"]
         return cls(
             record_id=data["id"],
