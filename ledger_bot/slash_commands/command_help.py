@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Dict
 import discord
 
 from ledger_bot.message_generators import generate_help_message
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage import TransactionStorage
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 async def command_help(
     client: "LedgerBot",
     config: Dict[str, Any],
-    storage: AirtableStorage,
+    storage: TransactionStorage,
     interaction: discord.Interaction[Any],
 ) -> None:
     """Return a help message."""

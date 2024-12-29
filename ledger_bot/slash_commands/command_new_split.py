@@ -11,7 +11,7 @@ from ledger_bot.LedgerBot import LedgerBot
 from ledger_bot.message_generators import generate_transaction_status_message
 from ledger_bot.models import Transaction
 from ledger_bot.process_transactions import send_message
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage import TransactionStorage
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 async def command_new_split(
     client: "LedgerBot",
     config: Dict[str, Any],
-    storage: AirtableStorage,
+    storage: TransactionStorage,
     interaction: discord.Interaction[Any],
     wine_name: str,
     buyers: List[discord.Member],

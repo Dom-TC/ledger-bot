@@ -9,7 +9,7 @@ import discord
 
 from ledger_bot.models import Reminder, Transaction
 from ledger_bot.reminder_manager import ReminderManager
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage import TransactionStorage
 
 log = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ class StatusDropdown(discord.ui.Select[Any]):
 class SetFilterView(discord.ui.View):
     def __init__(
         self,
-        storage: AirtableStorage,
+        storage: TransactionStorage,
         reminder: Reminder,
         reminder_manager: ReminderManager,
     ) -> None:
@@ -80,7 +80,7 @@ class SetFilterView(discord.ui.View):
 class ReminderForm(discord.ui.Modal, title="Create Reminder In..."):
     def __init__(
         self,
-        storage: AirtableStorage,
+        storage: TransactionStorage,
         transaction: Transaction,
         user: discord.Member,
         reminders: ReminderManager,
@@ -169,7 +169,7 @@ class ReminderForm(discord.ui.Modal, title="Create Reminder In..."):
 class CreateReminderButton(discord.ui.View):
     def __init__(
         self,
-        storage: AirtableStorage,
+        storage: TransactionStorage,
         transaction: Transaction,
         user: discord.Member,
         reminders: ReminderManager,

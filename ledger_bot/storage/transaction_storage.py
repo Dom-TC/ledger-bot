@@ -7,39 +7,10 @@ from .mixins import BotMessagesMixin, MembersMixin, RemindersMixin, Transactions
 log = logging.getLogger(__name__)
 
 
-class AirtableStorage(
+class TransactionStorage(
     RemindersMixin, BotMessagesMixin, TransactionsMixin, MembersMixin
 ):
-    """
-    A class to interface with AirTable.
-
-    Attributes
-    ----------
-    airtable_key : str
-        The authentication key to connect to the base
-    bot_id : str
-        The id of ledger-bot
-    users_url : str
-        The endpoint for the users table
-    wines_url : str
-        The endpoint for the wines table
-    bot_messages_url : str
-        The endpoint for the bot_messages table
-    auth_header :
-        The authentication header
-
-    Methods
-    -------
-    insert_member(record, session)
-        Creates a new member entry
-
-    get_or_add_member(member)
-        Either returns the record for the given member, or creates an entry and returns that
-
-    insert_transaction(record, session)
-        Creates a new transaction entry
-
-    """
+    """A class to interface with transaction storage."""
 
     def __init__(
         self,

@@ -11,7 +11,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from .message_generators import generate_reminder_status_message
 from .models import BotMessage, Reminder, Transaction
-from .storage import AirtableStorage
+from .storage import TransactionStorage
 
 if TYPE_CHECKING:
     from .LedgerBot import LedgerBot
@@ -26,7 +26,7 @@ class ReminderManager:
         self,
         config: Dict[str, Any],
         scheduler: AsyncIOScheduler,
-        storage: AirtableStorage,
+        storage: TransactionStorage,
     ):
         self.config = config
         self.scheduler = scheduler

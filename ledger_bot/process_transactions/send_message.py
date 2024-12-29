@@ -7,7 +7,7 @@ import discord
 
 from ledger_bot.errors import AirTableError
 from ledger_bot.models import Transaction
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage import TransactionStorage
 
 log = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ async def send_message(
     channel,
     target_transaction: Transaction,
     previous_message_id: int | None,
-    storage: AirtableStorage,
+    storage: TransactionStorage,
     config: Dict[str, Any],
 ) -> None:
     """Helper to send messages after updating transactions."""

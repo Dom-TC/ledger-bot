@@ -22,7 +22,7 @@ from .errors import SignalHaltError
 from .LedgerBot import LedgerBot
 from .reminder_manager import ReminderManager
 from .slash_commands import setup_slash
-from .storage import AirtableStorage, ReactionRolesStorage
+from .storage import TransactionStorage, ReactionRolesStorage
 
 log = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ def start_bot() -> None:
         exit(1)
 
     # Create storage
-    transaction_storage = AirtableStorage(
+    transaction_storage = TransactionStorage(
         config["authentication"]["airtable_base"],
         config["authentication"]["airtable_key"],
         config["id"],
