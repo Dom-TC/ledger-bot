@@ -48,7 +48,7 @@ ledger_bot: Deletes previous <bot_post>, updates AirTable, creates new <bot_post
 `!help` - Returns the help documentation
 `!version` - Returns the version / bot_id of the running bot
 
-## Bot Post Format:
+## Bot Post Format
 
 ```
 **@<seller> sold <wine_name> to @<buyer>**
@@ -67,7 +67,7 @@ Price: <price>
 2. Show modal asking for days / hours / statys
 3. Store reminder
 
-## Reminders ToDo.
+## Reminders ToDo
 
 1. Create New Reminder
 2. Add jobs for each reminder
@@ -85,3 +85,66 @@ Price: <price>
   - If message ID and reaction are valid, assign the user the appropriate role
 - Add Role
   - Admin only command
+
+## Events Spec
+
+Commands:
+
+- Create Event
+  - Name: string
+  - Date: datetime
+  - Max Guests: int, optional
+  - Location: str, optional
+    1. Create Event object
+    2. Create private channel with host.
+        - Named: `<name>-<date>-<location>`
+    3. Create buttons in channel:
+        - Set Max Guests
+        - Set Menu Option
+        - Set Deposit
+    4. Create Discord Event?
+
+- Join Event
+- Leave Event
+- Add Wine
+- Remove Wine
+- Get Event Details
+- List Events
+- Cancel Event
+- Mark Deposit Paid
+- Manage Event
+  - Change Event Date
+  - Set Deposit Amount
+  - Add Menu Choice
+  - Select Menu Choice
+  - Change Max Guests
+  - Chase Deposits
+- Archive Event
+
+Event Table Schema:
+
+- Row ID: int, auto-increment
+- Name: string
+- Host: Member Record, single record
+- Max Guests: int
+- Guests: Member Record, multiple records
+- Event Date: datetime
+- Channel ID: str
+- Bot ID: string
+
+Event Wines Table Schema:
+
+- Row ID: int, auto-increment
+- Event ID: Event Record, single record
+- Member:  Member Record, single record
+- Wine: str
+- Bot ID: string
+
+Event Deposits Table Scema
+
+- Row ID: int, auto-increment
+- Event ID: Event Record, single record
+- Member:  Member Record, single record
+- Paid: bool
+- Confirmed Paid: bool
+- Bot ID: string

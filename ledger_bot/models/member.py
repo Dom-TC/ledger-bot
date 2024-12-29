@@ -16,6 +16,10 @@ class Member:
     nickname: str | None = None
     sell_transactions: List[str] | None = None
     buy_transactions: List[str] | None = None
+    host_events: List[str] | None = None
+    guest_events: List[str] | None = None
+    event_wines: List[str] | None = None
+    event_deposits: List[str] | None = None
     reminders: List[str] | None = None
     bot_id: str | None = None
 
@@ -30,6 +34,10 @@ class Member:
             nickname=fields.get("nickname"),
             sell_transactions=fields.get("sell_transactions"),
             buy_transactions=fields.get("buy_transactions"),
+            host_events=fields.get("host_events"),
+            guest_events=fields.get("guest_events"),
+            event_wines=fields.get("event_wines"),
+            event_deposits=fields.get("event_deposits"),
             reminders=fields.get("reminders"),
             bot_id=fields.get("bot_id"),
         )
