@@ -1,6 +1,5 @@
 """Base storage class to interface with the end database."""
 
-
 import asyncio
 import logging
 from collections.abc import AsyncGenerator

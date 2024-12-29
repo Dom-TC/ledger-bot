@@ -91,17 +91,18 @@ Price: <price>
 Commands:
 
 - Create Event
+
   - Name: string
   - Date: datetime
   - Max Guests: int, optional
   - Location: str, optional
     1. Create Event object
     2. Create private channel with host.
-        - Named: `<name>-<date>-<location>`
+       - Named: `<name>-<date>-<location>`
     3. Create buttons in channel:
-        - Set Max Guests
-        - Set Menu Option
-        - Set Deposit
+       - Set Max Guests
+       - Set Menu Option
+       - Set Deposit
     4. Create Discord Event?
 
 - Join Event
@@ -136,7 +137,7 @@ Event Wines Table Schema:
 
 - Row ID: int, auto-increment
 - Event ID: Event Record, single record
-- Member:  Member Record, single record
+- Member: Member Record, single record
 - Wine: str
 - Bot ID: string
 
@@ -144,7 +145,7 @@ Event Deposits Table Scema
 
 - Row ID: int, auto-increment
 - Event ID: Event Record, single record
-- Member:  Member Record, single record
+- Member: Member Record, single record
 - Paid: bool
 - Confirmed Paid: bool
 - Bot ID: string

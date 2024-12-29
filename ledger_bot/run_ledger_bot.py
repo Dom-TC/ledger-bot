@@ -22,7 +22,7 @@ from .errors import SignalHaltError
 from .LedgerBot import LedgerBot
 from .reminder_manager import ReminderManager
 from .slash_commands import setup_slash
-from .storage import TransactionStorage, ReactionRolesStorage
+from .storage import ReactionRolesStorage, TransactionStorage
 
 log = logging.getLogger(__name__)
 

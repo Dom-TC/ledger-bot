@@ -1,4 +1,5 @@
 """The data model for a record in the `wines` table."""
+
 import logging
 from ast import literal_eval
 from dataclasses import dataclass
@@ -94,16 +95,20 @@ class Transaction:
 
         if "seller_id" in fields:
             data["seller_id"] = [
-                str(self.seller_id.record_id)
-                if isinstance(self.seller_id, Member)
-                else self.seller_id
+                (
+                    str(self.seller_id.record_id)
+                    if isinstance(self.seller_id, Member)
+                    else self.seller_id
+                )
             ]
 
         if "buyer_id" in fields:
             data["buyer_id"] = [
-                str(self.buyer_id.record_id)
-                if isinstance(self.buyer_id, Member)
-                else self.buyer_id
+                (
+                    str(self.buyer_id.record_id)
+                    if isinstance(self.buyer_id, Member)
+                    else self.buyer_id
+                )
             ]
 
         if "bot_messages" in fields and self.bot_messages is not None:

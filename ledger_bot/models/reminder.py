@@ -54,16 +54,20 @@ class Reminder:
 
         if "member_id" in fields:
             data["member_id"] = [
-                str(self.member_id.record_id)
-                if isinstance(self.member_id, Member)
-                else self.member_id
+                (
+                    str(self.member_id.record_id)
+                    if isinstance(self.member_id, Member)
+                    else self.member_id
+                )
             ]
 
         if "transaction_id" in fields:
             data["transaction_id"] = [
-                str(self.transaction_id.record_id)
-                if isinstance(self.transaction_id, Transaction)
-                else self.transaction_id
+                (
+                    str(self.transaction_id.record_id)
+                    if isinstance(self.transaction_id, Transaction)
+                    else self.transaction_id
+                )
             ]
 
         if "row_id" in fields and self.row_id is not None:

@@ -1,4 +1,5 @@
 """Refresh the specified transaction message."""
+
 import logging
 from typing import TYPE_CHECKING
 
