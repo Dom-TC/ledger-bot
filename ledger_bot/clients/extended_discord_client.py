@@ -10,7 +10,7 @@ from discord.abc import GuildChannel, PrivateChannel
 log = logging.getLogger(__name__)
 
 
-class ExtendedClient(discord.Client):
+class ExtendedDiscordClient(discord.Client):
     # In reality, this will only ever be a discord.Guild object once the bot is running,
     # but we temporarily set it to discord.Object during setup.
     guild: discord.Guild | discord.Object | None

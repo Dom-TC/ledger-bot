@@ -19,12 +19,12 @@ from ledger_bot.scheduled_commands import cleanup
 from ledger_bot.storage import TransactionStorage
 from ledger_bot.views import CreateReminderButton
 
-from .extended_client import ExtendedClient
+from .extended_discord_client import ExtendedDiscordClient
 
 log = logging.getLogger(__name__)
 
 
-class TransactionsClient(ExtendedClient):
+class TransactionsClient(ExtendedDiscordClient):
     def __init__(
         self,
         config: Dict[str, Any],

@@ -9,12 +9,12 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from ledger_bot.storage import ReactionRolesStorage
 
-from .extended_client import ExtendedClient
+from .extended_discord_client import ExtendedDiscordClient
 
 log = logging.getLogger(__name__)
 
 
-class ReactionRolesClient(ExtendedClient):
+class ReactionRolesClient(ExtendedDiscordClient):
     def __init__(
         self,
         config: Dict[str, Any],

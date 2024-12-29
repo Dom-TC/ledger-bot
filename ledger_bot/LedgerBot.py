@@ -6,7 +6,7 @@ from typing import Any, Dict
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from .clients import ExtendedClient, ReactionRolesClient, TransactionsClient
+from .clients import ExtendedDiscordClient, ReactionRolesClient, TransactionsClient
 from .process_dm import is_dm, process_dm
 from .process_message import process_message
 from .reminder_manager import ReminderManager
@@ -15,7 +15,7 @@ from .storage import ReactionRolesStorage, TransactionStorage
 log = logging.getLogger(__name__)
 
 
-class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
+class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedDiscordClient):
     def __init__(
         self,
         config: Dict[str, Any],

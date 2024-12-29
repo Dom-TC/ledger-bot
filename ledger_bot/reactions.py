@@ -8,7 +8,7 @@ import discord
 from emoji import is_emoji
 
 if TYPE_CHECKING:
-    from ledger_bot.clients import ExtendedClient
+    from ledger_bot.clients import ExtendedDiscordClient
 
 log = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ def is_valid_emoji(emoji: str) -> bool:
 
 
 async def _add_reaction_with_channel(
-    client: "ExtendedClient",
+    client: "ExtendedDiscordClient",
     message_id: int,
     reaction: str,
     channel: discord.TextChannel,
@@ -49,7 +49,7 @@ async def _add_reaction_with_channel(
 
 
 async def add_reaction(
-    client: "ExtendedClient",
+    client: "ExtendedDiscordClient",
     message_id: int,
     reaction: str,
     channel_obj: Optional[discord.TextChannel] = None,
@@ -76,7 +76,7 @@ async def add_reaction(
 
 
 async def _remove_reaction_with_channel(
-    client: "ExtendedClient",
+    client: "ExtendedDiscordClient",
     message_id: int,
     reaction: str,
     channel: discord.TextChannel,
@@ -113,7 +113,7 @@ async def _remove_reaction_with_channel(
 
 
 async def remove_reaction(
-    client: "ExtendedClient",
+    client: "ExtendedDiscordClient",
     message_id: int,
     reaction: str,
     channel_obj: Optional[discord.TextChannel] = None,
