@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
+from .event_bot_message import EventBotMessage
 from .event_deposit import EventDeposit
 from .event_wine import EventWine
 from .member import Member
@@ -33,6 +34,7 @@ class Event:
     event_wines: list[str | EventWine] | None = None
     creation_date: datetime | None = None
     archived_date: datetime | None = None
+    event_bot_messages: list[str | EventBotMessage] | None = None
     bot_id: str | None = None
 
     @classmethod
@@ -86,6 +88,7 @@ class Event:
                 if fields.get("archived_date") is not None
                 else None
             ),
+            event_bot_messages=fields.get("event_bot_messages"),
             bot_id=fields.get("bot_id"),
         )
 
@@ -149,6 +152,7 @@ class Event:
                 event_deposits_list.append(
                     str(event_deposit.record_id)
                     if isinstance(event_deposit, EventDeposit)
+                    and event_deposit.record_id
                     else event_deposit
                 )
             data["event_deposits"] = event_deposits_list
@@ -158,10 +162,21 @@ class Event:
             for event_wine in self.event_wines:
                 event_wines_list.append(
                     str(event_wine.record_id)
-                    if isinstance(event_wine, EventWine)
+                    if isinstance(event_wine, EventWine) and event_wine.record_id
                     else event_wine
                 )
             data["event_wines"] = event_wines_list
+
+        if "event_bot_messages" in fields and self.event_bot_messages is not None:
+            event_bot_message_list = []
+            for event_bot_message in self.event_bot_messages:
+                event_bot_message_list.append(
+                    event_bot_message.record_id
+                    if isinstance(event_bot_message, EventBotMessage)
+                    and event_bot_message.record_id
+                    else event_bot_message
+                )
+            data["bot_messages"] = event_bot_message_list
 
         # For any attribute which is just assigned, without alteration we can list it here and iterate through the list
         # ie. anywhere we would do `data[attr] = self.attr`

@@ -3,6 +3,7 @@
 from . import (
     bot_message,
     event,
+    event_bot_message,
     event_deposit,
     event_wine,
     member,
@@ -19,3 +20,4 @@ ReactionRole = reaction_role.ReactionRole
 Event = event.Event
 EventWine = event_wine.EventWine
 EventDeposit = event_deposit.EventDeposit
+EventBotMessage = event_bot_message.EventBotMessage
