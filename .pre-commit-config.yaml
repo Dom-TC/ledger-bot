@@ -66,7 +66,6 @@ repos:
     hooks:
       - id: poetry-check
       - id: poetry-lock
-        language_version: python3.11
       - id: poetry-export
         args: ["-f", "requirements.txt", "-o", "requirements.txt", "--without-hashes"]
   - repo: https://github.com/asottile/pyupgrade
