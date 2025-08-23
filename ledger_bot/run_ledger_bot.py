@@ -10,12 +10,15 @@ import logging
 import logging.config
 import os
 from asyncio.events import AbstractEventLoop
+from datetime import timezone, tzinfo
 from functools import partial
 from signal import SIGINT, SIGTERM, Signals
 from sys import platform
 from typing import Any, Dict
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from sqlalchemy import create_engine
 
 from .config import parse
 from .errors import SignalHaltError
@@ -23,9 +26,6 @@ from .LedgerBot import LedgerBot
 from .reminder_manager import ReminderManager
 from .slash_commands import setup_slash
 from .storage import AirtableStorage, ReactionRolesStorage
-
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-from datetime import timezone, tzinfo
 
 log = logging.getLogger(__name__)
 
@@ -57,6 +57,9 @@ def start_bot() -> None:
     except (OSError, ValueError) as err:
         log.error(f"Config file invalid: {err}")
         exit(1)
+
+    # Setup databse
+    engine = create_engine(f"sqlite:///{config['database_name']}")
 
     # Create storage
     transaction_storage = AirtableStorage(
