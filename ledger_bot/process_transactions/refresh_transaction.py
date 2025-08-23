@@ -125,6 +125,7 @@ async def refresh_transaction(
         is_marked_delivered_by_buyer=transaction.buyer_marked_delivered,
         is_marked_delivered_by_seller=transaction.seller_marked_delivered,
         is_cancelled=transaction.cancelled,
+        transaction_id=transaction.row_id,
     )
 
     await send_message(

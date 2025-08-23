@@ -31,6 +31,7 @@ def test_generate_new_transaction_message_paramatise_name(
     seller = MockMember(id=123)
     buyer = MockMember(id=456)
     wine_price = 1.00
+    transaction_id = "123"
 
     result = generate_transaction_status_message(
         seller=seller,
@@ -38,6 +39,7 @@ def test_generate_new_transaction_message_paramatise_name(
         wine_name=wine_name,
         wine_price=wine_price,
         config=emoji_config,
+        transaction_id=transaction_id,
     )
 
     assert "New Sale Listed" in result
@@ -54,6 +56,7 @@ def test_generate_new_transaction_message_paramatise_name(
         "To set a reminder for this transaction, please react with 🔔 and follow the DMed instructions."
         in result
     )
+    assert "Transaction ID: 123" in result
 
 
 @pytest.mark.parametrize(
@@ -73,6 +76,7 @@ def test_generate_new_transaction_message_paramatise_price(
     seller = MockMember(id=123)
     buyer = MockMember(id=456)
     wine_name = "test"
+    transaction_id = "123"
 
     result = generate_transaction_status_message(
         seller=seller,
@@ -80,6 +84,7 @@ def test_generate_new_transaction_message_paramatise_price(
         wine_name=wine_name,
         wine_price=price,
         config=emoji_config,
+        transaction_id=transaction_id
     )
 
     assert "New Sale Listed" in result
@@ -96,6 +101,7 @@ def test_generate_new_transaction_message_paramatise_price(
         "To set a reminder for this transaction, please react with 🔔 and follow the DMed instructions."
         in result
     )
+    assert "Transaction ID: 123" in result
 
 
 def test_generate_new_transaction_message_approved(emoji_config):
@@ -103,6 +109,7 @@ def test_generate_new_transaction_message_approved(emoji_config):
     buyer = MockMember(id=456)
     wine_name = "test"
     price = 12.34
+    transaction_id = "123"
 
     result = generate_transaction_status_message(
         seller=seller,
@@ -112,6 +119,7 @@ def test_generate_new_transaction_message_approved(emoji_config):
         config=emoji_config,
         is_approved=True,
         is_update=True,
+        transaction_id=transaction_id
     )
 
     assert "Sale Updated" in result
@@ -125,6 +133,7 @@ def test_generate_new_transaction_message_approved(emoji_config):
         "To set a reminder for this transaction, please react with 🔔 and follow the DMed instructions."
         in result
     )
+    assert "Transaction ID: 123" in result
 
 
 @pytest.mark.parametrize(
@@ -175,6 +184,7 @@ def test_generate_new_transaction_paid(
         "To set a reminder for this transaction, please react with 🔔 and follow the DMed instructions."
         in result
     )
+    assert "Transaction ID:" not in result
 
 
 @pytest.mark.parametrize(
@@ -201,6 +211,7 @@ def test_generate_new_transaction_delivered(
     buyer = MockMember(id=456)
     wine_name = "test"
     price = 12.34
+    transaction_id = "123"
 
     result = generate_transaction_status_message(
         seller=seller,
@@ -212,6 +223,7 @@ def test_generate_new_transaction_delivered(
         is_update=True,
         is_marked_delivered_by_buyer=buyer_delivered,
         is_marked_delivered_by_seller=seller_delivered,
+        transaction_id=transaction_id,
     )
 
     assert "Sale Updated" in result
@@ -225,6 +237,7 @@ def test_generate_new_transaction_delivered(
         "To set a reminder for this transaction, please react with 🔔 and follow the DMed instructions."
         in result
     )
+    assert "Transaction ID: 123" in result
 
 
 def test_generate_new_transaction_completed(emoji_config):
@@ -232,6 +245,7 @@ def test_generate_new_transaction_completed(emoji_config):
     buyer = MockMember(id=456)
     wine_name = "test"
     price = 12.34
+    transaction_id = "123"
 
     result = generate_transaction_status_message(
         seller=seller,
@@ -245,6 +259,7 @@ def test_generate_new_transaction_completed(emoji_config):
         is_marked_delivered_by_seller=True,
         is_marked_paid_by_buyer=True,
         is_marked_paid_by_seller=True,
+        transaction_id=transaction_id
     )
 
     assert "Sale Completed" in result
@@ -258,6 +273,7 @@ def test_generate_new_transaction_completed(emoji_config):
         "To set a reminder for this transaction, please react with 🔔 and follow the DMed instructions."
         not in result
     )
+    assert "Transaction ID: 123" in result
 
 
 def pytest_generate_tests(metafunc):
@@ -283,6 +299,7 @@ def test_generate_new_transaction_cancelled(
     buyer = MockMember(id=456)
     wine_name = "test"
     price = 12.34
+    transaction_id = "123"
 
     result = generate_transaction_status_message(
         seller=seller,
@@ -297,6 +314,7 @@ def test_generate_new_transaction_cancelled(
         is_marked_delivered_by_seller=is_seller_delivered,
         is_marked_paid_by_buyer=is_buyer_paid,
         is_marked_paid_by_seller=is_seller_paid,
+        transaction_id=transaction_id,
     )
 
     assert "Sale Cancelled" in result
@@ -310,3 +328,4 @@ def test_generate_new_transaction_cancelled(
         "To set a reminder for this transaction, please react with 🔔 and follow the DMed instructions."
         not in result
     )
+    assert "Transaction ID: 123" in result

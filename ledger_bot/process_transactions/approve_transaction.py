@@ -77,6 +77,7 @@ async def approve_transaction(
         wine_name=target_transaction.wine,
         wine_price=target_transaction.price,
         config=config,
+        transaction_id=target_transaction.row_id,
         is_update=True,
         is_approved=True,
     )
