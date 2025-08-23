@@ -135,6 +135,7 @@ async def command_new_sale(
         wine_name=wine_name,
         wine_price=price,
         config=config,
+        transaction_id=transaction_record.row_id,
     )
     try:
         await interaction.followup.send(response_contents)

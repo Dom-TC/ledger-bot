@@ -146,6 +146,7 @@ async def command_new_split(
             wine_name=wine_name,
             wine_price=price,
             config=config,
+            transaction_id=transaction_record.row_id,
         )
         await send_message(
             response_contents=response_contents,

@@ -23,6 +23,7 @@ def generate_transaction_status_message(
     is_marked_delivered_by_buyer: Optional[bool] = False,
     is_marked_delivered_by_seller: Optional[bool] = False,
     is_cancelled: Optional[bool] = False,
+    transaction_id: Optional[str | int] = False,
 ) -> str:
     """
     Generates the text for displaying a transaction status.
@@ -133,7 +134,12 @@ def generate_transaction_status_message(
         cancel_message = ""
 
     if not (is_complete or is_cancelled):
-        footer_message = f"*To set a reminder for this transaction, please react with {config['emojis']['reminder']} and follow the DMed instructions.*"
+        reminder_message = f"*To set a reminder for this transaction, please react with {config['emojis']['reminder']} and follow the DMed instructions.*\n"
+    else:
+        reminder_message = ""
+
+    if transaction_id:
+        footer_message = f"\n-# Transaction ID: {str(transaction_id)}"
     else:
         footer_message = ""
 
@@ -153,6 +159,7 @@ def generate_transaction_status_message(
         + "\n"
         + "\n"
         + cancel_message
+        + reminder_message
         + footer_message
     )
 

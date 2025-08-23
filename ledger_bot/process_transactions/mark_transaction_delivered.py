@@ -103,6 +103,7 @@ async def mark_transaction_delivered(
         is_marked_paid_by_seller=target_transaction.seller_marked_paid,
         is_marked_delivered_by_buyer=target_transaction.buyer_marked_delivered,
         is_marked_delivered_by_seller=target_transaction.seller_marked_delivered,
+        transaction_id=target_transaction.row_id,
     )
 
     await send_message(
