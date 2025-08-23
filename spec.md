@@ -85,3 +85,43 @@ Price: <price>
   - If message ID and reaction are valid, assign the user the appropriate role
 - Add Role
   - Admin only command
+
+## Events System
+
+### Tables
+
+EVENTS
+
+- id INT AUTOINCREMENT
+- event_name TEXT
+- event_description TEXT
+- event_date TEXT (ISO 8601)
+- event_location TEXT
+- event_host FK members.id
+- max_guests INT
+- deposit_value INT
+- creation_date TEXT (ISO 8601)
+- channel_id TEXT
+- bot_id TEXT
+
+EVENT_MEMBERS
+
+- id INT AUTOINCREMENT
+- event_id FK events.id
+- member_id FK members.id
+- guests INT
+- has_paid INT (bool)
+- status TEXT (enum - host, confirmed, waitlist, cancelled)
+- joined_date TEXT (ISO 8601)
+- paid_date TEXT (ISO 8601)
+- bot_ID TEXT
+
+EVENT_WINES
+
+- id INT AUTOINCREMENT
+- event_id FK events.id
+- member_id FK members.id
+- wine TEXT
+- category TEXT (enum - sparkling, white, red, sweet, other)
+- date_added TEXT (ISO 8601)
+- bot_ID TEXT
