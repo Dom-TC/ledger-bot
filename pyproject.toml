@@ -11,7 +11,7 @@ packages = [{include = "ledger_bot"}]
 python = "^3.11"
 discord-py = "^2.4.0"
 python-dotenv = "^1.0.1"
-apscheduler = "^3.10.4"
+apscheduler = "^3.11.0"
 cachetools = "^5.5.0"
 asyncache = "^0.3.1"
 arrow = "^1.3.0"
