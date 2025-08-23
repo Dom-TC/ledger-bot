@@ -30,7 +30,7 @@ class BaseStorage:
     async def _get(
         self,
         url: str,
-        params: Dict[str, str | List[str] | None] | None = None,
+        params: Any = None,
         session: Optional[ClientSession] = None,
     ) -> Dict[str, Any]:
         async def run_fetch(session_to_use: ClientSession) -> Dict[str, Any]:

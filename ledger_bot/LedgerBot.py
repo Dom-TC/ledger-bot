@@ -53,11 +53,6 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
             reminders=self.reminders,
         )
 
-        scheduler.start()
-
-        if not scheduler.running:
-            log.warning("The scheduler is not running")
-
     async def on_ready(self) -> None:
         log.info(f"We have logged in as {self.user}")
 
@@ -73,6 +68,11 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
 
         log.info("Building slash commands")
         await self.tree.sync(guild=self.guild)
+
+        self.scheduler.start()
+
+        if not self.scheduler.running:
+            log.warning("The scheduler is not running")
 
     async def on_message(self, message: discord.Message) -> None:
         # Process DMs
