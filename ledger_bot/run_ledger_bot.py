@@ -24,6 +24,9 @@ from .reminder_manager import ReminderManager
 from .slash_commands import setup_slash
 from .storage import AirtableStorage, ReactionRolesStorage
 
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from datetime import timezone, tzinfo
+
 log = logging.getLogger(__name__)
 
 
@@ -69,7 +72,12 @@ def start_bot() -> None:
     )
 
     # Create scheduler
-    scheduler = AsyncIOScheduler(timezone="utc")
+    # Try to use IANA timezone first, fallback to UTC if missing
+    try:
+        tz: tzinfo = ZoneInfo("UTC")
+    except ZoneInfoNotFoundError:
+        tz = timezone.utc
+    scheduler = AsyncIOScheduler(timezone=tz)
 
     # Create reminder_manager
     reminder_manager = ReminderManager(
