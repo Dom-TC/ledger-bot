@@ -130,7 +130,7 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
         if handled_role_reaction:
             return
 
-        log.info(f"Failed to match any commands on {payload.emoji}")
+        log.debug(f"Failed to match any commands on {payload.emoji}")
 
     async def on_raw_reaction_remove(
         self, payload: discord.RawReactionActionEvent

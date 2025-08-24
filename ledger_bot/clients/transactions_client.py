@@ -58,11 +58,11 @@ class TransactionsClient(ExtendedClient):
 
         # Repeating checks to deal with mypy warnings
         if reactor is None:
-            log.warning("Payload contained no reactor. Ignoring payload.")
+            log.debug("Payload contained no reactor. Ignoring payload.")
             return False
 
         if not isinstance(channel, discord.TextChannel):
-            log.warning("Couldn't get channel information. Ignoring reaction.")
+            log.debug("Couldn't get channel information. Ignoring reaction.")
             return False
 
         # Check if valid reaction emoji
@@ -80,13 +80,13 @@ class TransactionsClient(ExtendedClient):
             self.config["channels"].get("include")
             and channel.name not in self.config["channels"]["include"]
         ):
-            log.info(
+            log.debug(
                 f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Channel not included"
             )
             return False
         else:
             if channel.name in self.config["channels"].get("exclude", []):
-                log.info(
+                log.debug(
                     f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Channel excluded"
                 )
                 return False
@@ -98,7 +98,7 @@ class TransactionsClient(ExtendedClient):
             )
         )
         if target_transaction is None:
-            log.info(
+            log.debug(
                 f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Invalid target message"
             )
             return False
@@ -129,7 +129,7 @@ class TransactionsClient(ExtendedClient):
 
         # Check if buyer or seller
         if reactor.id != buyer.id and reactor.id != seller.id:
-            log.info(
+            log.debug(
                 f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Reactor is neither buyer nor seller"
             )
             await remove_reaction(
