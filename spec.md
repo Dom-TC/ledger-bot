@@ -135,19 +135,19 @@ EVENT_WINES
 
 MEMBER
 
-- get_or_add_member           - Either get an existing member record or add the member to the database and return the record
-- find_member_by_discord_id   - Find a member by their discord id
-- list_all_members            - List all members
-- delete_member               - Delete the specified member
-- set_dietry_requirement      - Set the diatry requirement data
+- get_or_add_member - Either get an existing member record or add the member to the database and return the record
+- find_member_by_discord_id - Find a member by their discord id
+- list_all_members - List all members
+- delete_member - Delete the specified member
+- set_dietry_requirement - Set the diatry requirement data
 
 TRANSACTION
 
-- get_transaction             - Get a transaction by it's record id
-- get_users_transaction       - Get all transactions for a specific user
-- save_transaction            - If id is none, add new transaction, else update existing one
-- list_all_transactions       - List all transactions
-- delete_transaction          - Delete the specified transaction
+- get_transaction - Get a transaction by it's record id
+- get_users_transaction - Get all transactions for a specific user
+- save_transaction - If id is none, add new transaction, else update existing one
+- list_all_transactions - List all transactions
+- delete_transaction - Delete the specified transaction
 - approve_transaction
 - cancel_transaction
 - mark_transaction_delivered
@@ -159,12 +159,12 @@ BOT_MESSAGE
 - add_bot_message
 - find_bot_message_by_message_id
 - delete_bot_message
-- refresh_bot_message         - Remove old bot messages and store new one
+- refresh_bot_message - Remove old bot messages and store new one
 
 REMINDERS
 
 - get_reminder
-- save_reminder               - If id is none, add new reminder, else update existing one
+- save_reminder - If id is none, add new reminder, else update existing one
 - list_all_reminders
 - delete_reminder
 
@@ -172,19 +172,19 @@ REMINDERS
 
 MEMBER
 
-- get_member                  - Get a member by record id
-- add_member                  - Add a member to the database
-- list_members                - List members that match a given query
-- delete_member               - Delete a member by it's record id
-- update_member               - Update the specified fields of a member with the given record id
+- get_member - Get a member by record id
+- add_member - Add a member to the database
+- list_members - List members that match a given query
+- delete_member - Delete a member by it's record id
+- update_member - Update the specified fields of a member with the given record id
 
 TRANSACTION
 
-- get_transaction             - Get a transaction by record id
-- add_transaction             - Add a transaction to the database
-- list_transactions           - List transaction that match a given query
-- delete_transaction          - Delete a transaction by it's record id
-- update_transaction          - Update the specified fields of a transaction with the given record id
+- get_transaction - Get a transaction by record id
+- add_transaction - Add a transaction to the database
+- list_transactions - List transaction that match a given query
+- delete_transaction - Delete a transaction by it's record id
+- update_transaction - Update the specified fields of a transaction with the given record id
 
 BOT_MESSAGE
 
@@ -203,8 +203,9 @@ REMINDERS
 
 ## TODO
 
-2. Create storage classes
-3. Update models
-4. Move `process_transaction/send_message.py` to client
-5. Remove other `process_transaction` functions (all should be in service)
+1. Create storage classes
+2. Update models
+3. Move `process_transaction/send_message.py` to client
+4. Remove other `process_transaction` functions (all should be in service)
+5. Update all instances to use new client/service/storage classes.
 6. Migrate ReactionRoles
