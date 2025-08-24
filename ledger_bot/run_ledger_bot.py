@@ -19,6 +19,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from .config import parse
 from .errors import SignalHaltError
@@ -59,7 +60,12 @@ def start_bot() -> None:
         exit(1)
 
     # Setup databse
-    engine = create_engine(f"sqlite:///data/{config['database_name']}")
+    db_path = f"sqlite:///data/{config['database_name']}"
+
+    log.info(f"Connecting to {db_path}")
+    engine = create_engine(db_path)
+    SessionLocal = sessionmaker(bind=engine)  # noqa: N806
+    db_session = SessionLocal()
 
     # Create storage
     transaction_storage = AirtableStorage(
