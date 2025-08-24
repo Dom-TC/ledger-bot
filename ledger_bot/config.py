@@ -72,7 +72,7 @@ def parse(config: Dict[str, Any] | None) -> Dict[str, Any]:
         },
         "cleanup_removes_transaction_records": False,
         "admin_role": 1184878800408948847,
-        "database_name": "ledgerbot.sql",
+        "database_name": "ledger_bot.sql",
     }
 
     if config is not None:

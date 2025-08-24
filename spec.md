@@ -86,9 +86,14 @@ Price: <price>
 - Add Role
   - Admin only command
 
-## Events System
+## Schema
 
-### Tables
+MEMBERS:
+
+- id iNT AUTOINCREMENT
+- discord_id INT UNIQUE
+- username TEXT
+- nickname TEXT
 
 EVENTS
 
@@ -101,7 +106,7 @@ EVENTS
 - max_guests INT
 - deposit_value INT
 - creation_date TEXT (ISO 8601)
-- channel_id TEXT
+- channel_id INT
 - bot_id TEXT
 
 EVENT_MEMBERS

@@ -59,7 +59,7 @@ def start_bot() -> None:
         exit(1)
 
     # Setup databse
-    engine = create_engine(f"sqlite:///{config['database_name']}")
+    engine = create_engine(f"sqlite:///data/{config['database_name']}")
 
     # Create storage
     transaction_storage = AirtableStorage(
