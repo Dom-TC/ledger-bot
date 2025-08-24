@@ -22,6 +22,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from .config import parse
+from .database import setup_database
 from .errors import SignalHaltError
 from .LedgerBot import LedgerBot
 from .reminder_manager import ReminderManager
@@ -60,12 +61,7 @@ def start_bot() -> None:
         exit(1)
 
     # Setup databse
-    db_path = f"sqlite:///data/{config['database_name']}"
-
-    log.info(f"Connecting to {db_path}")
-    engine = create_engine(db_path)
-    SessionLocal = sessionmaker(bind=engine)  # noqa: N806
-    db_session = SessionLocal()
+    db_session_factory = setup_database(config=config)
 
     # Create storage
     transaction_storage = AirtableStorage(
