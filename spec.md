@@ -203,7 +203,6 @@ REMINDERS
 
 ## TODO
 
-1. Create abstractions
 2. Create storage classes
 3. Update models
 4. Move `process_transaction/send_message.py` to client
