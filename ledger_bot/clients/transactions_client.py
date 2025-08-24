@@ -16,7 +16,7 @@ from ledger_bot.process_transactions import (
 from ledger_bot.reactions import add_reaction, remove_reaction
 from ledger_bot.reminder_manager import ReminderManager
 from ledger_bot.scheduled_commands import cleanup
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage_airtable import AirtableStorage
 from ledger_bot.views import CreateReminderButton
 
 from .extended_client import ExtendedClient

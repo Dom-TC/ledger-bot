@@ -9,7 +9,7 @@ import discord
 
 from ledger_bot.models import Reminder, Transaction
 from ledger_bot.reminder_manager import ReminderManager
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage_airtable import AirtableStorage
 
 log = logging.getLogger(__name__)
 

@@ -7,7 +7,7 @@ import discord
 
 from ledger_bot.errors import AirTableError
 from ledger_bot.models import Transaction
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage_airtable import AirtableStorage
 
 log = logging.getLogger(__name__)
 

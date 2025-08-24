@@ -10,7 +10,7 @@ from .clients import ExtendedClient, ReactionRolesClient, TransactionsClient
 from .process_dm import is_dm, process_dm
 from .process_message import process_message
 from .reminder_manager import ReminderManager
-from .storage import AirtableStorage, ReactionRolesStorage
+from .storage_airtable import AirtableStorage, ReactionRolesStorage
 
 log = logging.getLogger(__name__)
 

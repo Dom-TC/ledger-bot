@@ -8,7 +8,7 @@ import discord
 from ledger_bot.errors import AirTableError
 from ledger_bot.message_generators import generate_stats_message
 from ledger_bot.models import Transaction
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage_airtable import AirtableStorage
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot

@@ -7,7 +7,7 @@ import discord
 from discord import app_commands
 
 from ledger_bot.LedgerBot import LedgerBot
-from ledger_bot.storage import AirtableStorage, ReactionRolesStorage
+from ledger_bot.storage_airtable import AirtableStorage, ReactionRolesStorage
 
 from .command_add_role import command_add_role
 from .command_hello import command_hello

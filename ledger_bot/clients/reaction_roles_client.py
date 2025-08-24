@@ -7,7 +7,7 @@ import arrow
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from ledger_bot.storage import ReactionRolesStorage
+from ledger_bot.storage_airtable import ReactionRolesStorage
 
 from .extended_client import ExtendedClient
 

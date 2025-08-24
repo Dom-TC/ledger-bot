@@ -7,7 +7,7 @@ import discord
 
 from ledger_bot.models import ReactionRole
 from ledger_bot.reactions import add_reaction, is_valid_emoji
-from ledger_bot.storage import ReactionRolesStorage
+from ledger_bot.storage_airtable import ReactionRolesStorage
 
 if TYPE_CHECKING:
     from ledger_bot.clients import ReactionRolesClient

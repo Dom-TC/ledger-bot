@@ -5,7 +5,7 @@ import re
 from typing import Any, Dict, List
 
 from ledger_bot.models import BotMessage, Transaction
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage_airtable import AirtableStorage
 
 log = logging.getLogger(__name__)
 

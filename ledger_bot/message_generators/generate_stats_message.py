@@ -6,7 +6,7 @@ from typing import List
 import pandas as pd
 
 from ledger_bot.models import Transaction
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage_airtable import AirtableStorage
 
 log = logging.getLogger(__name__)
 

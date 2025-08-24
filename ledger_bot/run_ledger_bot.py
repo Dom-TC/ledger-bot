@@ -26,7 +26,7 @@ from .errors import SignalHaltError
 from .LedgerBot import LedgerBot
 from .reminder_manager import ReminderManager
 from .slash_commands import setup_slash
-from .storage import AirtableStorage, ReactionRolesStorage
+from .storage_airtable import AirtableStorage, ReactionRolesStorage
 
 log = logging.getLogger(__name__)
 

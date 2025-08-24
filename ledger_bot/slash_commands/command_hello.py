@@ -6,7 +6,7 @@ from typing import Any, Dict
 import discord
 
 from ledger_bot.LedgerBot import LedgerBot
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.storage_airtable import AirtableStorage
 
 log = logging.getLogger(__name__)
 
