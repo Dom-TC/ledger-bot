@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict, List
 
 from .bot_message import BotMessage
-from .member import Member
+from .member import MemberAirtable
 
 if TYPE_CHECKING:
     from .reminder import Reminder
@@ -15,8 +15,8 @@ log = logging.getLogger(__name__)
 
 @dataclass
 class Transaction:
-    seller_id: str | Member
-    buyer_id: str | Member
+    seller_id: str | MemberAirtable
+    buyer_id: str | MemberAirtable
     wine: str
     price: float
     record_id: str | None = None
@@ -95,14 +95,14 @@ class Transaction:
         if "seller_id" in fields:
             data["seller_id"] = [
                 str(self.seller_id.record_id)
-                if isinstance(self.seller_id, Member)
+                if isinstance(self.seller_id, MemberAirtable)
                 else self.seller_id
             ]
 
         if "buyer_id" in fields:
             data["buyer_id"] = [
                 str(self.buyer_id.record_id)
-                if isinstance(self.buyer_id, Member)
+                if isinstance(self.buyer_id, MemberAirtable)
                 else self.buyer_id
             ]
 

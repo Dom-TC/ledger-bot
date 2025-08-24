@@ -8,7 +8,7 @@ from asyncache import cached
 from cachetools import LRUCache
 from discord import Member as DiscordMember
 
-from ledger_bot.models import Member
+from ledger_bot.models import MemberAirtable
 
 from .base_storage import BaseStorage
 
@@ -86,7 +86,7 @@ class MembersMixin(BaseStorage):
         return await self._insert(self.members_url, record, session)
 
     @cached(LRUCache(maxsize=64))
-    async def get_or_add_member(self, member: DiscordMember) -> Member:
+    async def get_or_add_member(self, member: DiscordMember) -> MemberAirtable:
         """
         Fetches an existing member or adds a new record for them.
 
@@ -113,11 +113,11 @@ class MembersMixin(BaseStorage):
             log.debug(
                 f"Added {member_record['fields']['username']} ({member_record['fields']['discord_id']}) to AirTable"
             )
-        return Member.from_airtable(member_record)
+        return MemberAirtable.from_airtable(member_record)
 
     @cached(LRUCache(maxsize=64))
-    async def get_member_from_record_id(self, record_id: str) -> Member:
+    async def get_member_from_record_id(self, record_id: str) -> MemberAirtable:
         """Returns the member object for the member with a given AirTable record id."""
         log.info(f"Finding member with record {record_id}")
         member_record = await self._retrieve_member(record_id)
-        return Member.from_airtable(member_record)
+        return MemberAirtable.from_airtable(member_record)

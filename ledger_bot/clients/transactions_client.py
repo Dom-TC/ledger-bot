@@ -6,7 +6,7 @@ from typing import Any, Dict
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from ledger_bot.models import Member
+from ledger_bot.models import MemberAirtable
 from ledger_bot.process_transactions import (
     approve_transaction,
     cancel_transaction,
@@ -116,13 +116,13 @@ class TransactionsClient(ExtendedClient):
         # Get buyer & seller discord.Member objects
         buyer_id = await self.transaction_storage.get_member_from_record_id(
             target_transaction.buyer_id.record_id
-            if isinstance(target_transaction.buyer_id, Member)
+            if isinstance(target_transaction.buyer_id, MemberAirtable)
             else target_transaction.buyer_id
         )
         buyer = await self.get_or_fetch_user(buyer_id.discord_id)
         seller_id = await self.transaction_storage.get_member_from_record_id(
             target_transaction.seller_id.record_id
-            if isinstance(target_transaction.seller_id, Member)
+            if isinstance(target_transaction.seller_id, MemberAirtable)
             else target_transaction.seller_id
         )
         seller = await self.get_or_fetch_user(seller_id.discord_id)

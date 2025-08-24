@@ -4,12 +4,12 @@ from typing import List, Optional
 
 from sqlalchemy.sql import ColumnElement
 
-from ledger_bot.models import Member
+from ledger_bot.models import MemberAirtable
 
 
 class MemberStorageABC(ABC):
     @abstractmethod
-    async def get_member(self, record_id: int) -> Optional[Member]:
+    async def get_member(self, record_id: int) -> Optional[MemberAirtable]:
         """Get a member by a record id.
 
         Parameters
@@ -25,7 +25,7 @@ class MemberStorageABC(ABC):
         ...
 
     @abstractmethod
-    async def add_member(self, member: Member) -> Member:
+    async def add_member(self, member: MemberAirtable) -> MemberAirtable:
         """Add a member to the database.
 
         Parameters
@@ -43,7 +43,7 @@ class MemberStorageABC(ABC):
     @abstractmethod
     async def list_members(
         self, *filters: ColumnElement[bool]
-    ) -> Optional[List[Member]]:
+    ) -> Optional[List[MemberAirtable]]:
         """List members that match a given filter.
 
         Parameters
@@ -59,7 +59,7 @@ class MemberStorageABC(ABC):
         ...
 
     @abstractmethod
-    async def delete_member(self, member: Member) -> None:
+    async def delete_member(self, member: MemberAirtable) -> None:
         """Deletes the member with the given discord id.
 
         Parameters
@@ -71,8 +71,8 @@ class MemberStorageABC(ABC):
 
     @abstractmethod
     async def update_member(
-        self, member: Member, fields: Optional[List[str]] = None
-    ) -> Member:
+        self, member: MemberAirtable, fields: Optional[List[str]] = None
+    ) -> MemberAirtable:
         """Update the specified fields of a member.
 
         Parameters

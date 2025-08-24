@@ -145,6 +145,7 @@ TRANSACTION
 
 - get_transaction - Get a transaction by it's record id
 - get_users_transaction - Get all transactions for a specific user
+- get_completed_transaction
 - save_transaction - If id is none, add new transaction, else update existing one
 - list_all_transactions - List all transactions
 - delete_transaction - Delete the specified transaction
@@ -172,19 +173,19 @@ REMINDERS
 
 MEMBER
 
-- get_member - Get a member by record id
-- add_member - Add a member to the database
-- list_members - List members that match a given query
-- delete_member - Delete a member by it's record id
-- update_member - Update the specified fields of a member with the given record id
+- get_membe
+- add_membe
+- list_members
+- delete_member
+- update_member
 
 TRANSACTION
 
-- get_transaction - Get a transaction by record id
-- add_transaction - Add a transaction to the database
-- list_transactions - List transaction that match a given query
-- delete_transaction - Delete a transaction by it's record id
-- update_transaction - Update the specified fields of a transaction with the given record id
+- get_transaction
+- add_transaction
+- list_transactions
+- delete_transaction
+- update_transaction
 
 BOT_MESSAGE
 
@@ -198,8 +199,8 @@ REMINDERS
 - get_reminder
 - add_reminder
 - list_reminders
-- update_reminder
 - delete_reminder
+- update_reminder
 
 ## TODO
 

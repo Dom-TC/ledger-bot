@@ -17,7 +17,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from .base import Base
 from .event import Event
-from .member import Member
+from .member import MemberAirtable
 
 
 class MemberStatus(enum.Enum):
@@ -51,4 +51,4 @@ class EventMember(Base):
 
     # Relationships
     event: Mapped["Event"] = relationship(back_populates="members")
-    member: Mapped["Member"] = relationship("Member")
+    member: Mapped["MemberAirtable"] = relationship("Member")

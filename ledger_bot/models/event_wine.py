@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 from .event import Event
-from .member import Member
+from .member import MemberAirtable
 
 
 class WineCategory(enum.Enum):
@@ -35,4 +35,4 @@ class EventWine(Base):
 
     # Relationships
     event: Mapped["Event"] = relationship(back_populates="wines")
-    member: Mapped["Member"] = relationship("Member")
+    member: Mapped["MemberAirtable"] = relationship("Member")
