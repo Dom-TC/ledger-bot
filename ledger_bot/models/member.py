@@ -37,7 +37,7 @@ class Member(Base):
         back_populates="member", cascade="all, delete-orphan"
     )
     hosted_events: Mapped[List["Event"]] = relationship(
-        back_populates="host", foreign_keys="[Event.event_host]"
+        back_populates="host", foreign_keys="[Event.host_id]"
     )
 
 
