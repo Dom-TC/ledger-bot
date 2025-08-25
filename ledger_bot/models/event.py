@@ -11,7 +11,7 @@ from .base import Base
 if TYPE_CHECKING:
     from .event_member import EventMember
     from .event_wine import EventWine
-    from .member import MemberAirtable
+    from .member import Member
 
 
 class Event(Base):
@@ -42,4 +42,4 @@ class Event(Base):
     wines: Mapped[List["EventWine"]] = relationship(
         back_populates="event", cascade="all, delete-orphan"
     )
-    host: Mapped["MemberAirtable"] = relationship(back_populates="hosted_events")
+    host: Mapped["Member"] = relationship("Member", back_populates="hosted_events")

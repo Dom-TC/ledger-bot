@@ -1,7 +1,7 @@
 """The EventWine model."""
 
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String
@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 from .event import Event
-from .member import MemberAirtable
+from .member import Member
 
 
 class WineCategory(enum.Enum):
@@ -30,9 +30,13 @@ class EventWine(Base):
     member_id: Mapped[int] = mapped_column(ForeignKey("members.id"), nullable=False)
     wine: Mapped[str] = mapped_column(String, nullable=False)
     category: Mapped[WineCategory] = mapped_column(Enum(WineCategory), nullable=False)
-    date_added: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    date_added: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.now(timezone.utc)
+    )
     bot_id: Mapped[Optional[str]] = mapped_column(String)
 
     # Relationships
-    event: Mapped["Event"] = relationship(back_populates="wines")
-    member: Mapped["MemberAirtable"] = relationship("Member")
+    event: Mapped["Event"] = relationship("Event", back_populates="wines")
+    member: Mapped["Member"] = relationship(
+        "Member", back_populates="wines_brought_to_events"
+    )

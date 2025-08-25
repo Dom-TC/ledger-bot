@@ -1,7 +1,7 @@
 """The EventMember model."""
 
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from sqlalchemy import (
@@ -17,7 +17,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from .base import Base
 from .event import Event
-from .member import MemberAirtable
+from .member import Member
 
 
 class MemberStatus(enum.Enum):
@@ -39,16 +39,16 @@ class EventMember(Base):
     event_id: Mapped[int] = mapped_column(ForeignKey("events.id"), nullable=False)
     member_id: Mapped[int] = mapped_column(ForeignKey("members.id"), nullable=False)
     guests: Mapped[int] = mapped_column(Integer, default=0)
-    has_paid: Mapped[bool] = mapped_column(
-        Integer, default=0
-    )  # SQLite uses INT for bool
+    has_paid: Mapped[bool] = mapped_column(Integer, default=0)
     status: Mapped[MemberStatus] = mapped_column(
         Enum(MemberStatus), nullable=False, default=MemberStatus.CONFIRMED
     )
-    joined_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    joined_date: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.now(timezone.utc)
+    )
     paid_date: Mapped[Optional[datetime]] = mapped_column(DateTime)
     bot_id: Mapped[Optional[str]] = mapped_column(String)
 
     # Relationships
-    event: Mapped["Event"] = relationship(back_populates="members")
-    member: Mapped["MemberAirtable"] = relationship("Member")
+    event: Mapped["Event"] = relationship("Event", back_populates="members")
+    member: Mapped["Member"] = relationship("Member", back_populates="attending_events")

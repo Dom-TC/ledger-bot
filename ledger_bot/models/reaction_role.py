@@ -1,76 +1,40 @@
 """The data model for a record in the `reaction_roles` table."""
 
 import logging
-from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Optional
+
+from sqlalchemy import Index, Integer, String, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column
+
+from .base import Base
 
 log = logging.getLogger(__name__)
 
 
-@dataclass
-class ReactionRoleAirtable:
-    server_id: int
-    message_id: int
-    reaction_name: str
-    role_id: int
-    role_name: str
-    record_id: str | None = None
-    row_id: int | None = None
-    reaction_bytecode: str | None = None
-    bot_id: str | None = None
-
-    @classmethod
-    def from_airtable(cls, data: Dict[str, Any]) -> "ReactionRoleAirtable":
-        fields = data["fields"]
-        return cls(
-            record_id=data["id"],
-            server_id=int(fields["server_id"]),
-            message_id=int(fields["message_id"]),
-            reaction_name=fields.get("reaction_name"),
-            reaction_bytecode=fields.get("reaction_bytecode"),
-            role_id=int(fields["role_id"]),
-            role_name=fields["role_name"],
-            row_id=int(fields["row_id"]),
-            bot_id=fields.get("bot_id"),
-        )
-
-    def to_airtable(self, fields: List[str] | None = None) -> Dict[str, Any]:
-        fields = (
-            fields
-            if fields
-            else [
-                "server_id",
-                "message_id",
-                "reaction_name",
-                "reaction_bytecode",
-                "role_id",
-                "role_name",
-                "bot_id",
-            ]
-        )
-
-        data: Dict[str, str | List[str]] = {}
-
-        # For any attribute which is just assigned, without alteration we can list it here and iterate through the list
-        # ie. anywhere we would do `data[attr] = self.attr`
-        bare_conversions = [
+class ReactionRole(Base):
+    __tablename__ = "reaction_roles"
+    __table_args__ = (
+        UniqueConstraint(
             "server_id",
             "message_id",
             "reaction_name",
-            "role_id",
-            "role_name",
-            "bot_id",
-        ]
-        for attr in bare_conversions:
-            if attr in fields:
-                data[attr] = str(getattr(self, attr))
+            name="uq_server_message_reaction",
+        ),
+        Index(
+            "ix_server_message_reaction",
+            "server_id",
+            "message_id",
+            "reaction_name",
+        ),
+    )
 
-        if "reaction_bytecode" in fields:
-            data["reaction_bytecode"] = self.reaction_name.encode(
-                "unicode-escape"
-            ).decode("ASCII")
-
-        return {
-            "id": self.record_id,
-            "fields": data,
-        }
+    id: Mapped[int] = mapped_column(  # noqa: A003
+        Integer, primary_key=True, autoincrement=True
+    )
+    server_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    message_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    reaction_name: Mapped[str] = mapped_column(String, nullable=False)
+    role_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    role_name: Mapped[str] = mapped_column(String, nullable=False)
+    reaction_bytecode: Mapped[str] = mapped_column(String, nullable=False)
+    bot_id: Mapped[Optional[str]] = mapped_column(String)
