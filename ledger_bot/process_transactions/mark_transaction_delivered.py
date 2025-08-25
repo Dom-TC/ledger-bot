@@ -7,6 +7,7 @@ import discord
 
 from ledger_bot.message_generators import generate_transaction_status_message
 from ledger_bot.models import TransactionAirtable
+from ledger_bot.services.transaction_service import TransactionService
 from ledger_bot.storage_airtable import AirtableStorage
 
 from .send_message import send_message
@@ -45,51 +46,7 @@ async def mark_transaction_delivered(
         The config dictionary
 
     """
-    if target_transaction.cancelled:
-        log.info(
-            f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Transaction cancelled"
-        )
-        return
-
-    if reactor.id == buyer.id:
-        is_buyer = True
-        log.info("Processing buyer marked as delivered")
-    else:
-        is_buyer = False
-        log.info("Processing seller marked as delivered")
-
-    if is_buyer and target_transaction.buyer_marked_delivered:
-        log.info(
-            f"Ignoring approval on transaction {target_transaction.row_id}. Buyer has aleady marked it as delivered"
-        )
-        return
-    elif is_buyer is False and target_transaction.seller_marked_delivered:
-        log.info(
-            f"Ignoring approval on transaction {target_transaction.row_id}. Seller has aleady marked it as delivered"
-        )
-        return
-
-    # Start with empty list so we can add fields as we go
-    transaction_fields = []
-
-    if is_buyer:
-        transaction_fields.append("buyer_marked_delivered")
-        target_transaction.buyer_marked_delivered = True
-    else:
-        transaction_fields.append("seller_marked_delivered")
-        target_transaction.seller_marked_delivered = True
-
-    if (
-        target_transaction.buyer_marked_delivered
-        and target_transaction.seller_marked_delivered
-    ):
-        transaction_fields.append("delivered_date")
-        target_transaction.delivered_date = datetime.datetime.utcnow().isoformat()
-
-    log.debug(f"target_transaction: {target_transaction}")
-    await storage.save_transaction(
-        transaction=target_transaction, fields=transaction_fields
-    )
+    transaction = TransactionService.mark_transaction_delivered()
 
     response_contents = generate_transaction_status_message(
         seller=seller,

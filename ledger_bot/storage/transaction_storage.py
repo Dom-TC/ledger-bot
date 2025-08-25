@@ -61,7 +61,7 @@ class TransactionStorage(TransactionStorageABC):
     async def delete_transaction(self, transaction: Transaction) -> None:
         async with self._session_factory() as session:
             log.info(
-                f"Deleting member id {transaction.id} ({transaction.wine} between {transaction.buyer.username} and {transaction.seller.username})"
+                f"Deleting transaction with id {transaction.id} ({transaction.wine} between {transaction.buyer.username} and {transaction.seller.username})"
             )
             await session.delete(transaction)
             await session.commit()
@@ -77,7 +77,7 @@ class TransactionStorage(TransactionStorageABC):
                 # Only update the specified fields
                 for field in fields:
                     setattr(db_transaction, field, getattr(transaction, field))
-                log.info(f"Updating member {db_transaction.id} fields: {fields}")
+                log.info(f"Updating transaction {db_transaction.id} fields: {fields}")
             else:
                 # Full update: merge already updates all fields
                 log.info(f"Updating all fields for transaction {db_transaction.id}")

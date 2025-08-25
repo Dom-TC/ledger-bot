@@ -7,6 +7,7 @@ import discord
 
 from ledger_bot.message_generators import generate_transaction_status_message
 from ledger_bot.models import TransactionAirtable
+from ledger_bot.services.transaction_service import TransactionService
 from ledger_bot.storage_airtable import AirtableStorage
 
 from .send_message import send_message
@@ -45,31 +46,7 @@ async def approve_transaction(
         The config dictionary
 
     """
-    if target_transaction.cancelled:
-        log.info(
-            f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Transaction cancelled"
-        )
-        return
-
-    if reactor.id != buyer.id:
-        log.info(
-            f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Reactor is not the buyer"
-        )
-        return
-
-    if target_transaction.sale_approved:
-        log.info(
-            f"Ignoring approval on transaction {target_transaction.row_id}. Transaction already approved"
-        )
-        return
-
-    target_transaction.sale_approved = True
-    target_transaction.approved_date = datetime.datetime.utcnow().isoformat()
-    transaction_fields = ["sale_approved", "approved_date"]
-    log.debug(f"target_transaction: {target_transaction}")
-    await storage.save_transaction(
-        transaction=target_transaction, fields=transaction_fields
-    )
+    transaction = TransactionService.approve_transaction()
 
     response_contents = generate_transaction_status_message(
         seller=seller,

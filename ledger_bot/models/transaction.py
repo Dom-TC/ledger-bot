@@ -42,8 +42,8 @@ class Transaction(Base):
         Integer, ForeignKey("members.id"), nullable=False
     )
     sale_approved: Mapped[Optional[bool]] = mapped_column(Integer, default=0)
-    buyer_approved: Mapped[Optional[bool]] = mapped_column(Integer, default=0)
-    seller_approved: Mapped[Optional[bool]] = mapped_column(Integer, default=0)
+    buyer_delivered: Mapped[Optional[bool]] = mapped_column(Integer, default=0)
+    seller_delivered: Mapped[Optional[bool]] = mapped_column(Integer, default=0)
     buyer_paid: Mapped[Optional[bool]] = mapped_column(Integer, default=0)
     seller_paid: Mapped[Optional[bool]] = mapped_column(Integer, default=0)
     cancelled: Mapped[Optional[bool]] = mapped_column(Integer, default=0)

@@ -7,6 +7,7 @@ import discord
 
 from ledger_bot.message_generators import generate_transaction_status_message
 from ledger_bot.models import TransactionAirtable
+from ledger_bot.services.transaction_service import TransactionService
 from ledger_bot.storage_airtable import AirtableStorage
 
 from .send_message import send_message
@@ -44,19 +45,7 @@ async def cancel_transaction(
     config : dict
         The config dictionar
     """
-    if target_transaction.sale_approved:
-        log.info(
-            f"Ignoring approval on transaction {target_transaction.row_id}. Transaction already approved"
-        )
-        return
-
-    target_transaction.cancelled = True
-    target_transaction.cancelled_date = datetime.datetime.utcnow().isoformat()
-    transaction_fields = ["cancelled", "cancelled_date"]
-
-    await storage.save_transaction(
-        transaction=target_transaction, fields=transaction_fields
-    )
+    transaction = TransactionService.cancel_transaction()
 
     response_contents = generate_transaction_status_message(
         seller=seller,

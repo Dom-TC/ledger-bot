@@ -223,12 +223,10 @@ REACTIONROLE
 
 2. Create services
 
-- transactions
 - bot_messages
 - reminders
 - reaction_roles
 
-3. Move `process_transaction/send_message.py` to client
-4. Remove other `process_transaction` functions (all should be in service)
-5. Update all instances to use new client/service/storage classes.
-6. Implement events system
+3. Move `process_transaction` remnants to client
+4. Update all instances to use new client/service/storage classes.
+5. Implement events system
