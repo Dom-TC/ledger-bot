@@ -15,11 +15,11 @@ from .abstracts import TransactionStorageABC
 log = logging.getLogger(__name__)
 
 
-class MemberStorage(TransactionStorageABC):
+class TransactionStorage(TransactionStorageABC):
     """SQLite implementation of TransactionStorageABC."""
 
     def __init__(self, session_factory: sessionmaker):
-        """Initialise MemberStorage.
+        """Initialise TransactionStorage.
 
         Parameters
         ----------

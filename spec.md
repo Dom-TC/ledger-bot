@@ -169,6 +169,14 @@ REMINDERS
 - list_all_reminders
 - delete_reminder
 
+REACTION_ROLE
+
+- get_reaction_role_by_role_id
+- get_reaction_role_by_reaction
+- add_reaction_role
+- delete_reaction_role
+- list_watched_message_ids
+
 ## Storage
 
 MEMBER
@@ -202,11 +210,19 @@ REMINDERS
 - delete_reminder
 - update_reminder
 
+REACTIONROLE
+
+- get_reaction_role
+- add_reaction_role
+- list_reeaction_roles
+- delete_reaction_role
+- update_reaction_role
+- list_watched_message_ids
+
 ## TODO
 
-1. Create storage classes
-2. Update models
+2. Create services
 3. Move `process_transaction/send_message.py` to client
 4. Remove other `process_transaction` functions (all should be in service)
 5. Update all instances to use new client/service/storage classes.
-6. Migrate ReactionRoles
+6. Implement events system
