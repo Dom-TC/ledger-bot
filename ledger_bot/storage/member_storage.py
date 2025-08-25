@@ -75,7 +75,7 @@ class MemberStorage(MemberStorageABC):
                 # Only update the specified fields
                 for field in fields:
                     setattr(db_member, field, getattr(member, field))
-                log.info(f"Updating member {db_member.id} fields: {db_member}")
+                log.info(f"Updating member {db_member.id} fields: {fields}")
             else:
                 # Full update: merge already updates all fields
                 log.info(f"Updating all fields for member {db_member.id}")
