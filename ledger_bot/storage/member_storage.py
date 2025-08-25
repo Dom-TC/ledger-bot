@@ -4,10 +4,16 @@ import logging
 from typing import List, Optional
 
 from sqlalchemy import delete, update
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import ColumnElement
 
+from ledger_bot.errors import (
+    MemberAlreadyExistsError,
+    MemberCreationError,
+    MemberQueryError,
+)
 from ledger_bot.models import Member
 
 from .abstracts import MemberStorageABC
@@ -38,10 +44,24 @@ class MemberStorage(MemberStorageABC):
         async with self._session_factory() as session:
             log.info(f"Adding member {member.nickname}({member.discord_id})")
             session.add(member)
-            await session.commit()
-            await session.refresh(member)
-            log.info(f"Member added with id {member.id}")
-            return member
+            try:
+                await session.commit()
+                await session.refresh(member)
+                log.info(f"Member added with id {member.id}")
+                return member
+
+            except IntegrityError as e:
+                log.exception(
+                    f"Adding member {member.username} ({member.discord_id}) raised an IntegrityError"
+                )
+                await session.rollback()
+                raise MemberAlreadyExistsError(member, e)
+            except SQLAlchemyError as e:
+                log.exception(
+                    f"Adding member {member.username} ({member.discord_id}) raised an SQLAlchemyError"
+                )
+                await session.rollback()
+                raise MemberCreationError(member, e)
 
     async def list_members(
         self, *filters: ColumnElement[bool]
@@ -51,10 +71,14 @@ class MemberStorage(MemberStorageABC):
             query = select(Member)
             if filters:
                 query = query.where(*filters)
-            result = await session.execute(query)
-            members = result.scalars().all()
-            log.info(f"Found {len(members)} members")
-            return members if members else None
+            try:
+                result = await session.execute(query)
+                members = result.scalars().all()
+                log.info(f"Found {len(members)} members")
+                return members if members else None
+            except SQLAlchemyError as e:
+                log.exception("Database error when listing members")
+                raise MemberQueryError("Failed to list members", e)
 
     async def delete_member(self, member: Member) -> None:
         async with self._session_factory() as session:
