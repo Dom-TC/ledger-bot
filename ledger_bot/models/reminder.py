@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 from .member import MemberAirtable
-from .transaction import Transaction
+from .transaction import TransactionAirtable
 
 log = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 class Reminder:
     date: datetime
     member_id: str | MemberAirtable
-    transaction_id: str | Transaction
+    transaction_id: str | TransactionAirtable
     record_id: str | None = None
     row_id: str | None = None
     status: str | None = None
@@ -62,7 +62,7 @@ class Reminder:
         if "transaction_id" in fields:
             data["transaction_id"] = [
                 str(self.transaction_id.record_id)
-                if isinstance(self.transaction_id, Transaction)
+                if isinstance(self.transaction_id, TransactionAirtable)
                 else self.transaction_id
             ]
 

@@ -7,7 +7,7 @@ import discord
 
 from ledger_bot.errors import AirTableError
 from ledger_bot.message_generators import generate_stats_message
-from ledger_bot.models import Transaction
+from ledger_bot.models import TransactionAirtable
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot

@@ -7,7 +7,7 @@ from typing import Dict, List, Optional
 import discord
 from aiohttp import ClientSession
 
-from ledger_bot.models import BotMessage, Transaction
+from ledger_bot.models import BotMessage, TransactionAirtable
 
 from .base_storage import BaseStorage
 
@@ -28,7 +28,7 @@ class BotMessagesMixin(BaseStorage):
     async def record_bot_message(
         self,
         message: discord.Message | discord.interactions.InteractionMessage,
-        transaction: Transaction,
+        transaction: TransactionAirtable,
     ) -> Dict[str, str | List[str]] | None:
         """Create a record in bot_messages for a given bot_message.
 

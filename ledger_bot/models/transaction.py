@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 
 @dataclass
-class Transaction:
+class TransactionAirtable:
     seller_id: str | MemberAirtable
     buyer_id: str | MemberAirtable
     wine: str
@@ -39,7 +39,7 @@ class Transaction:
     bot_id: str | None = None
 
     @classmethod
-    def from_airtable(cls, data: Dict[str, Any]) -> "Transaction":
+    def from_airtable(cls, data: Dict[str, Any]) -> "TransactionAirtable":
         fields = data["fields"]
         return cls(
             record_id=data["id"],

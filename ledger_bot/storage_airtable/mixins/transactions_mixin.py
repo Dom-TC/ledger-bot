@@ -5,7 +5,7 @@ from typing import Any, AsyncGenerator, Callable, Dict, List, Optional
 
 from aiohttp import ClientSession
 
-from ledger_bot.models import BotMessage, Transaction
+from ledger_bot.models import BotMessage, TransactionAirtable
 
 from .base_storage import BaseStorage
 
@@ -22,7 +22,7 @@ class TransactionsMixin(BaseStorage):
         record_id: str,
         transaction_record: Dict[str, Any],
         session: Optional[ClientSession] = None,
-    ) -> Transaction:
+    ) -> TransactionAirtable:
         """
         Updates a specific transaction record.
 
@@ -42,11 +42,11 @@ class TransactionsMixin(BaseStorage):
             self.wines_url + "/" + record_id, transaction_record, session
         )
 
-        return Transaction.from_airtable(record)
+        return TransactionAirtable.from_airtable(record)
 
     async def save_transaction(
-        self, transaction: Transaction, fields: List[str] | None = None
-    ) -> Transaction:
+        self, transaction: TransactionAirtable, fields: List[str] | None = None
+    ) -> TransactionAirtable:
         """
         Saves the provided Transaction.
 
@@ -99,12 +99,12 @@ class TransactionsMixin(BaseStorage):
 
     async def _list_transactions(
         self, filter_by_formula: str, session: Optional[ClientSession] = None
-    ) -> list[Transaction]:
+    ) -> list[TransactionAirtable]:
         records = await self._list(self.wines_url, filter_by_formula, session)
 
         transactions = []
         for record in records:
-            transaction = Transaction.from_airtable(record)
+            transaction = TransactionAirtable.from_airtable(record)
             transactions.append(transaction)
 
         return transactions
@@ -124,14 +124,14 @@ class TransactionsMixin(BaseStorage):
 
     async def _retrieve_transaction(
         self, transaction_id: str, session: Optional[ClientSession] = None
-    ) -> Transaction:
+    ) -> TransactionAirtable:
         log.debug(f"Retrieving transaction with id {transaction_id}")
         record = await self._get(f"{self.wines_url}/{transaction_id}", session=session)
-        return Transaction.from_airtable(record)
+        return TransactionAirtable.from_airtable(record)
 
     async def insert_transaction(
         self, record: Dict[str, Any], session: Optional[ClientSession] = None
-    ) -> Transaction:
+    ) -> TransactionAirtable:
         """
         Inserts a transaction into the table.
 
@@ -149,11 +149,11 @@ class TransactionsMixin(BaseStorage):
             A Dictionary containing the inserted record
         """
         record = await self._insert(self.wines_url, record, session)
-        return Transaction.from_airtable(record)
+        return TransactionAirtable.from_airtable(record)
 
     async def find_transaction_by_bot_message_id(
         self, message_id: str
-    ) -> Transaction | None:
+    ) -> TransactionAirtable | None:
         """Takes a message and returns any associated Transactions, else returns None."""
         log.info(f"Searching for transactions relating to bot message {message_id}")
         bot_message = await self.find_bot_message_by_message_id(message_id)
@@ -174,7 +174,7 @@ class TransactionsMixin(BaseStorage):
 
     async def get_completed_transactions(
         self, hours_completed: int = 0
-    ) -> List[Transaction] | None:
+    ) -> List[TransactionAirtable] | None:
         """
         Get a list of transactions that are completed.
 
@@ -198,7 +198,9 @@ class TransactionsMixin(BaseStorage):
         else:
             return transactions
 
-    async def get_users_transaction(self, user_id: str) -> List[Transaction] | None:
+    async def get_users_transaction(
+        self, user_id: str
+    ) -> List[TransactionAirtable] | None:
         filter_formula = f"OR(IF({{seller_discord_id}}={user_id},TRUE(),FALSE()),IF({{buyer_discord_id}}={user_id},TRUE(),FALSE()))"
 
         transactions = await self._list_transactions(filter_formula)
@@ -208,23 +210,27 @@ class TransactionsMixin(BaseStorage):
         else:
             return transactions
 
-    async def get_transaction_from_record_id(self, record_id: str) -> Transaction:
+    async def get_transaction_from_record_id(
+        self, record_id: str
+    ) -> TransactionAirtable:
         """Returns the transaction object for the transaction with a given AirTable record id."""
         log.info(f"Finding transaction with record {record_id}")
         transaction = await self._retrieve_transaction(record_id)
         return transaction
 
-    async def get_all_transactions(self) -> Optional[List[Transaction]]:
+    async def get_all_transactions(self) -> Optional[List[TransactionAirtable]]:
         log.info("Getting all transactions")
 
         transactions = []
         async for record in await self._list_all_transactions():
-            transaction = Transaction.from_airtable(record)
+            transaction = TransactionAirtable.from_airtable(record)
             transactions.append(transaction)
 
         return transactions if transactions else None
 
-    async def get_transaction_by_row_id(self, row_id: int) -> Transaction | None:
+    async def get_transaction_by_row_id(
+        self, row_id: int
+    ) -> TransactionAirtable | None:
         """Returns the transaction with the corrosponding row id."""
         log.info(f"Getting transactions with row_id {row_id}")
 

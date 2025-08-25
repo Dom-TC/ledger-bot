@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import discord
 
 from ledger_bot.message_generators import generate_transaction_status_message
-from ledger_bot.models import BotMessage, Transaction
+from ledger_bot.models import BotMessage, TransactionAirtable
 
 from .send_message import send_message
 

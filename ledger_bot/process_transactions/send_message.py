@@ -6,7 +6,7 @@ from typing import Any, Dict
 import discord
 
 from ledger_bot.errors import AirTableError
-from ledger_bot.models import Transaction
+from ledger_bot.models import TransactionAirtable
 from ledger_bot.storage_airtable import AirtableStorage
 
 log = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 async def send_message(
     response_contents: str,
     channel,
-    target_transaction: Transaction,
+    target_transaction: TransactionAirtable,
     previous_message_id: int | None,
     storage: AirtableStorage,
     config: Dict[str, Any],

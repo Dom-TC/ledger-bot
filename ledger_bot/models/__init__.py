@@ -19,4 +19,4 @@ Member = member.Member
 MemberAirtable = member.MemberAirtable
 ReactionRole = reaction_role.ReactionRole
 Reminder = reminder.Reminder
-Transaction = transaction.Transaction
+TransactionAirtable = transaction.TransactionAirtable

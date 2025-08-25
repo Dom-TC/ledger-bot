@@ -6,7 +6,7 @@ from typing import Any, Dict
 import discord
 
 from ledger_bot.message_generators import generate_transaction_status_message
-from ledger_bot.models import Transaction
+from ledger_bot.models import TransactionAirtable
 from ledger_bot.storage_airtable import AirtableStorage
 
 from .send_message import send_message
@@ -20,7 +20,7 @@ async def mark_transaction_delivered(
     seller: discord.User,
     payload: discord.RawReactionActionEvent,
     channel: discord.abc.GuildChannel,
-    target_transaction: Transaction,
+    target_transaction: TransactionAirtable,
     config: Dict[str, Any],
     storage: AirtableStorage,
 ) -> None:

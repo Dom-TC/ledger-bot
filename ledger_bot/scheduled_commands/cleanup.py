@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import discord
 
 from ledger_bot.errors import AirTableError
-from ledger_bot.models import BotMessage, Transaction
+from ledger_bot.models import BotMessage, TransactionAirtable
 from ledger_bot.storage_airtable import AirtableStorage
 
 if TYPE_CHECKING:

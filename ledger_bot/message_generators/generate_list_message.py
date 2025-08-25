@@ -4,7 +4,7 @@ import logging
 import re
 from typing import Any, Dict, List
 
-from ledger_bot.models import BotMessage, Transaction
+from ledger_bot.models import BotMessage, TransactionAirtable
 from ledger_bot.storage_airtable import AirtableStorage
 
 log = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ def _split_text_on_newline(text: str, chunk_length: int) -> List[str]:
 
 
 async def _get_latest_message_link(
-    transaction: Transaction, storage: AirtableStorage
+    transaction: TransactionAirtable, storage: AirtableStorage
 ) -> str:
     if transaction.bot_messages is None:
         return ""
@@ -46,7 +46,7 @@ async def _get_latest_message_link(
 
 
 async def _build_transaction_lists(
-    transactions: List[Transaction], user_id: int, storage: AirtableStorage
+    transactions: List[TransactionAirtable], user_id: int, storage: AirtableStorage
 ) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
     """
     Converts a list of transactions into a filtered dictionary.
@@ -230,7 +230,7 @@ def _split_message(intro: str, purchases_content: str, sales_content: str) -> Li
 
 
 async def generate_list_message(
-    transactions: List[Transaction], user_id: int, storage: AirtableStorage
+    transactions: List[TransactionAirtable], user_id: int, storage: AirtableStorage
 ) -> List[str]:
     """
     Generates formatted text for listing the provided transactions to return to the user.

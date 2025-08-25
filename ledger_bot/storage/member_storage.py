@@ -8,7 +8,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import ColumnElement
 
-from ledger_bot.models import MemberAirtable
+from ledger_bot.models import Member
 
 from .abstracts import MemberStorageABC
 
@@ -28,13 +28,13 @@ class MemberStorage(MemberStorageABC):
         """
         self._session_factory = session_factory
 
-    async def get_member(self, record_id: int) -> Optional[MemberAirtable]:
+    async def get_member(self, record_id: int) -> Optional[Member]:
         async with self._session_factory() as session:
             log.info(f"Getting member with record_id {record_id}")
-            result = await session.get(MemberAirtable, record_id)
+            result = await session.get(Member, record_id)
             return result
 
-    async def add_member(self, member: MemberAirtable) -> MemberAirtable:
+    async def add_member(self, member: Member) -> Member:
         async with self._session_factory() as session:
             log.info(f"Adding member {member.nickname}({member.discord_id})")
             session.add(member)
@@ -45,10 +45,10 @@ class MemberStorage(MemberStorageABC):
 
     async def list_members(
         self, *filters: ColumnElement[bool]
-    ) -> Optional[List[MemberAirtable]]:
+    ) -> Optional[List[Member]]:
         async with self._session_factory() as session:
             log.info(f"Listing members that match query {filters}")
-            query = select(MemberAirtable)
+            query = select(Member)
             if filters:
                 query = query.where(*filters)
             result = await session.execute(query)
@@ -56,7 +56,7 @@ class MemberStorage(MemberStorageABC):
             log.info(f"Found {len(members)} members")
             return members if members else None
 
-    async def delete_member(self, member: MemberAirtable) -> None:
+    async def delete_member(self, member: Member) -> None:
         async with self._session_factory() as session:
             log.info(
                 f"Deleting member id {member.id} ({member.nickname} ({member.discord_id}))"
@@ -65,8 +65,8 @@ class MemberStorage(MemberStorageABC):
             await session.commit()
 
     async def update_member(
-        self, member: MemberAirtable, fields: Optional[List[str]] = None
-    ) -> MemberAirtable:
+        self, member: Member, fields: Optional[List[str]] = None
+    ) -> Member:
         async with self._session_factory() as session:
             # Attach the member object to the session
             db_member = await session.merge(member)

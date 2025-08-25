@@ -5,7 +5,7 @@ from typing import List
 
 import pandas as pd
 
-from ledger_bot.models import Transaction
+from ledger_bot.models import TransactionAirtable
 from ledger_bot.storage_airtable import AirtableStorage
 
 log = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ def _pluralise_word(qty: int, word: str) -> str:
     return f"{word}s" if qty != 1 else word
 
 
-def _build_dataframe(transactions: List[Transaction]) -> pd.DataFrame:
+def _build_dataframe(transactions: List[TransactionAirtable]) -> pd.DataFrame:
     log.debug("Generating dataframe")
     transactions_df = pd.DataFrame(
         [transaction.__dict__ for transaction in transactions]
@@ -111,7 +111,7 @@ def _build_dataframe(transactions: List[Transaction]) -> pd.DataFrame:
 
 
 def generate_stats_message(
-    transactions: List[Transaction], user_id: int, storage: AirtableStorage
+    transactions: List[TransactionAirtable], user_id: int, storage: AirtableStorage
 ) -> str:
     """Generate the message to send one someone uses the stats command."""
     dataframe = _build_dataframe(transactions)

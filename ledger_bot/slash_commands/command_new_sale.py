@@ -9,7 +9,7 @@ import discord
 from ledger_bot.errors import AirTableError
 from ledger_bot.LedgerBot import LedgerBot
 from ledger_bot.message_generators import generate_transaction_status_message
-from ledger_bot.models import Transaction
+from ledger_bot.models import TransactionAirtable
 from ledger_bot.storage_airtable import AirtableStorage
 
 log = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ async def command_new_sale(
     buyer_record = await storage.get_or_add_member(buyer)
 
     # Build Transaction object from provided data
-    transaction = Transaction(
+    transaction = TransactionAirtable(
         seller_id=seller_record,
         buyer_id=buyer_record,
         wine=wine_name,
