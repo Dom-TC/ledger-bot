@@ -5,7 +5,7 @@ from typing import Any, AsyncGenerator, Callable, Dict, List, Optional
 
 from aiohttp import ClientSession
 
-from ledger_bot.models import BotMessage, TransactionAirtable
+from ledger_bot.models import BotMessageAirtable, TransactionAirtable
 
 from .base_storage import BaseStorage
 

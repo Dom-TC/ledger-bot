@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 
 @dataclass
-class ReactionRole:
+class ReactionRoleAirtable:
     server_id: int
     message_id: int
     reaction_name: str
@@ -20,7 +20,7 @@ class ReactionRole:
     bot_id: str | None = None
 
     @classmethod
-    def from_airtable(cls, data: Dict[str, Any]) -> "ReactionRole":
+    def from_airtable(cls, data: Dict[str, Any]) -> "ReactionRoleAirtable":
         fields = data["fields"]
         return cls(
             record_id=data["id"],

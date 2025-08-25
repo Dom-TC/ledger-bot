@@ -7,7 +7,7 @@ from typing import Dict, List, Optional
 import discord
 from aiohttp import ClientSession
 
-from ledger_bot.models import BotMessage, TransactionAirtable
+from ledger_bot.models import BotMessageAirtable, TransactionAirtable
 
 from .base_storage import BaseStorage
 
@@ -68,7 +68,7 @@ class BotMessagesMixin(BaseStorage):
 
     async def find_bot_message_by_message_id(
         self, bot_message_id: str, session: Optional[ClientSession] = None
-    ) -> BotMessage | None:
+    ) -> BotMessageAirtable | None:
         log.debug(f"Finding bot_message with id {bot_message_id}")
         bot_messages = await self._list_bot_messages(
             filter_by_formula="{{bot_message_id}}={value}".format(value=bot_message_id),
@@ -79,7 +79,7 @@ class BotMessagesMixin(BaseStorage):
             return None
         else:
             record = bot_messages[0]
-        return BotMessage.from_airtable(record)
+        return BotMessageAirtable.from_airtable(record)
 
     async def delete_bot_message(
         self, record_id: str, session: ClientSession | None = None
@@ -91,9 +91,9 @@ class BotMessagesMixin(BaseStorage):
 
     async def find_bot_message_by_record_id(
         self, record_id: str, session: Optional[ClientSession] = None
-    ) -> BotMessage:
+    ) -> BotMessageAirtable:
         log.debug(f"Finding bot_message with record {record_id}")
         record = await self._get(
             f"{self.bot_messages_url}/{record_id}", session=session
         )
-        return BotMessage.from_airtable(record)
+        return BotMessageAirtable.from_airtable(record)

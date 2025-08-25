@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 @dataclass
-class Reminder:
+class ReminderAirtable:
     date: datetime
     member_id: str | MemberAirtable
     transaction_id: str | TransactionAirtable
@@ -22,7 +22,7 @@ class Reminder:
     bot_id: str | None = None
 
     @classmethod
-    def from_airtable(cls, data: Dict[str, Any]) -> "Reminder":
+    def from_airtable(cls, data: Dict[str, Any]) -> "ReminderAirtable":
         fields = data["fields"]
         return cls(
             record_id=data["id"],

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import discord
 
 from ledger_bot.message_generators import generate_transaction_status_message
-from ledger_bot.models import BotMessage, TransactionAirtable
+from ledger_bot.models import BotMessageAirtable, TransactionAirtable
 
 from .send_message import send_message
 
@@ -47,7 +47,7 @@ async def refresh_transaction(
         for bot_message in bot_messages:
             message_id = (
                 bot_message.record_id
-                if isinstance(bot_message, BotMessage)
+                if isinstance(bot_message, BotMessageAirtable)
                 else bot_message
             )
 

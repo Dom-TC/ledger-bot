@@ -5,7 +5,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from aiohttp import ClientSession
 
-from ledger_bot.models import Reminder
+from ledger_bot.models import ReminderAirtable
 
 from .base_storage import BaseStorage
 
@@ -29,18 +29,18 @@ class RemindersMixin(BaseStorage):
             session=session,
         )
 
-    async def retrieve_reminders(self) -> AsyncGenerator[Reminder, None]:
+    async def retrieve_reminders(self) -> AsyncGenerator[ReminderAirtable, None]:
         reminders_iterator = self._list_all_reminders(filter_by_formula=None)
         async for reminder in reminders_iterator:
-            yield Reminder.from_airtable(reminder)
+            yield ReminderAirtable.from_airtable(reminder)
 
-    async def retrieve_reminder(self, key: str) -> Reminder:
+    async def retrieve_reminder(self, key: str) -> ReminderAirtable:
         result = await self._get(f"{self.reminders_url}/{key}")
-        return Reminder.from_airtable(result)
+        return ReminderAirtable.from_airtable(result)
 
     async def insert_reminder(
         self, record: Dict[str, Any], session: Optional[ClientSession] = None
-    ) -> Reminder:
+    ) -> ReminderAirtable:
         """
         Inserts a member into the table.
 
@@ -58,14 +58,14 @@ class RemindersMixin(BaseStorage):
             A Dictionary containing the inserted record
         """
         record = await self._insert(self.reminders_url, record, session)
-        return Reminder.from_airtable(record)
+        return ReminderAirtable.from_airtable(record)
 
     async def update_reminder(
         self,
         record_id: str,
         reminder_record: Dict[str, Any],
         session: Optional[ClientSession] = None,
-    ) -> Reminder:
+    ) -> ReminderAirtable:
         """
         Updates a specific reminder record.
 
@@ -84,11 +84,11 @@ class RemindersMixin(BaseStorage):
         record = await self._update(
             self.reminders_url + "/" + record_id, reminder_record, session
         )
-        return Reminder.from_airtable(record)
+        return ReminderAirtable.from_airtable(record)
 
     async def save_reminder(
-        self, reminder: Reminder, fields: List[str] | None = None
-    ) -> Reminder:
+        self, reminder: ReminderAirtable, fields: List[str] | None = None
+    ) -> ReminderAirtable:
         """
         Saves a reminder.
 

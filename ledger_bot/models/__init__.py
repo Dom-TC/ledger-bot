@@ -11,12 +11,13 @@ from . import (
     transaction,
 )
 
-BotMessage = bot_message.BotMessage
+BotMessageAirtable = bot_message.BotMessageAirtable
+MemberAirtable = member.MemberAirtable
+ReactionRoleAirtable = reaction_role.ReactionRoleAirtable
+ReminderAirtable = reminder.ReminderAirtable
+TransactionAirtable = transaction.TransactionAirtable
+
 Event = event.Event
 EventMember = event_member.EventMember
 EventWine = event_wine.EventWine
 Member = member.Member
-MemberAirtable = member.MemberAirtable
-ReactionRole = reaction_role.ReactionRole
-Reminder = reminder.Reminder
-TransactionAirtable = transaction.TransactionAirtable

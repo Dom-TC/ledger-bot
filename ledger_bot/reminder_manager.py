@@ -10,7 +10,7 @@ from apscheduler import events
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from .message_generators import generate_reminder_status_message
-from .models import BotMessage, Reminder, TransactionAirtable
+from .models import BotMessageAirtable, ReminderAirtable, TransactionAirtable
 from .storage_airtable import AirtableStorage
 
 if TYPE_CHECKING:
@@ -180,12 +180,12 @@ class ReminderManager:
 
     async def create_reminder(
         self,
-        reminder: Reminder | None,
+        reminder: ReminderAirtable | None,
         date: datetime | None = None,
         member: discord.Member | None = None,
         transaction: TransactionAirtable | None = None,
         status: str | None = None,
-    ) -> Reminder:
+    ) -> ReminderAirtable:
         """
         Add a reminder to the store and schedule it.
 
@@ -214,7 +214,7 @@ class ReminderManager:
             member_record = await self.storage.get_or_add_member(member)
 
             # Build Transaction object from provided data
-            reminder = Reminder(
+            reminder = ReminderAirtable(
                 date=date,
                 member_id=member_record.record_id,
                 transaction_id=transaction.record_id,

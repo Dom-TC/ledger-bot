@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import discord
 
 from ledger_bot.errors import AirTableError
-from ledger_bot.models import BotMessage, TransactionAirtable
+from ledger_bot.models import BotMessageAirtable, TransactionAirtable
 from ledger_bot.storage_airtable import AirtableStorage
 
 if TYPE_CHECKING:
@@ -49,7 +49,7 @@ async def cleanup(client: "LedgerBot", storage: AirtableStorage) -> None:
                     for bot_message in transaction.bot_messages:
                         bot_message_id = (
                             bot_message.record_id
-                            if isinstance(bot_message, BotMessage)
+                            if isinstance(bot_message, BotMessageAirtable)
                             else bot_message
                         )
 

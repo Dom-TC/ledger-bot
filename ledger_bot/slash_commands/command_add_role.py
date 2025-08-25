@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Dict
 
 import discord
 
-from ledger_bot.models import ReactionRole
+from ledger_bot.models import ReactionRoleAirtable
 from ledger_bot.reactions import add_reaction, is_valid_emoji
 from ledger_bot.storage_airtable import ReactionRolesStorage
 
@@ -68,7 +68,7 @@ async def command_add_role(
         return
 
     # Add role to storage
-    reaction_role = ReactionRole(
+    reaction_role = ReactionRoleAirtable(
         server_id=interaction.guild_id,
         message_id=message_id,
         reaction_name=emoji,

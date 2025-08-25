@@ -3,7 +3,7 @@ from ast import literal_eval
 
 import pytest
 
-from ledger_bot.models import BotMessage, Reminder, TransactionAirtable
+from ledger_bot.models import BotMessageAirtable, ReminderAirtable, TransactionAirtable
 
 
 @pytest.fixture
@@ -38,13 +38,13 @@ def sample_transaction_data():
 
 @pytest.fixture
 def mock_bot_message(mocker):
-    mocked_bot_message = mocker.MagicMock(name="BotMessage", spec=BotMessage)
+    mocked_bot_message = mocker.MagicMock(name="BotMessage", spec=BotMessageAirtable)
     return mocked_bot_message
 
 
 @pytest.fixture
 def mock_reminder(mocker):
-    mocked_bot_message = mocker.MagicMock(name="Reminder", spec=Reminder)
+    mocked_bot_message = mocker.MagicMock(name="Reminder", spec=ReminderAirtable)
     return mocked_bot_message
 
 

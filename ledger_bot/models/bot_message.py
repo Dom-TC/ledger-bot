@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 
 @dataclass
-class BotMessage:
+class BotMessageAirtable:
     record_id: str
     row_id: str
     bot_message_id: int
@@ -19,7 +19,7 @@ class BotMessage:
     bot_id: str
 
     @classmethod
-    def from_airtable(cls, data: Dict[str, Any]) -> "BotMessage":
+    def from_airtable(cls, data: Dict[str, Any]) -> "BotMessageAirtable":
         fields = data["fields"]
         return cls(
             record_id=data["id"],

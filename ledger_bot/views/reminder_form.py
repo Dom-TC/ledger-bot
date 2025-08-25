@@ -7,7 +7,7 @@ from typing import Any
 import arrow
 import discord
 
-from ledger_bot.models import Reminder, TransactionAirtable
+from ledger_bot.models import ReminderAirtable, TransactionAirtable
 from ledger_bot.reminder_manager import ReminderManager
 from ledger_bot.storage_airtable import AirtableStorage
 
@@ -64,7 +64,7 @@ class SetFilterView(discord.ui.View):
     def __init__(
         self,
         storage: AirtableStorage,
-        reminder: Reminder,
+        reminder: ReminderAirtable,
         reminder_manager: ReminderManager,
     ) -> None:
         self.reminder = reminder
@@ -132,7 +132,7 @@ class ReminderForm(discord.ui.Modal, title="Create Reminder In..."):
             return
 
         # Create Reminder instance
-        self.reminder = Reminder(
+        self.reminder = ReminderAirtable(
             date=reminder_time.datetime,
             member_id=member_record.record_id,
             transaction_id=self.transaction.record_id,

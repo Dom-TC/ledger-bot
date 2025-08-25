@@ -8,7 +8,7 @@ from aiohttp import ClientSession
 from asyncache import cached
 from cachetools import LRUCache
 
-from ledger_bot.models import ReactionRole
+from ledger_bot.models import ReactionRoleAirtable
 
 from .mixins import BaseStorage
 
@@ -57,7 +57,7 @@ class ReactionRolesStorage(BaseStorage):
         msg_id: str,
         reaction: str,
         session: Optional[ClientSession] = None,
-    ) -> ReactionRole | None:
+    ) -> ReactionRoleAirtable | None:
         reaction_bytecode = str(reaction).encode("unicode-escape").decode("ASCII")
 
         log.debug(
@@ -71,13 +71,13 @@ class ReactionRolesStorage(BaseStorage):
         log.debug(f"raw_reaction_role: {raw_reaction_role}")
 
         if len(raw_reaction_role) > 0:
-            return ReactionRole.from_airtable(raw_reaction_role[0])
+            return ReactionRoleAirtable.from_airtable(raw_reaction_role[0])
         else:
             return None
 
     async def find_reaction_role_by_role_id(
         self, server_id: int, role_id: int, session: Optional[ClientSession] = None
-    ) -> ReactionRole | None:
+    ) -> ReactionRoleAirtable | None:
         log.debug(f"Finding ReactionRole with role {role_id}")
 
         raw_reaction_role = await self._list_reaction_roles(
@@ -87,14 +87,14 @@ class ReactionRolesStorage(BaseStorage):
 
         log.debug(f"raw_reaction_role: {raw_reaction_role}")
         return (
-            ReactionRole.from_airtable(raw_reaction_role[0])
+            ReactionRoleAirtable.from_airtable(raw_reaction_role[0])
             if raw_reaction_role
             else None
         )
 
     async def find_reaction_role_by_reaction(
         self, server_id: int, reaction: str, session: Optional[ClientSession] = None
-    ) -> ReactionRole | None:
+    ) -> ReactionRoleAirtable | None:
         reaction_bytecode = reaction.encode("unicode-escape").decode("ASCII")
 
         log.debug(
@@ -108,31 +108,31 @@ class ReactionRolesStorage(BaseStorage):
 
         log.debug(f"raw_reaction_role: {raw_reaction_role}")
         return (
-            ReactionRole.from_airtable(raw_reaction_role[0])
+            ReactionRoleAirtable.from_airtable(raw_reaction_role[0])
             if raw_reaction_role
             else None
         )
 
     async def insert_reaction_role(
         self, record: Dict[str, Any], session: Optional[ClientSession] = None
-    ) -> ReactionRole:
+    ) -> ReactionRoleAirtable:
         result = await self._insert(self.reaction_role_url, record, session)
-        return ReactionRole.from_airtable(result)
+        return ReactionRoleAirtable.from_airtable(result)
 
     async def update_reaction_role(
         self,
         record_id: str,
         reaction_role_record: Dict[str, Any],
         session: Optional[ClientSession] = None,
-    ) -> ReactionRole:
+    ) -> ReactionRoleAirtable:
         result = await self._update(
             self.reaction_role_url + "/" + record_id, reaction_role_record, session
         )
-        return ReactionRole.from_airtable(result)
+        return ReactionRoleAirtable.from_airtable(result)
 
     async def save_reaction_role(
-        self, reaction_role: ReactionRole, fields: List[str] | None = None
-    ) -> ReactionRole:
+        self, reaction_role: ReactionRoleAirtable, fields: List[str] | None = None
+    ) -> ReactionRoleAirtable:
         log.debug(f"reaction_role: {reaction_role}")
 
         fields = fields or [

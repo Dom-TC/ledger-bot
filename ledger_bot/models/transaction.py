@@ -4,11 +4,11 @@ from ast import literal_eval
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict, List
 
-from .bot_message import BotMessage
+from .bot_message import BotMessageAirtable
 from .member import MemberAirtable
 
 if TYPE_CHECKING:
-    from .reminder import Reminder
+    from .reminder import ReminderAirtable
 
 log = logging.getLogger(__name__)
 
@@ -34,8 +34,8 @@ class TransactionAirtable:
     paid_date: str | None = None
     delivered_date: str | None = None
     cancelled_date: str | None = None
-    bot_messages: List[str | BotMessage] | None = None
-    reminders: "List[str | Reminder] | None" = None
+    bot_messages: List[str | BotMessageAirtable] | None = None
+    reminders: "List[str | ReminderAirtable] | None" = None
     bot_id: str | None = None
 
     @classmethod
@@ -111,7 +111,7 @@ class TransactionAirtable:
             for bot_message in self.bot_messages:
                 bot_message_list.append(
                     bot_message.record_id
-                    if isinstance(bot_message, BotMessage)
+                    if isinstance(bot_message, BotMessageAirtable)
                     else bot_message
                 )
             data["bot_messages"] = bot_message_list
@@ -121,7 +121,7 @@ class TransactionAirtable:
             for reminder in self.reminders:
                 reminder_list.append(
                     str(reminder.record_id)
-                    if isinstance(reminder, Reminder)
+                    if isinstance(reminder, ReminderAirtable)
                     else reminder
                 )
             data["reminders"] = reminder_list

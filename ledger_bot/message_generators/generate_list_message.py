@@ -4,7 +4,7 @@ import logging
 import re
 from typing import Any, Dict, List
 
-from ledger_bot.models import BotMessage, TransactionAirtable
+from ledger_bot.models import BotMessageAirtable, TransactionAirtable
 from ledger_bot.storage_airtable import AirtableStorage
 
 log = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ async def _get_latest_message_link(
     latest_message_record = transaction.bot_messages[-1]
     latest_message_record_id = (
         latest_message_record.record_id
-        if isinstance(latest_message_record, BotMessage)
+        if isinstance(latest_message_record, BotMessageAirtable)
         else latest_message_record
     )
     message = await storage.find_bot_message_by_record_id(latest_message_record_id)
