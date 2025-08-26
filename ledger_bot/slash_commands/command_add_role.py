@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING, Any, Dict
 
 import discord
 
-from ledger_bot.models import ReactionRoleAirtable
+from ledger_bot.models import ReactionRole
 from ledger_bot.reactions import add_reaction, is_valid_emoji
-from ledger_bot.storage_airtable import ReactionRolesStorage
+from ledger_bot.services import Service
 
 if TYPE_CHECKING:
     from ledger_bot.clients import ReactionRolesClient
@@ -17,8 +17,6 @@ log = logging.getLogger(__name__)
 
 async def command_add_role(
     client: "ReactionRolesClient",
-    config: Dict[str, Any],
-    storage: ReactionRolesStorage,
     interaction: discord.Interaction[Any],
     role: discord.Role,
     emoji: str,
@@ -46,7 +44,7 @@ async def command_add_role(
         return
 
     # Check if role already in storage
-    stored_role = await storage.find_reaction_role_by_role_id(
+    stored_role = await client.service.reaction_role.get_reaction_role_by_role_id(
         server_id=interaction.guild_id, role_id=role.id
     )
     if stored_role is not None:
@@ -57,8 +55,8 @@ async def command_add_role(
         return
 
     # Check if emoji in storage
-    stored_reaction = await storage.find_reaction_role_by_reaction(
-        server_id=interaction.guild_id, reaction=emoji
+    stored_reaction = await client.service.reaction_role.get_reaction_role_by_reaction(
+        server_id=interaction.guild_id, message_id=message_id, reaction=emoji
     )
     if stored_reaction is not None:
         await interaction.followup.send(
@@ -68,16 +66,17 @@ async def command_add_role(
         return
 
     # Add role to storage
-    reaction_role = ReactionRoleAirtable(
+    reaction_role = ReactionRole(
         server_id=interaction.guild_id,
         message_id=message_id,
         reaction_name=emoji,
+        reaction_bytecode=emoji.encode("unicode-escape").decode("ASCII"),
         role_id=role.id,
         role_name=role.name,
-        bot_id=storage.bot_id,
+        bot_id=client.config["name"],
     )
 
-    stored_record = await storage.save_reaction_role(reaction_role)
+    stored_record = await client.service.reaction_role.save_reaction_role(reaction_role)
 
     # Add reaction to target message
     await add_reaction(

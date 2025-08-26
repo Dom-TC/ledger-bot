@@ -6,8 +6,7 @@ from typing import TYPE_CHECKING
 import discord
 
 from ledger_bot.errors import AirTableError
-from ledger_bot.models import BotMessageAirtable, TransactionAirtable
-from ledger_bot.storage_airtable import AirtableStorage
+from ledger_bot.services import Service
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
@@ -16,7 +15,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-async def cleanup(client: "LedgerBot", storage: AirtableStorage) -> None:
+async def cleanup(client: "LedgerBot", service: Service) -> None:
     """
     Removes messages, message records, and (optionally) transaction records.
 
@@ -30,7 +29,7 @@ async def cleanup(client: "LedgerBot", storage: AirtableStorage) -> None:
     log.info("Running cleanup")
 
     try:
-        transactions = await storage.get_completed_transactions(
+        transactions = await service.transaction.get_completed_transaction(
             client.config["cleanup_delay_hours"]
         )
 
@@ -41,23 +40,13 @@ async def cleanup(client: "LedgerBot", storage: AirtableStorage) -> None:
             log.info(f"Cleaning {len(transactions)} transactions")
 
             for transaction in transactions:
-                log.info(f"Cleaning transaction {transaction.record_id}")
+                log.info(f"Cleaning transaction {transaction.id}")
 
                 # If bot_messages exist, remove them.
                 # Because we (optionally) keep transaction records, it's possible transactions exist with no bot record
                 if transaction.bot_messages is not None:
                     for bot_message in transaction.bot_messages:
-                        bot_message_id = (
-                            bot_message.record_id
-                            if isinstance(bot_message, BotMessageAirtable)
-                            else bot_message
-                        )
-
                         try:
-                            bot_message = await storage.find_bot_message_by_record_id(
-                                record_id=bot_message_id
-                            )
-
                             channel = await client.get_or_fetch_channel(
                                 bot_message.channel_id
                             )
@@ -65,16 +54,16 @@ async def cleanup(client: "LedgerBot", storage: AirtableStorage) -> None:
                             if isinstance(channel, discord.TextChannel):
 
                                 message = await channel.fetch_message(
-                                    bot_message.bot_message_id
+                                    bot_message.message_id
                                 )
 
-                                log.info(
-                                    f"Deleting message: {bot_message.bot_message_id}"
-                                )
+                                log.info(f"Deleting message: {bot_message.message_id}")
                                 await message.delete()
 
-                                log.info(f"Deleting message record: {bot_message_id}")
-                                await storage.delete_bot_message(bot_message_id)
+                                log.info(f"Deleting message record: {bot_message.id}")
+                                await service.bot_message.delete_bot_message(
+                                    bot_message=bot_message
+                                )
 
                         except discord.Forbidden as error:
                             log.error(
@@ -87,10 +76,10 @@ async def cleanup(client: "LedgerBot", storage: AirtableStorage) -> None:
 
                 if (
                     client.config["cleanup_removes_transaction_records"]
-                    and transaction.record_id is not None
+                    and transaction.id is not None
                 ):
                     log.info(f"Deleting transaction record: {transaction}")
-                    await storage.delete_transaction(transaction.record_id)
+                    await service.transaction.delete_transaction(transaction)
 
     except AirTableError as error:
         log.error(f"An error occured deleting the record in AirTable: {error}")

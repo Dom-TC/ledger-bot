@@ -7,9 +7,9 @@ from typing import Any
 import arrow
 import discord
 
-from ledger_bot.models import ReminderAirtable, TransactionAirtable
+from ledger_bot.models import Reminder, ReminderStatus, Transaction
 from ledger_bot.reminder_manager import ReminderManager
-from ledger_bot.storage_airtable import AirtableStorage
+from ledger_bot.services import Service
 
 log = logging.getLogger(__name__)
 
@@ -32,15 +32,12 @@ class StatusDropdown(discord.ui.Select[Any]):
     def __init__(self) -> None:
         # Set the options that will be presented inside the dropdown
         options = [
-            discord.SelectOption(label="Approved"),
-            discord.SelectOption(label="Cancelled"),
-            discord.SelectOption(label="Completed"),
-            discord.SelectOption(label="Delivered"),
-            discord.SelectOption(label="Paid"),
+            discord.SelectOption(label=status.value.capitalize(), value=status.value)
+            for status in ReminderStatus
         ]
 
         # The placeholder is what will be shown when no option is chosen
-        # The min and max values indicate we can only pick one of the three options
+        # The min and max values indicate we can only pick one of the options
         # The options parameter defines the dropdown options. We defined this above
         super().__init__(
             placeholder="Select a filter (Optional)",
@@ -53,8 +50,8 @@ class StatusDropdown(discord.ui.Select[Any]):
         # Set the status paramater of the reminder instance stored in the parent view to the value of the selection
         if self.view is not None:
             view: SetFilterView = self.view
-            status_value = self.values[0].lower()
-            view.reminder.status = status_value
+            status_value = ReminderStatus(self.values[0])
+            view.reminder.category = status_value
             log.debug(f"Setting status of {view.reminder} to {status_value}")
 
             await interaction.response.defer()
@@ -63,12 +60,12 @@ class StatusDropdown(discord.ui.Select[Any]):
 class SetFilterView(discord.ui.View):
     def __init__(
         self,
-        storage: AirtableStorage,
-        reminder: ReminderAirtable,
+        service: Service,
+        reminder: Reminder,
         reminder_manager: ReminderManager,
     ) -> None:
         self.reminder = reminder
-        self.storage = storage
+        self.service = service
         self.reminder_manager = reminder_manager
 
         super().__init__()
@@ -80,12 +77,12 @@ class SetFilterView(discord.ui.View):
 class ReminderForm(discord.ui.Modal, title="Create Reminder In..."):
     def __init__(
         self,
-        storage: AirtableStorage,
-        transaction: TransactionAirtable,
+        service: Service,
+        transaction: Transaction,
         user: discord.Member,
         reminders: ReminderManager,
     ) -> None:
-        self.storage = storage
+        self.service = service
         self.transaction = transaction
         self.user = user
         self.reminders = reminders
@@ -122,9 +119,9 @@ class ReminderForm(discord.ui.Modal, title="Create Reminder In..."):
         reminder_time = creation_time.shift(hours=+hours, days=+days)
         display_time = int(reminder_time.timestamp())
 
-        member_record = await self.storage.get_or_add_member(self.user)
+        member_record = await self.service.member.get_or_add_member(self.user)
 
-        if self.transaction.record_id is None:
+        if self.transaction.id is None:
             await interaction.response.send_message(
                 "Failed to find transaction ID. Please try again later."
             )
@@ -132,10 +129,10 @@ class ReminderForm(discord.ui.Modal, title="Create Reminder In..."):
             return
 
         # Create Reminder instance
-        self.reminder = ReminderAirtable(
+        self.reminder = Reminder(
             date=reminder_time.datetime,
-            member_id=member_record.record_id,
-            transaction_id=self.transaction.record_id,
+            member_id=member_record.id,
+            transaction_id=self.transaction.id,
         )
 
         log.debug(f"{self.reminder} / {type(self.reminder)}")
@@ -143,7 +140,7 @@ class ReminderForm(discord.ui.Modal, title="Create Reminder In..."):
         await interaction.response.send_message(
             content=f"Your reminder will be scheduled for <t:{display_time}:f> (<t:{display_time}:R>).\nWould you like to add a filter? The reminder will only be sent if the filter **hasn't** been met.\nPress Save to confirm your reminder.",
             view=SetFilterView(
-                storage=self.storage,
+                service=self.service,
                 reminder=self.reminder,
                 reminder_manager=self.reminders,
             ),
@@ -169,12 +166,12 @@ class ReminderForm(discord.ui.Modal, title="Create Reminder In..."):
 class CreateReminderButton(discord.ui.View):
     def __init__(
         self,
-        storage: AirtableStorage,
-        transaction: TransactionAirtable,
+        service: Service,
+        transaction: Transaction,
         user: discord.Member,
         reminders: ReminderManager,
     ) -> None:
-        self.storage = storage
+        self.service = service
         self.transaction = transaction
         self.user = user
         self.reminders = reminders
@@ -187,7 +184,7 @@ class CreateReminderButton(discord.ui.View):
     ) -> None:
         await interaction.response.send_modal(
             ReminderForm(
-                storage=self.storage,
+                service=self.service,
                 transaction=self.transaction,
                 user=self.user,
                 reminders=self.reminders,

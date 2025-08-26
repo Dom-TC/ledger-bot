@@ -16,6 +16,7 @@ Member = member.Member
 Transaction = transaction.Transaction
 BotMessage = bot_message.BotMessage
 Reminder = reminder.Reminder
+ReminderStatus = reminder.ReminderStatus
 
 Event = event.Event
 EventMember = event_member.EventMember

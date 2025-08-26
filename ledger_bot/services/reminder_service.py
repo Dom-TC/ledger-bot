@@ -1,7 +1,7 @@
 """A service to provide interfacing for ReminderStorage."""
 
 import logging
-from typing import List, Optional
+from typing import AsyncGenerator, List, Optional
 
 from ledger_bot.models import Reminder
 from ledger_bot.storage import ReminderStorage

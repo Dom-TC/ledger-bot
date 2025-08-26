@@ -10,7 +10,7 @@ from .clients import ExtendedClient, ReactionRolesClient, TransactionsClient
 from .process_dm import is_dm, process_dm
 from .process_message import process_message
 from .reminder_manager import ReminderManager
-from .storage_airtable import AirtableStorage, ReactionRolesStorage
+from .services import Service
 
 log = logging.getLogger(__name__)
 
@@ -19,14 +19,12 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
     def __init__(
         self,
         config: Dict[str, Any],
-        transaction_storage: AirtableStorage,
-        reaction_roles_storage: ReactionRolesStorage,
+        service: Service,
         scheduler: AsyncIOScheduler,
         reminders: ReminderManager,
     ) -> None:
         self.config = config
-        self.transaction_storage = transaction_storage
-        self.reaction_roles_storage = reaction_roles_storage
+        self.service = service
         self.scheduler = scheduler
         self.reminders = reminders
 
@@ -48,8 +46,7 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
             intents=intents,
             config=self.config,
             scheduler=self.scheduler,
-            reaction_roles_storage=self.reaction_roles_storage,
-            transaction_storage=self.transaction_storage,
+            service=self.service,
             reminders=self.reminders,
         )
 

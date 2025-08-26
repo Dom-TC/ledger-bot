@@ -39,8 +39,9 @@ class Reminder(Base):
         Integer, ForeignKey("transactions.id"), nullable=False
     )
     category: Mapped[ReminderStatus] = mapped_column(
-        Enum(ReminderStatus), nullable=False
+        Enum(ReminderStatus), nullable=True
     )
+    reminder_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     creation_date: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.now(timezone.utc)
     )

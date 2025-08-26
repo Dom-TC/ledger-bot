@@ -10,8 +10,8 @@ from apscheduler import events
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from .message_generators import generate_reminder_status_message
-from .models import BotMessageAirtable, ReminderAirtable, TransactionAirtable
-from .storage_airtable import AirtableStorage
+from .models import BotMessage, Reminder, Transaction
+from .services import Service
 
 if TYPE_CHECKING:
     from .LedgerBot import LedgerBot
@@ -26,11 +26,11 @@ class ReminderManager:
         self,
         config: Dict[str, Any],
         scheduler: AsyncIOScheduler,
-        storage: AirtableStorage,
+        service: Service,
     ):
         self.config = config
         self.scheduler = scheduler
-        self.storage = storage
+        self.service = service
         self.missed_job_ids: List[str] = []
         self.get_channel_func = None
 
@@ -60,25 +60,27 @@ class ReminderManager:
 
     async def refresh_reminders(self) -> None:
         """Creates jobs for all stored reminders."""
-        reminders_processed = 0
-        async for reminder in self.storage.retrieve_reminders():
+        # Get all reminders as a list
+        reminders = await self.service.reminder.list_all_reminders()
+
+        for reminder in reminders:
             self.scheduler.add_job(
                 self.send_reminder,
-                id=reminder.record_id,
-                name=f"Reminder: {reminder.record_id}-{reminder.row_id}",
+                id=reminder.id,
+                name=f"Reminder: {reminder.id}",
                 trigger="date",
-                next_run_time=reminder.date,
+                next_run_time=reminder.reminder_date,
                 coalesce=True,
                 replace_existing=True,
                 kwargs={
-                    "reminder_id": reminder.record_id,
+                    "reminder_id": reminder.id,
                     "member_id": reminder.member_id,
                     "transaction_id": reminder.transaction_id,
-                    "status": reminder.status,
+                    "status": reminder.category,
                 },
             )
-            reminders_processed += 1
-        log.debug(f"Refreshed {reminders_processed} reminders")
+
+        log.debug(f"Refreshed {len(reminders)} reminders")
 
     async def send_reminder(
         self, reminder_id: str, member_id: str, transaction_id: str, status: str
@@ -88,7 +90,13 @@ class ReminderManager:
         log.debug(f"transaction_id: {transaction_id}")
         log.debug(f"status: {status}")
 
-        member_record = await self.storage.get_member_from_record_id(member_id[0])
+        member_record = await self.service.member.get_member_from_record_id(
+            int(member_id[0])
+        )
+
+        if member_record is None:
+            log.warning(f"No member found for record {int(member_id[0])}")
+            return
 
         log.debug(f"{member_record} / {type(member_record)}")
 
@@ -97,9 +105,13 @@ class ReminderManager:
         log.info(f"Sending reminder '{reminder_id}' to {user.name}")
 
         # Get transaction record from record_id transaction_id[0]
-        transaction_record = await self.storage.get_transaction_from_record_id(
-            transaction_id[0]
+        transaction_record = await self.service.transaction.get_transaction(
+            int(transaction_id[0])
         )
+
+        if transaction_record is None:
+            log.warning(f"No transaction found for record {int(transaction_id[0])}")
+            return
 
         # Filter if matched status
         match status:
@@ -114,78 +126,69 @@ class ReminderManager:
             case "completed":
                 if (
                     transaction_record.sale_approved
-                    and transaction_record.buyer_marked_delivered
-                    and transaction_record.seller_marked_delivered
-                    and transaction_record.buyer_marked_paid
-                    and transaction_record.seller_marked_paid
+                    and transaction_record.buyer_delivered
+                    and transaction_record.seller_delivered
+                    and transaction_record.buyer_paid
+                    and transaction_record.seller_paid
                 ):
                     log.info("Skipping reminder - completed")
                     return
 
             case "delivered":
                 if (
-                    transaction_record.buyer_marked_delivered
-                    and transaction_record.seller_marked_delivered
+                    transaction_record.buyer_delivered
+                    and transaction_record.seller_delivered
                 ):
                     log.info("Skipping reminder - delivered")
                     return
 
             case "paid":
-                if (
-                    transaction_record.buyer_marked_paid
-                    and transaction_record.seller_marked_paid
-                ):
+                if transaction_record.buyer_paid and transaction_record.seller_paid:
                     log.info("Skipping reminder - paid")
                     return
 
-        if transaction_record.seller_discord_id is None:
+        if transaction_record.seller.discord_id is None:
             log.warning("No Seller Discord ID specified. Skipping")
             return
 
-        if transaction_record.buyer_discord_id is None:
+        if transaction_record.buyer.discord_id is None:
             log.warning("No Buyer Discord ID specified. Skipping")
             return
 
         status_message = generate_reminder_status_message(
             seller=await self.client.get_or_fetch_user(
-                transaction_record.seller_discord_id
+                transaction_record.seller.discord_id
             ),
             buyer=await self.client.get_or_fetch_user(
-                transaction_record.buyer_discord_id
+                transaction_record.buyer.discord_id
             ),
             wine_name=transaction_record.wine,
             wine_price=transaction_record.price,
             config=self.config,
             is_approved=transaction_record.sale_approved,
-            is_marked_paid_by_buyer=transaction_record.buyer_marked_paid,
-            is_marked_paid_by_seller=transaction_record.seller_marked_paid,
-            is_marked_delivered_by_buyer=transaction_record.buyer_marked_delivered,
-            is_marked_delivered_by_seller=transaction_record.seller_marked_delivered,
+            is_marked_paid_by_buyer=transaction_record.buyer_paid,
+            is_marked_paid_by_seller=transaction_record.seller_paid,
+            is_marked_delivered_by_buyer=transaction_record.buyer_delivered,
+            is_marked_delivered_by_seller=transaction_record.seller_delivered,
             is_cancelled=transaction_record.cancelled,
         )
 
         link = None
         if transaction_record.bot_messages is not None:
-            latest_message_record_id = transaction_record.bot_messages[-1]
-            if isinstance(latest_message_record_id, str):
-                message = await self.storage.find_bot_message_by_record_id(
-                    latest_message_record_id
-                )
-            else:
-                message = latest_message_record_id
+            latest_message = transaction_record.bot_messages[-1]
 
-            link = f"\n\n https://discord.com/channels/{message.guild_id}/{message.channel_id}/{message.bot_message_id}"
+            link = f"\n\n https://discord.com/channels/{latest_message.guild_id}/{latest_message.channel_id}/{latest_message.message_id}"
 
         await user.send(f"This is your scheduled reminder.\n{status_message}{link}")
 
     async def create_reminder(
         self,
-        reminder: ReminderAirtable | None,
+        reminder: Reminder | None,
         date: datetime | None = None,
         member: discord.Member | None = None,
-        transaction: TransactionAirtable | None = None,
+        transaction: Transaction | None = None,
         status: str | None = None,
-    ) -> ReminderAirtable:
+    ) -> Reminder:
         """
         Add a reminder to the store and schedule it.
 
@@ -207,24 +210,24 @@ class ReminderManager:
                 )
                 raise ValueError
 
-            if transaction.record_id is None:
+            if transaction.id is None:
                 log.error("Transaction has no record ID.")
                 raise ValueError
 
-            member_record = await self.storage.get_or_add_member(member)
+            member_record = await self.service.member.get_or_add_member(member)
 
             # Build Transaction object from provided data
-            reminder = ReminderAirtable(
+            reminder = Reminder(
                 date=date,
-                member_id=member_record.record_id,
-                transaction_id=transaction.record_id,
-                status=status,
+                member_id=member_record.id,
+                transaction_id=transaction.id,
+                category=status,
             )
 
-        reminder_fields = ["date", "member_id", "transaction_id", "status", "bot_id"]
+        reminder_fields = ["date", "member_id", "transaction_id", "category", "bot_id"]
         log.debug(f"Creating reminder: {reminder}, with fields {reminder_fields}")
 
-        created_reminder = await self.storage.save_reminder(
+        created_reminder = await self.service.reminder.save_reminder(
             reminder=reminder, fields=reminder_fields
         )
 

@@ -7,7 +7,6 @@ Ledger_bot is a Discord bot that allows users to track sales.
 import asyncio
 import json
 import logging
-import logging.config
 import os
 from asyncio.events import AbstractEventLoop
 from datetime import timezone, tzinfo
@@ -18,16 +17,29 @@ from typing import Any, Dict
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 from .config import parse
 from .database import setup_database
 from .errors import SignalHaltError
 from .LedgerBot import LedgerBot
 from .reminder_manager import ReminderManager
+from .services import (
+    BotMessageService,
+    MemberService,
+    ReactionRoleService,
+    ReminderService,
+    Service,
+    TransactionService,
+)
 from .slash_commands import setup_slash
-from .storage_airtable import AirtableStorage, ReactionRolesStorage
+from .storage import (
+    BotMessageStorage,
+    MemberStorage,
+    ReactionRoleStorage,
+    ReminderStorage,
+    Storage,
+    TransactionStorage,
+)
 
 log = logging.getLogger(__name__)
 
@@ -64,16 +76,23 @@ def start_bot() -> None:
     db_session_factory = setup_database(config=config)
 
     # Create storage
-    transaction_storage = AirtableStorage(
-        config["authentication"]["airtable_base"],
-        config["authentication"]["airtable_key"],
-        config["id"],
+    log.info("Setting up storage")
+    storage = Storage(
+        member=MemberStorage(db_session_factory),
+        transaction=TransactionStorage(db_session_factory),
+        bot_message=BotMessageStorage(db_session_factory),
+        reminder=ReminderStorage(db_session_factory),
+        reaction_role=ReactionRoleStorage(db_session_factory),
     )
 
-    reaction_roles_storage = ReactionRolesStorage(
-        config["authentication"]["airtable_base"],
-        config["authentication"]["airtable_key"],
-        config["id"],
+    # Create services
+    log.info("Setting up services")
+    service = Service(
+        member=MemberService(storage.member, config["bot_name"]),
+        transaction=TransactionService(storage.transaction, config["bot_name"]),
+        bot_message=BotMessageService(storage.bot_message, config["bot_name"]),
+        reminder=ReminderService(storage.reminder, config["bot_name"]),
+        reaction_role=ReactionRoleService(storage.reaction_role, config["bot_name"]),
     )
 
     # Create scheduler
@@ -86,14 +105,13 @@ def start_bot() -> None:
 
     # Create reminder_manager
     reminder_manager = ReminderManager(
-        config=config, scheduler=scheduler, storage=transaction_storage
+        config=config, scheduler=scheduler, service=service
     )
 
     # Create client
     client = LedgerBot(
         config=config,
-        transaction_storage=transaction_storage,
-        reaction_roles_storage=reaction_roles_storage,
+        service=service,
         scheduler=scheduler,
         reminders=reminder_manager,
     )
@@ -104,9 +122,6 @@ def start_bot() -> None:
     # Build slash commands
     setup_slash(
         client=client,
-        config=config,
-        transaction_storage=transaction_storage,
-        reaction_roles_storage=reaction_roles_storage,
     )
 
     # Run bot

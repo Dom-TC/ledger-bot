@@ -19,6 +19,8 @@ from ledger_bot.errors import (
 from ledger_bot.models import Transaction
 from ledger_bot.storage import TransactionStorage
 
+from .bot_message_service import BotMessageService
+
 log = logging.getLogger(__name__)
 
 
@@ -391,3 +393,30 @@ class TransactionService:
         log.debug(f"Transaction: {transaction}")
 
         return await self.save_transaction(transaction=transaction, fields=fields)
+
+    async def get_transaction_by_bot_message_id(
+        self, bot_message_id: int, bot_message_service: BotMessageService
+    ) -> Optional[Transaction]:
+        """
+        Find the Transaction associated with a given BotMessage ID.
+
+        Parameters
+        ----------
+        bot_message_id : int
+            The primary key of the bot message
+        bot_message_service: BotMessageService
+            An instance of the BotMessageService to do the lookup
+
+        Returns
+        -------
+        Optional[Transaction]
+            The associated transaction, or None if not found
+        """
+        # Get the BotMessage
+        bot_message = await bot_message_service.get_bot_message(bot_message_id)
+        if not bot_message:
+            return None
+
+        # Get the Transaction linked to this BotMessage
+        transaction = await self.get_transaction(bot_message.transaction_id)
+        return transaction

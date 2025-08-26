@@ -221,12 +221,8 @@ REACTIONROLE
 
 ## TODO
 
-1. Create services
-
-- reaction_roles
-
-2. Move `process_transaction` remnants to client
-3. Update all instances to use new client/service/storage classes.
-4. Add ping command - see https://github.com/Lovely-Development-Team/TLDBotto/blob/c645c18dd9c25c68aef1a9de1cf09381ce018dba/botto/slash_commands.py#L57
-5. Add `/going_dark` and `/welcome_back` commands. `going_dark` should post that its about to be stopped for maintenence, finish all processes and shut bot down. `welcome_back` should post that it's back online, include current bot version, alembic version, and latency.
-6. Implement events system
+1. Move `process_transaction` remnants to client
+2. Add ping command - see https://github.com/Lovely-Development-Team/TLDBotto/blob/c645c18dd9c25c68aef1a9de1cf09381ce018dba/botto/slash_commands.py#L57
+3. Add `/going_dark` and `/welcome_back` commands. `going_dark` should post that its about to be stopped for maintenence, finish all processes and shut bot down. `welcome_back` should post that it's back online, include current bot version, alembic version, and latency.
+4. Move to single `MessageGenerators` class? At least switch to just passing in Transaction object
+5. Implement events system

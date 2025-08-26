@@ -3,6 +3,8 @@
 import logging
 from typing import List, Optional
 
+from asyncache import cached
+from cachetools import LRUCache
 from sqlalchemy import and_, or_
 
 from ledger_bot.models import ReactionRole
@@ -14,9 +16,10 @@ log = logging.getLogger(__name__)
 class ReactionRoleService:
     def __init__(self, reaction_role_storage: ReactionRoleStorage, bot_id: str):
         self.reaction_role_storage = reaction_role_storage
+        self.watched_message_ids: set[int] = set()
         self.bot_id = bot_id
 
-    async def get_reminder(self, record_id: int) -> Optional[ReactionRole]:
+    async def get_reaction_role(self, record_id: int) -> Optional[ReactionRole]:
         """Get a ReactionRole with the given record_id.
 
         Parameters
@@ -34,9 +37,10 @@ class ReactionRoleService:
         )
         return reminder
 
+    @cached(LRUCache(maxsize=64))
     async def get_reaction_role_by_role_id(
         self, server_id: int, role_id: int
-    ) -> List[ReactionRole]:
+    ) -> Optional[ReactionRole]:
         """Get the reaction role for a given role id.
 
         Parameters
@@ -48,8 +52,8 @@ class ReactionRoleService:
 
         Returns
         -------
-        List[ReactionRole]
-            A list of all reaction roles that match the provided server and role id's
+        Optional[ReactionRole]
+            The ReactionRole object
         """
         log.debug(f"Finding ReactionRole with role {role_id} in server {server_id}")
 
@@ -60,33 +64,37 @@ class ReactionRoleService:
         reaction_role = await self.reaction_role_storage.list_reeaction_roles(filter_)
 
         log.debug(f"Found reaction roles: {reaction_role}")
-        return reaction_role or []
+        return reaction_role[0] if reaction_role else None
 
+    @cached(LRUCache(maxsize=64))
     async def get_reaction_role_by_reaction(
-        self, server_id: int, reaction: str
-    ) -> List[ReactionRole]:
+        self, server_id: int, message_id: int, reaction: str
+    ) -> ReactionRole | None:
         """Get the reaction role for a given reaction.
 
         Parameters
         ----------
         server_id : int
             The id of the server the role is in
+        message_id : int
+            The id of the message the reaction was added to
         reaction : str
             The reaction being looked up
 
         Returns
         -------
-        List[ReactionRole]
-            A list of all reaction roles that match the provided server and reaction string
+        ReactionRole
+            The reaction role
         """
         log.debug(
-            f"Finding ReactionRole with reaction {reaction} in server {server_id}"
+            f"Finding ReactionRole with reaction {reaction} on message {message_id} in server {server_id}"
         )
 
         reaction_bytecode = reaction.encode("unicode-escape").decode("ASCII")
 
         filter_ = and_(
             ReactionRole.server_id == server_id,
+            ReactionRole.message_id == message_id,
             or_(
                 ReactionRole.reaction_name == reaction,
                 ReactionRole.reaction_bytecode == reaction_bytecode,
@@ -96,7 +104,7 @@ class ReactionRoleService:
         reaction_role = await self.reaction_role_storage.list_reeaction_roles(filter_)
 
         log.debug(f"Found reaction roles: {reaction_role}")
-        return reaction_role or []
+        return reaction_role[0] if reaction_role else None
 
     async def save_reaction_role(
         self, reaction_role: ReactionRole, fields: Optional[List[str]] = None
@@ -171,4 +179,5 @@ class ReactionRoleService:
             f"Found {len(watched_message_ids)} messages to watch: {watched_message_ids}"
         )
 
+        self.watched_message_ids = set(watched_message_ids)
         return watched_message_ids

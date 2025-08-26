@@ -1,7 +1,7 @@
 """SQLite implementation of ReminderStorageABC."""
 
 import logging
-from typing import List, Optional
+from typing import AsyncGenerator, List, Optional
 
 from sqlalchemy import delete, update
 from sqlalchemy.future import select

@@ -5,9 +5,11 @@ from . import (
     member_storage,
     reaction_role_storage,
     reminder_storage,
+    storage,
     transaction_storage,
 )
 
+Storage = storage.Storage
 BotMessageStorage = bot_message_storage.BotMessageStorage
 MemberStorage = member_storage.MemberStorage
 ReminderStorage = reminder_storage.ReminderStorage

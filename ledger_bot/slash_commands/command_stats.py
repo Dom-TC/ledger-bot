@@ -7,8 +7,7 @@ import discord
 
 from ledger_bot.errors import AirTableError
 from ledger_bot.message_generators import generate_stats_message
-from ledger_bot.models import TransactionAirtable
-from ledger_bot.storage_airtable import AirtableStorage
+from ledger_bot.models import Transaction
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
@@ -18,8 +17,6 @@ log = logging.getLogger(__name__)
 
 async def command_stats(
     client: "LedgerBot",
-    config: Dict[str, Any],
-    storage: AirtableStorage,
     interaction: discord.Interaction[Any],
 ) -> None:
     """DM command - stats."""
@@ -29,7 +26,7 @@ async def command_stats(
     await interaction.response.defer(ephemeral=True)
 
     try:
-        transactions = await client.transaction_storage.get_all_transactions()
+        transactions = await client.service.transaction.list_all_transactions()
     except AirTableError as error:
         log.error(f"There was an error processing the AirTable request: {error}")
         await interaction.response.send_message(
@@ -44,7 +41,7 @@ async def command_stats(
         response = generate_stats_message(
             transactions=transactions,
             user_id=interaction.user.id,
-            storage=client.transaction_storage,
+            service=client.service,
         )
 
         await interaction.followup.send(response, ephemeral=True)

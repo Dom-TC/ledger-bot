@@ -7,7 +7,7 @@ import discord
 from discord import app_commands
 
 from ledger_bot.LedgerBot import LedgerBot
-from ledger_bot.storage_airtable import AirtableStorage, ReactionRolesStorage
+from ledger_bot.services import Service
 
 from .command_add_role import command_add_role
 from .command_hello import command_hello
@@ -22,9 +22,6 @@ log = logging.getLogger(__name__)
 
 def setup_slash(
     client: LedgerBot,
-    config: Dict[str, Any],
-    transaction_storage: AirtableStorage,
-    reaction_roles_storage: ReactionRolesStorage,
 ) -> None:
     """
     Builds the available slash commands.
@@ -48,8 +45,6 @@ def setup_slash(
         """Says hello."""
         await command_hello(
             client=client,
-            config=config,
-            storage=transaction_storage,
             interaction=interaction,
         )
 
@@ -69,8 +64,6 @@ def setup_slash(
     ) -> None:
         await command_new_sale(
             client=client,
-            config=config,
-            storage=transaction_storage,
             interaction=interaction,
             wine_name=wine_name,
             buyer=buyer,
@@ -107,8 +100,6 @@ def setup_slash(
         buyers = [buyer_1, buyer_2, buyer_3, buyer_4, buyer_5, buyer_6]
         await command_new_split(
             client=client,
-            config=config,
-            storage=transaction_storage,
             interaction=interaction,
             wine_name=wine_name,
             buyers=buyers,
@@ -139,8 +130,6 @@ def setup_slash(
         buyers = [buyer_1, buyer_2, buyer_3]
         await command_new_split(
             client=client,
-            config=config,
-            storage=transaction_storage,
             interaction=interaction,
             wine_name=wine_name,
             buyers=buyers,
@@ -202,8 +191,6 @@ def setup_slash(
         ]
         await command_new_split(
             client=client,
-            config=config,
-            storage=transaction_storage,
             interaction=interaction,
             wine_name=wine_name,
             buyers=buyers,
@@ -217,8 +204,6 @@ def setup_slash(
         """Gets help information."""
         await command_help(
             client=client,
-            config=config,
-            storage=transaction_storage,
             interaction=interaction,
         )
 
@@ -230,8 +215,6 @@ def setup_slash(
         log.info(f"Recognised command: /list from {interaction.user.name}")
         await command_list(
             client=client,
-            config=config,
-            storage=transaction_storage,
             interaction=interaction,
         )
 
@@ -243,8 +226,6 @@ def setup_slash(
         log.info(f"Recognised command: /stats from {interaction.user.name}")
         await command_stats(
             client=client,
-            config=config,
-            storage=transaction_storage,
             interaction=interaction,
         )
 
@@ -275,8 +256,6 @@ def setup_slash(
         log.info(f"Recognised command: /add_role from {interaction.user.name}")
         await command_add_role(
             client=client,
-            config=config,
-            storage=reaction_roles_storage,
             interaction=interaction,
             role=role,
             emoji=emoji,

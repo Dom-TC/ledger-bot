@@ -1,11 +1,12 @@
 """A service to provide interfacing for MemberStorage."""
 
 import logging
-from typing import List
+from typing import List, Optional
 
 from asyncache import cached
 from cachetools import LRUCache
 from discord import Member as DiscordMember
+from discord import User as DiscordUser
 
 from ledger_bot.models import Member
 from ledger_bot.storage import MemberStorage
@@ -18,8 +19,26 @@ class MemberService:
         self.member_storage = member_storage
         self.bot_id = bot_id
 
+    async def get_member_from_record_id(self, record_id: int) -> Optional[Member]:
+        """Get a member with the given record_id.
+
+        Parameters
+        ----------
+        record_id : int
+            The id of the record being retrieved
+
+        Returns
+        -------
+        Optional[Member]
+            The Member object
+        """
+        reminder = await self.member_storage.get_member(record_id=record_id)
+        return reminder
+
     @cached(LRUCache(maxsize=64))
-    async def get_or_add_member(self, discord_member: DiscordMember) -> Member:
+    async def get_or_add_member(
+        self, discord_member: DiscordMember | DiscordUser
+    ) -> Member:
         """Fetches an existing member or adds a new record for them.
 
         Parameters
@@ -44,7 +63,9 @@ class MemberService:
             member_object = Member(
                 username=discord_member.name,
                 discord_id=discord_member.id,
-                nickname=discord_member.nick,
+                nickname=discord_member.nick
+                if type(discord_member) is DiscordMember
+                else None,
                 bot_id=self.bot_id,
             )
 

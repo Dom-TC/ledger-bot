@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import discord
 
 from ledger_bot.message_generators import generate_transaction_status_message
-from ledger_bot.models import BotMessageAirtable, TransactionAirtable
+from ledger_bot.models import BotMessage, Transaction
 
 from .send_message import send_message
 
@@ -16,18 +16,16 @@ log = logging.getLogger(__name__)
 
 
 async def refresh_transaction(
-    client: "LedgerBot", row_id: int, channel_id: int | None
+    client: "LedgerBot", record_id: int, channel_id: int | None
 ) -> str | None:
     """Removes all existing messages for a given transaction, and creates a new message with the current status."""
-    log.info(f"Refreshing transaction: {row_id}")
+    log.info(f"Refreshing transaction: {record_id}")
 
     # Get transaction record
-    transaction = await client.transaction_storage.get_transaction_by_row_id(
-        row_id=row_id
-    )
+    transaction = await client.service.transaction.get_transaction(record_id=record_id)
 
     if transaction is None:
-        log.info(f"No transaction found with row_id {row_id}")
+        log.info(f"No transaction found with row_id {record_id}")
         return "No transaction found."
 
     log.debug(f"Transaction: {transaction}")
@@ -45,32 +43,19 @@ async def refresh_transaction(
     # Delete all previous bot messages, if they exist
     if bot_messages is not None:
         for bot_message in bot_messages:
-            message_id = (
-                bot_message.record_id
-                if isinstance(bot_message, BotMessageAirtable)
-                else bot_message
-            )
-
-            bot_message = (
-                await client.transaction_storage.find_bot_message_by_record_id(
-                    message_id
-                )
-            )
             log.debug(f"Message: {bot_message}")
 
             try:
                 channel = await client.get_or_fetch_channel(bot_message.channel_id)
 
                 if isinstance(channel, discord.TextChannel):
-                    message = await channel.fetch_message(bot_message.bot_message_id)
+                    message = await channel.fetch_message(bot_message.message_id)
 
-                    log.info(f"Deleting message: {bot_message.bot_message_id}")
+                    log.info(f"Deleting message: {bot_message.message_id}")
                     await message.delete()
 
-                    log.info(f"Deleting message record: {bot_message.record_id}")
-                    await client.transaction_storage.delete_bot_message(
-                        bot_message.record_id
-                    )
+                    log.info(f"Deleting message record: {bot_message.id}")
+                    await client.service.bot_message.delete_bot_message(bot_message)
                 else:
                     log.info(
                         f"Channel {channel} is not a TextChannel, so has no messages"
@@ -80,10 +65,8 @@ async def refresh_transaction(
             except discord.errors.NotFound as error:
                 log.error(f"The message has already been deleted: {error}")
 
-                log.info(f"Deleting message record: {bot_message.record_id}")
-                await client.transaction_storage.delete_bot_message(
-                    bot_message.record_id
-                )
+                log.info(f"Deleting message record: {bot_message.id}")
+                await client.service.bot_message.delete_bot_message(bot_message)
             except discord.errors.HTTPException as error:
                 log.error(f"An error occured deleting the message: {error}")
 
@@ -91,41 +74,32 @@ async def refresh_transaction(
         return "I couldn't calculate which channel to post in. Please repeat the command specifying a channel id."
 
     log.info(
-        f"Seller Discord ID: {transaction.seller_discord_id} / {type(transaction.seller_discord_id)}"
+        f"Seller Discord ID: {transaction.seller.discord_id} / {type(transaction.seller.discord_id)}"
     )
     log.info(
-        f"Buyer Discord ID: {transaction.buyer_discord_id} / {type(transaction.buyer_discord_id)}"
+        f"Buyer Discord ID: {transaction.buyer.discord_id} / {type(transaction.buyer.discord_id)}"
     )
 
-    if transaction.seller_discord_id is None:
+    if transaction.seller.discord_id is None:
         log.warning("No Seller Discord ID specified. Skipping")
         return None
 
-    if transaction.buyer_discord_id is None:
+    if transaction.buyer.discord_id is None:
         log.warning("No Buyer Discord ID specified. Skipping")
         return None
 
-    seller = await client.get_or_fetch_user(transaction.seller_discord_id)
-    buyer = await client.get_or_fetch_user(transaction.buyer_discord_id)
+    seller = await client.get_or_fetch_user(transaction.seller.discord_id)
+    buyer = await client.get_or_fetch_user(transaction.buyer.discord_id)
 
     log.info(f"Seller: {seller} / {type(seller)}")
     log.info(f"Buyer: {buyer} / {type(buyer)}")
 
     # Post new message
-    message_contents = generate_transaction_status_message(
-        seller=seller,
-        buyer=buyer,
-        wine_name=transaction.wine,
-        wine_price=transaction.price,
+    message_contents = await generate_transaction_status_message(
+        transaction=transaction,
+        client=client,
         config=client.config,
         is_update=True,
-        is_approved=transaction.sale_approved,
-        is_marked_paid_by_buyer=transaction.buyer_marked_paid,
-        is_marked_paid_by_seller=transaction.seller_marked_paid,
-        is_marked_delivered_by_buyer=transaction.buyer_marked_delivered,
-        is_marked_delivered_by_seller=transaction.seller_marked_delivered,
-        is_cancelled=transaction.cancelled,
-        transaction_id=transaction.row_id,
     )
 
     await send_message(
@@ -133,7 +107,7 @@ async def refresh_transaction(
         channel=channel,
         target_transaction=transaction,
         previous_message_id=None,
-        storage=client.transaction_storage,
+        service=client.service,
         config=client.config,
     )
 

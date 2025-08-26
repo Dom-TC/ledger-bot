@@ -5,55 +5,32 @@
 import logging
 from typing import Any, Dict, Optional
 
-import discord
+from ledger_bot.clients import TransactionsClient
+from ledger_bot.models import Transaction
+from ledger_bot.services import Service
 
 log = logging.getLogger(__name__)
 
 
-def generate_transaction_status_message(
-    seller: discord.Member | discord.User,
-    buyer: discord.Member | discord.User,
-    wine_name: str,
-    wine_price: float,
+async def generate_transaction_status_message(
+    transaction: Transaction,
+    client: TransactionsClient,
     config: Dict[str, Any],
     is_update: Optional[bool] = False,
-    is_approved: Optional[bool] = False,
-    is_marked_paid_by_buyer: Optional[bool] = False,
-    is_marked_paid_by_seller: Optional[bool] = False,
-    is_marked_delivered_by_buyer: Optional[bool] = False,
-    is_marked_delivered_by_seller: Optional[bool] = False,
-    is_cancelled: Optional[bool] = False,
-    transaction_id: Optional[str | int] = False,
 ) -> str:
     """
     Generates the text for displaying a transaction status.
 
     Paramaters
     ----------
-    seller : discord.Member
-        The seller
-    buyer : discord.Member
-        The buyer
-    wine_name : str,
-        The name of the wine being sold
-    wine_price : float
-        The price of the wine being sold
+    transaction: Transaction
+        The transaction
+    client: TransactionsClient,
+        The client posting the message
     config : dict
         The config dictionary
     is_update : bool, optional
         Is this an update of an existing transaction?  If not, presume new transaction
-    is_approved : bool, optional
-        Has this transaction been confirmed by the buyer
-    is_marked_paid_by_buyer : bool, optional
-        Has the buyer marked the transaction as paid
-    is_marked_paid_by_seller : bool, optional
-        Has the seller marked the transaction as paid
-    is_marked_delivered_by_buyer : bool, optional
-        Has the buyer marked the transaction as delivered
-    is_marked_delivered_by_seller : bool, optional
-        Has the seller marked the transaction as delivered
-    is_cancelled : bool, optional
-        Has the seller marked this transaction as cancelled?
 
     Returns
     -------
@@ -65,16 +42,16 @@ def generate_transaction_status_message(
 
     is_complete = False
 
-    if is_cancelled:
+    if transaction.cancelled:
         # Cancel transaction
         title_line = "*Sale Cancelled*"
     elif (
         is_update
-        and is_approved
-        and is_marked_paid_by_buyer
-        and is_marked_paid_by_seller
-        and is_marked_delivered_by_buyer
-        and is_marked_delivered_by_seller
+        and transaction.sale_approved
+        and transaction.buyer_paid
+        and transaction.seller_paid
+        and transaction.buyer_delivered
+        and transaction.seller_delivered
     ):
         # Sale completed
         title_line = "*Sale Completed*"
@@ -86,60 +63,64 @@ def generate_transaction_status_message(
         # New transaction
         title_line = "*New Sale Listed*"
 
-    user_decleration = f"**{seller.mention} sold {wine_name} to {buyer.mention}**"
-    price_decleration = f"Price: £{'{:.2f}'.format(wine_price)}"
+    seller = await client.get_or_fetch_user(transaction.seller.discord_id)
+    buyer = await client.get_or_fetch_user(transaction.buyer.discord_id)
+    user_decleration = (
+        f"**{seller.mention} sold {transaction.wine} to {buyer.mention}**"
+    )
+    price_decleration = f"Price: £{'{:.2f}'.format(transaction.price)}"
 
-    if is_approved:
+    if transaction.sale_approved:
         approved_decleration = f"Approved: {config['emojis']['status_confirmed']}"
     else:
         approved_decleration = f"Approved: {config['emojis']['status_unconfirmed']} {buyer.mention} please approve this sale by reacting with {config['emojis']['approval']}"
 
-    if is_marked_paid_by_buyer and is_marked_paid_by_seller:
+    if transaction.buyer_paid and transaction.seller_paid:
         # Both confirmed paid
         paid_decleration = f"Paid:           {config['emojis']['status_confirmed']}"
-    elif is_marked_paid_by_buyer:
+    elif transaction.buyer_paid:
         # Buyer confirmed paid
         paid_decleration = f"Paid:           {config['emojis']['status_part_confirmed']} {seller.mention} please confirm this transaction has been paid by reacting with {config['emojis']['paid']}"
-    elif is_marked_paid_by_seller:
+    elif transaction.seller_paid:
         # Seller confirmed paid
         paid_decleration = f"Paid:           {config['emojis']['status_part_confirmed']} {buyer.mention} please confirm this transaction has been paid by reacting with {config['emojis']['paid']}"
-    elif is_approved is False:
+    elif transaction.sale_approved is False:
         paid_decleration = f"Paid:           {config['emojis']['status_unconfirmed']}"
     else:
         paid_decleration = f"Paid:           {config['emojis']['status_unconfirmed']} to mark this as paid, please react with {config['emojis']['paid']}"
 
-    if is_marked_delivered_by_buyer and is_marked_delivered_by_seller:
+    if transaction.buyer_delivered and transaction.seller_delivered:
         # Both confirmed delivered
         delivered_decleration = f"Delivered: {config['emojis']['status_confirmed']}"
-    elif is_marked_delivered_by_buyer:
+    elif transaction.buyer_delivered:
         # Buyer confirmed delivered
         delivered_decleration = f"Delivered: {config['emojis']['status_part_confirmed']} {seller.mention} please confirm this transaction has been delivered by reacting with {config['emojis']['delivered']}"
-    elif is_marked_delivered_by_seller:
+    elif transaction.seller_delivered:
         # Seller confirmed delivered
         delivered_decleration = f"Delivered: {config['emojis']['status_part_confirmed']} {buyer.mention} please confirm this transaction has been delivered by reacting with {config['emojis']['delivered']}"
-    elif is_approved is False:
+    elif transaction.sale_approved is False:
         delivered_decleration = f"Delivered: {config['emojis']['status_unconfirmed']}"
     else:
         delivered_decleration = f"Delivered: {config['emojis']['status_unconfirmed']} to mark this as delivered, please react with {config['emojis']['delivered']}"
 
     # Always display as cancelled regardless of other conditions
-    if is_cancelled:
+    if transaction.cancelled:
         approved_decleration = f"Approved: {config['emojis']['status_cancelled']}"
         paid_decleration = f"Paid:           {config['emojis']['status_cancelled']}"
         delivered_decleration = f"Delivered: {config['emojis']['status_cancelled']}"
 
-    if is_approved is False and is_cancelled is False:
+    if transaction.sale_approved is False and transaction.cancelled is False:
         cancel_message = f"*To cancel this transaction, please react with {config['emojis']['cancel']}*\n"
     else:
         cancel_message = ""
 
-    if not (is_complete or is_cancelled):
+    if not (is_complete or transaction.cancelled):
         reminder_message = f"*To set a reminder for this transaction, please react with {config['emojis']['reminder']} and follow the DMed instructions.*\n"
     else:
         reminder_message = ""
 
-    if transaction_id:
-        footer_message = f"\n-# Transaction ID: {str(transaction_id)}"
+    if transaction.id:
+        footer_message = f"\n-# Transaction ID: {str(transaction.id)}"
     else:
         footer_message = ""
 

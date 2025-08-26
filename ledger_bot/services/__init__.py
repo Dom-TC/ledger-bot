@@ -5,8 +5,11 @@ from . import (
     member_service,
     reaction_role_service,
     reminder_service,
+    service,
     transaction_service,
 )
+
+Service = service.Service
 
 MemberService = member_service.MemberService
 TransactionService = transaction_service.TransactionService

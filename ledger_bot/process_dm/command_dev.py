@@ -46,17 +46,17 @@ async def command_dev(
 
     elif request.startswith("clean"):
         await dm_channel.send("Cleaning records")
-        await cleanup(client=client, storage=client.transaction_storage)
+        await cleanup(client=client, service=client.service)
 
     elif request.startswith("refresh_reminders"):
         await dm_channel.send("Refreshing reminders")
         await client.reminders.refresh_reminders()
 
     elif request.startswith("refresh_message"):
-        row_id = int(request.split(" ")[1])
+        record_id = int(request.split(" ")[1])
         channel_id = int(request.split(" ")[2]) if len(request.split(" ")) > 2 else None
-        await dm_channel.send(f"Refreshing transaction: {row_id}")
+        await dm_channel.send(f"Refreshing transaction: {record_id}")
         response = await refresh_transaction(
-            client=client, row_id=row_id, channel_id=channel_id
+            client=client, record_id=record_id, channel_id=channel_id
         )
         await dm_channel.send(response)

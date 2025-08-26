@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, Dict
 import discord
 
 from ledger_bot.message_generators import generate_help_message
-from ledger_bot.storage_airtable import AirtableStorage
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
@@ -16,8 +15,6 @@ log = logging.getLogger(__name__)
 
 async def command_help(
     client: "LedgerBot",
-    config: Dict[str, Any],
-    storage: AirtableStorage,
     interaction: discord.Interaction[Any],
 ) -> None:
     """Return a help message."""
@@ -26,12 +23,12 @@ async def command_help(
     else:
         channel_name = "DM"
 
-    if channel_name in config["channels"].get("exclude", []):
+    if channel_name in client.config["channels"].get("exclude", []):
         log.info(
             f"Ignoring slash command from {interaction.user.name} in {channel_name}  - Channel in exclude list"
         )
         await interaction.response.send_message(
-            content=f"{config['name']} is not available in this channel.",
+            content=f"{client.config['name']} is not available in this channel.",
             ephemeral=True,
         )
         return

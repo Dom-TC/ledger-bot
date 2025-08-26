@@ -1,14 +1,12 @@
 """DM command - list."""
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any
 
 import discord
 
 from ledger_bot.errors import AirTableError
 from ledger_bot.message_generators import generate_list_message
-from ledger_bot.models import TransactionAirtable
-from ledger_bot.storage_airtable import AirtableStorage
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
@@ -18,8 +16,6 @@ log = logging.getLogger(__name__)
 
 async def command_list(
     client: "LedgerBot",
-    config: Dict[str, Any],
-    storage: AirtableStorage,
     interaction: discord.Interaction[Any],
 ) -> None:
     """DM command - list."""
@@ -32,9 +28,11 @@ async def command_list(
     await interaction.response.defer(ephemeral=True)
 
     try:
-        transactions = await client.transaction_storage.get_users_transaction(
-            str(interaction.user.id)
-        )
+        member = await client.service.member.get_or_add_member(interaction.user)
+        buy_transactions = member.buying_transactions
+        sell_transactions = member.selling_transactions
+
+        transactions = buy_transactions + sell_transactions
     except AirTableError as error:
         log.error(f"There was an error processing the AirTable request: {error}")
         await interaction.response.send_message(
@@ -47,8 +45,8 @@ async def command_list(
     else:
         response = await generate_list_message(
             transactions=transactions,
-            user_id=interaction.user.id,
-            storage=client.transaction_storage,
+            user_id=member.discord_id,
+            service=client.service,
         )
 
         for transmit_message in response:

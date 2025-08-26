@@ -4,8 +4,8 @@ import logging
 import re
 from typing import Any, Dict, List
 
-from ledger_bot.models import BotMessageAirtable, TransactionAirtable
-from ledger_bot.storage_airtable import AirtableStorage
+from ledger_bot.models import BotMessage, Transaction
+from ledger_bot.services import Service
 
 log = logging.getLogger(__name__)
 
@@ -28,25 +28,19 @@ def _split_text_on_newline(text: str, chunk_length: int) -> List[str]:
 
 
 async def _get_latest_message_link(
-    transaction: TransactionAirtable, storage: AirtableStorage
+    transaction: Transaction,
 ) -> str:
     if transaction.bot_messages is None:
         return ""
 
-    latest_message_record = transaction.bot_messages[-1]
-    latest_message_record_id = (
-        latest_message_record.record_id
-        if isinstance(latest_message_record, BotMessageAirtable)
-        else latest_message_record
-    )
-    message = await storage.find_bot_message_by_record_id(latest_message_record_id)
+    message = transaction.bot_messages[-1]
 
-    link = f"- https://discord.com/channels/{message.guild_id}/{message.channel_id}/{message.bot_message_id}"
+    link = f"- https://discord.com/channels/{message.guild_id}/{message.channel_id}/{message.message_id}"
     return link
 
 
 async def _build_transaction_lists(
-    transactions: List[TransactionAirtable], user_id: int, storage: AirtableStorage
+    transactions: List[Transaction], user_id: int, service: Service
 ) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
     """
     Converts a list of transactions into a filtered dictionary.
@@ -83,12 +77,10 @@ async def _build_transaction_lists(
         # Add transaction details to transaction_lists split by buyer / seller and transaction status
 
         is_approved = bool(transaction.sale_approved)
-        is_delivered = bool(transaction.buyer_marked_delivered) and bool(
-            transaction.seller_marked_delivered
+        is_delivered = bool(transaction.buyer_delivered) and bool(
+            transaction.seller_delivered
         )
-        is_paid = bool(transaction.buyer_marked_paid) and bool(
-            transaction.seller_marked_paid
-        )
+        is_paid = bool(transaction.buyer_paid) and bool(transaction.seller_paid)
         is_cancelled = bool(transaction.cancelled)
 
         log.debug(f"Is Approved: {is_approved}")
@@ -97,27 +89,25 @@ async def _build_transaction_lists(
         log.debug(f"Is Cancelled: {is_cancelled}")
 
         # Generate link for last status message
-        last_message_link = await _get_latest_message_link(
-            transaction=transaction, storage=storage
-        )
+        last_message_link = await _get_latest_message_link(transaction=transaction)
 
-        if transaction.seller_discord_id is None:
+        if transaction.seller.discord_id is None:
             log.warning("No Seller Discord ID specified. Skipping")
             raise ValueError
 
-        if transaction.buyer_discord_id is None:
+        if transaction.buyer.discord_id is None:
             log.warning("No Buyer Discord ID specified. Skipping")
             raise ValueError
 
         # Check whether the user is the buyer or seller
-        if int(transaction.seller_discord_id) == user_id:
+        if int(transaction.seller.discord_id) == user_id:
             log.debug("User is seller")
             section = "selling"
-            other_party = transaction.buyer_discord_id
-        elif int(transaction.buyer_discord_id) == user_id:
+            other_party = transaction.buyer.discord_id
+        elif int(transaction.buyer.discord_id) == user_id:
             log.debug("User is buyer")
             section = "buying"
-            other_party = transaction.seller_discord_id
+            other_party = transaction.seller.discord_id
         else:
             log.error("Section is unknown")
             section = "unknown"
@@ -230,7 +220,7 @@ def _split_message(intro: str, purchases_content: str, sales_content: str) -> Li
 
 
 async def generate_list_message(
-    transactions: List[TransactionAirtable], user_id: int, storage: AirtableStorage
+    transactions: List[Transaction], user_id: int, service: Service
 ) -> List[str]:
     """
     Generates formatted text for listing the provided transactions to return to the user.
@@ -243,8 +233,8 @@ async def generate_list_message(
     user_id : int
         The id of the user who sent the message
 
-    storage : AirtableStorage
-        The storage set
+    service : Service
+        The services to interface with the database
 
     Returns
     -------
@@ -260,7 +250,7 @@ async def generate_list_message(
         intro = "You don't have any transactions."
     else:
         transaction_lists = await _build_transaction_lists(
-            transactions=transactions, user_id=user_id, storage=storage
+            transactions=transactions, user_id=user_id, service=service
         )
         # Produce Output
         has_purchases = False

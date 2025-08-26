@@ -1,6 +1,6 @@
 """The abstraction interface for reminder_storage."""
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import AsyncGenerator, List, Optional
 
 from sqlalchemy.sql import ColumnElement
 

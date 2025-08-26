@@ -1,13 +1,12 @@
 """DM command - stats."""
 
 import logging
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 import discord
 
 from ledger_bot.errors import AirTableError
 from ledger_bot.message_generators import generate_stats_message
-from ledger_bot.models import TransactionAirtable
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
@@ -22,7 +21,7 @@ async def command_stats(
     log.info(f"Getting stats for user {message.author.name} ({message.author.id})")
 
     try:
-        transactions = await client.transaction_storage.get_all_transactions()
+        transactions = await client.service.transaction.list_all_transactions()
     except AirTableError as error:
         log.error(f"There was an error processing the AirTable request: {error}")
         await dm_channel.send("An unexpected error occured.")
@@ -33,9 +32,7 @@ async def command_stats(
 
     else:
         response = generate_stats_message(
-            transactions=transactions,
-            user_id=message.author.id,
-            storage=client.transaction_storage,
+            transactions=transactions, user_id=message.author.id, service=client.service
         )
 
         await dm_channel.send(response)

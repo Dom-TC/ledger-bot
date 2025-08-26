@@ -6,20 +6,16 @@ from typing import Any, Dict, List
 
 import discord
 
-from ledger_bot.errors import AirTableError
 from ledger_bot.LedgerBot import LedgerBot
 from ledger_bot.message_generators import generate_transaction_status_message
-from ledger_bot.models import TransactionAirtable
+from ledger_bot.models import Transaction
 from ledger_bot.process_transactions import send_message
-from ledger_bot.storage_airtable import AirtableStorage
 
 log = logging.getLogger(__name__)
 
 
 async def command_new_split(
     client: "LedgerBot",
-    config: Dict[str, Any],
-    storage: AirtableStorage,
     interaction: discord.Interaction[Any],
     wine_name: str,
     buyers: List[discord.Member],
@@ -34,23 +30,23 @@ async def command_new_split(
         channel_name = "DM"
 
     if (
-        config["channels"].get("include")
-        and channel_name not in config["channels"]["include"]
+        client.config["channels"].get("include")
+        and channel_name not in client.config["channels"]["include"]
     ):
         log.info(
             f"Ignoring slash command from {interaction.user.name} in {channel_name}  - Channel not in include list"
         )
         await interaction.response.send_message(
-            content=f"{config['name']} is not available in this channel.",
+            content=f"{client.config['name']} is not available in this channel.",
             ephemeral=True,
         )
         return
-    elif channel_name in config["channels"].get("exclude", []):
+    elif channel_name in client.config["channels"].get("exclude", []):
         log.info(
             f"Ignoring slash command from {interaction.user.name} in {channel_name}  - Channel in exclude list"
         )
         await interaction.response.send_message(
-            content=f"{config['name']} is not available in this channel.",
+            content=f"{client.config['name']} is not available in this channel.",
             ephemeral=True,
         )
         return
@@ -65,7 +61,7 @@ async def command_new_split(
             if buyer.id == client.user.id:
                 log.info(f"Rejecting sale to ledger-bot from {interaction.user.name}")
                 await interaction.response.send_message(
-                    content=f"You can't sell a wine to {config['name']}!",
+                    content=f"You can't sell a wine to {client.config['name']}!",
                     ephemeral=True,
                 )
                 return
@@ -99,62 +95,46 @@ async def command_new_split(
             return
 
         log.info(f"Getting / adding seller: {interaction.user}")
-        seller_record = await storage.get_or_add_member(interaction.user)
+        seller_record = await client.service.member.get_or_add_member(interaction.user)
         log.info(f"Getting / adding buyer: {buyer}")
-        buyer_record = await storage.get_or_add_member(buyer)
+        buyer_record = await client.service.member.get_or_add_member(buyer)
 
         # Build Transaction object from provided data
-        transaction = TransactionAirtable(
-            seller_id=seller_record,
-            buyer_id=buyer_record,
+        transaction = Transaction(
+            seller_id=seller_record.id,
+            buyer_id=buyer_record.id,
             wine=wine_name,
             price=price,
             sale_approved=False,
-            buyer_marked_delivered=False,
-            seller_marked_delivered=False,
-            buyer_marked_paid=False,
-            seller_marked_paid=False,
+            buyer_delivered=False,
+            seller_delivered=False,
+            buyer_paid=False,
+            seller_paid=False,
             cancelled=False,
-            creation_date=datetime.datetime.utcnow().isoformat(),
+            creation_date=datetime.datetime.now(datetime.timezone.utc),
         )
 
         # Format price to 2dp
         price = float("{:.2f}".format(price))
         log.debug(f"{price=}, {type(price)}")
 
-        transaction_fields = [
-            "seller_id",
-            "buyer_id",
-            "wine",
-            "price",
-            "sale_approved",
-            "buyer_marked_delivered",
-            "seller_marked_delivered",
-            "buyer_marked_paid",
-            "seller_marked_paid",
-            "cancelled",
-            "creation_date",
-        ]
-
-        transaction_record = await storage.save_transaction(
-            transaction=transaction, fields=transaction_fields
+        transaction_record = await client.service.transaction.save_transaction(
+            transaction=transaction
         )
 
-        response_contents = generate_transaction_status_message(
-            seller=interaction.user,
-            buyer=buyer,
-            wine_name=wine_name,
-            wine_price=price,
-            config=config,
-            transaction_id=transaction_record.row_id,
+        response_contents = await generate_transaction_status_message(
+            transaction=transaction_record,
+            client=client,
+            config=client.config,
+            is_update=False,
         )
         await send_message(
             response_contents=response_contents,
             channel=interaction.channel,
             target_transaction=transaction_record,
             previous_message_id=None,
-            storage=storage,
-            config=config,
+            service=client.service,
+            config=client.config,
         )
 
         count += 1
