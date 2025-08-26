@@ -43,24 +43,24 @@ class Member(Base):
         back_populates="member", cascade="all, delete-orphan"
     )
     hosted_events: Mapped[List["Event"]] = relationship(
-        back_populates="host", foreign_keys=[Event.host_id]
+        back_populates="host", foreign_keys="Event.host_id"
     )
     selling_transactions: Mapped[List["Transaction"]] = relationship(
         "Transaction",
         back_populates="seller",
-        foreign_keys=[Transaction.seller_id],
+        foreign_keys="Transaction.seller_id",
         cascade="all, delete-orphan",
     )
     buying_transactions: Mapped[List["Transaction"]] = relationship(
         "Transaction",
         back_populates="buyer",
-        foreign_keys=[Transaction.buyer_id],
+        foreign_keys="Transaction.buyer_id",
         cascade="all, delete-orphan",
     )
     reminders: Mapped[List["Reminder"]] = relationship(
         "Reminder",
         back_populates="member",
-        foreign_keys=[Reminder.member_id],
+        foreign_keys="Reminder.member_id",
         cascade="all, delete-orphan",
     )
 

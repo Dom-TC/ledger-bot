@@ -4,8 +4,8 @@ import logging
 from typing import List, Optional
 
 from sqlalchemy import delete, update
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.future import select
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import ColumnElement
 
 from ledger_bot.models import ReactionRole
@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 class ReactionRoleStorage(ReactionRoleStorageABC):
     """SQLite implementation of ReactionRoleStorageABC."""
 
-    def __init__(self, session_factory: sessionmaker):
+    def __init__(self, session_factory: async_sessionmaker):
         """Initialise ReactionRoleStorage.
 
         Parameters
@@ -89,5 +89,5 @@ class ReactionRoleStorage(ReactionRoleStorageABC):
     async def list_watched_message_ids(self) -> set[int]:
         async with self._session_factory() as session:
             log.info("Listing watched message ids")
-            message_ids = session.scalars(select(ReactionRole.message_id))
+            message_ids = await session.scalars(select(ReactionRole.message_id))
             return set(message_ids)

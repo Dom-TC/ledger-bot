@@ -5,8 +5,8 @@ from typing import List, Optional
 
 from sqlalchemy import delete, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.future import select
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import ColumnElement
 
 from ledger_bot.errors import (
@@ -24,12 +24,12 @@ log = logging.getLogger(__name__)
 class MemberStorage(MemberStorageABC):
     """SQLite implementation of MemberStorageABC."""
 
-    def __init__(self, session_factory: sessionmaker):
+    def __init__(self, session_factory: async_sessionmaker):
         """Initialise MemberStorage.
 
         Parameters
         ----------
-        session_factory : Callable[[], AsyncSession]
+        async_sessionmaker : Callable[[], AsyncSession]
             Factory to produce new SQLAlchemy AsyncSession objects.
         """
         self._session_factory = session_factory

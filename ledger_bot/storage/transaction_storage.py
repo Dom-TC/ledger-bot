@@ -4,8 +4,8 @@ import logging
 from typing import List, Optional
 
 from sqlalchemy import delete, update
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.future import select
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import ColumnElement
 
 from ledger_bot.models import Transaction
@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 class TransactionStorage(TransactionStorageABC):
     """SQLite implementation of TransactionStorageABC."""
 
-    def __init__(self, session_factory: sessionmaker):
+    def __init__(self, session_factory: async_sessionmaker):
         """Initialise TransactionStorage.
 
         Parameters

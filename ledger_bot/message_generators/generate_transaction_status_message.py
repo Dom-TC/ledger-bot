@@ -3,18 +3,20 @@
 # flake8: noqa
 
 import logging
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from ledger_bot.clients import TransactionsClient
 from ledger_bot.models import Transaction
 from ledger_bot.services import Service
+
+if TYPE_CHECKING:
+    from ledger_bot.clients import TransactionsClient
 
 log = logging.getLogger(__name__)
 
 
 async def generate_transaction_status_message(
     transaction: Transaction,
-    client: TransactionsClient,
+    client: "TransactionsClient",
     config: Dict[str, Any],
     is_update: Optional[bool] = False,
 ) -> str:

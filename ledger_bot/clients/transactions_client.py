@@ -45,7 +45,7 @@ class TransactionsClient(ExtendedClient):
             second=config["run_cleanup_time"]["second"],
             timezone="UTC",
         )
-        super().__init__(config=config, scheduler=scheduler, **kwargs)
+        super().__init__(config=config, scheduler=scheduler, service=service, **kwargs)
 
     async def handle_transaction_reaction(
         self, payload: discord.RawReactionActionEvent

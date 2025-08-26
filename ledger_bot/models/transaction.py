@@ -66,12 +66,12 @@ class Transaction(Base):
     bot_messages: Mapped[List["BotMessage"]] = relationship(
         "BotMessage",
         back_populates="transaction",
-        foreign_keys=[BotMessage.transaction_id],
+        foreign_keys="BotMessage.transaction_id",
         cascade="all, delete-orphan",
     )
     reminders: Mapped[List["Reminder"]] = relationship(
         "Reminder",
         back_populates="transaction",
-        foreign_keys=[Reminder.transaction_id],
+        foreign_keys="Reminder.transaction_id",
         cascade="all, delete-orphan",
     )

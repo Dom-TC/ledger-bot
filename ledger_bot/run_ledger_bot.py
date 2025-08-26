@@ -88,11 +88,11 @@ def start_bot() -> None:
     # Create services
     log.info("Setting up services")
     service = Service(
-        member=MemberService(storage.member, config["bot_name"]),
-        transaction=TransactionService(storage.transaction, config["bot_name"]),
-        bot_message=BotMessageService(storage.bot_message, config["bot_name"]),
-        reminder=ReminderService(storage.reminder, config["bot_name"]),
-        reaction_role=ReactionRoleService(storage.reaction_role, config["bot_name"]),
+        member=MemberService(storage.member, config["name"]),
+        transaction=TransactionService(storage.transaction, config["name"]),
+        bot_message=BotMessageService(storage.bot_message, config["name"]),
+        reminder=ReminderService(storage.reminder, config["name"]),
+        reaction_role=ReactionRoleService(storage.reaction_role, config["name"]),
     )
 
     # Create scheduler
