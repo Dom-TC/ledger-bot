@@ -31,7 +31,7 @@ class BotMessageStorage(BotMessageStorageABC):
     async def get_bot_message(self, record_id: int) -> Optional[BotMessage]:
         async with self._session_factory() as session:
             log.info(f"Getting bot_message with record_id {record_id}")
-            result = await session.get(BotMessage, record_id)
+            result: BotMessage | None = await session.get(BotMessage, record_id)
             return result
 
     async def add_bot_message(self, bot_message: BotMessage) -> BotMessage:

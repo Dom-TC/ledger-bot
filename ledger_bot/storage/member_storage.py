@@ -37,7 +37,7 @@ class MemberStorage(MemberStorageABC):
     async def get_member(self, record_id: int) -> Optional[Member]:
         async with self._session_factory() as session:
             log.info(f"Getting member with record_id {record_id}")
-            result = await session.get(Member, record_id)
+            result: Member | None = await session.get(Member, record_id)
             return result
 
     async def add_member(self, member: Member) -> Member:
@@ -93,7 +93,7 @@ class MemberStorage(MemberStorageABC):
     ) -> Member:
         async with self._session_factory() as session:
             # Attach the member object to the session
-            db_member = await session.merge(member)
+            db_member: Member = await session.merge(member)
 
             if fields:
                 # Only update the specified fields

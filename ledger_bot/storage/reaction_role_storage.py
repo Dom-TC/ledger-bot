@@ -31,7 +31,7 @@ class ReactionRoleStorage(ReactionRoleStorageABC):
     async def get_reaction_role(self, record_id: int) -> Optional[ReactionRole]:
         async with self._session_factory() as session:
             log.info(f"Getting reaction_role with record_id {record_id}")
-            result = await session.get(ReactionRole, record_id)
+            result: ReactionRole | None = await session.get(ReactionRole, record_id)
             return result
 
     async def add_reaction_role(self, reaction_role: ReactionRole) -> ReactionRole:
@@ -69,7 +69,7 @@ class ReactionRoleStorage(ReactionRoleStorageABC):
     ) -> ReactionRole:
         async with self._session_factory() as session:
             # Attach the reaction_role object to the session
-            db_reaction_role = await session.merge(reaction_role)
+            db_reaction_role: ReactionRole = await session.merge(reaction_role)
 
             if fields:
                 # Only update the specified fields

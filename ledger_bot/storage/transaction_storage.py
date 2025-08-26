@@ -31,7 +31,7 @@ class TransactionStorage(TransactionStorageABC):
     async def get_transaction(self, record_id: int) -> Optional[Transaction]:
         async with self._session_factory() as session:
             log.info(f"Getting transaction with record_id {record_id}")
-            result = await session.get(Transaction, record_id)
+            result: Transaction | None = await session.get(Transaction, record_id)
             return result
 
     async def add_transaction(self, transaction: Transaction) -> Transaction:
@@ -71,7 +71,7 @@ class TransactionStorage(TransactionStorageABC):
     ) -> Transaction:
         async with self._session_factory() as session:
             # Attach the transaction object to the session
-            db_transaction = await session.merge(transaction)
+            db_transaction: Transaction = await session.merge(transaction)
 
             if fields:
                 # Only update the specified fields

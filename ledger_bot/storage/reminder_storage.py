@@ -31,7 +31,7 @@ class ReminderStorage(ReminderStorageABC):
     async def get_reminder(self, record_id: int) -> Optional[Reminder]:
         async with self._session_factory() as session:
             log.info(f"Getting reminder with record_id {record_id}")
-            result = await session.get(Reminder, record_id)
+            result: Reminder | None = await session.get(Reminder, record_id)
             return result
 
     async def add_reminder(self, reminder: Reminder) -> Reminder:
@@ -69,7 +69,7 @@ class ReminderStorage(ReminderStorageABC):
     ) -> Reminder:
         async with self._session_factory() as session:
             # Attach the reminder object to the session
-            db_reminder = await session.merge(reminder)
+            db_reminder: Reminder = await session.merge(reminder)
 
             if fields:
                 # Only update the specified fields
