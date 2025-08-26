@@ -15,6 +15,7 @@ from .command_help import command_help
 from .command_list import command_list
 from .command_new_sale import command_new_sale
 from .command_new_split import command_new_split
+from .command_ping import command_ping
 from .command_stats import command_stats
 
 log = logging.getLogger(__name__)
@@ -44,6 +45,14 @@ def setup_slash(
     async def hello(interaction: discord.Interaction[Any]) -> None:
         """Says hello."""
         await command_hello(
+            client=client,
+            interaction=interaction,
+        )
+
+    @client.tree.command(guild=client.guild)
+    async def ping(interaction: discord.Interaction[Any]) -> None:
+        """Pong."""
+        await command_ping(
             client=client,
             interaction=interaction,
         )

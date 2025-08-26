@@ -221,7 +221,6 @@ REACTIONROLE
 
 ## TODO
 
-1. Add ping command - see https://github.com/Lovely-Development-Team/TLDBotto/blob/c645c18dd9c25c68aef1a9de1cf09381ce018dba/botto/slash_commands.py#L57
-2. Add `/going_dark` and `/welcome_back` commands. `going_dark` should post that its about to be stopped for maintenence, finish all processes and shut bot down. `welcome_back` should post that it's back online, include current bot version, alembic version, and latency.
-3. Move to single `MessageGenerators` class? At least switch to just passing in Transaction object
-4. Implement events system
+1. Add `/going_dark` and `/welcome_back` commands. `going_dark` should post that its about to be stopped for maintenence, finish all processes and shut bot down. `welcome_back` should post that it's back online, include current bot version, alembic version, and latency.
+2. Move to single `MessageGenerators` class? At least switch to just passing in Transaction object
+3. Implement events system
