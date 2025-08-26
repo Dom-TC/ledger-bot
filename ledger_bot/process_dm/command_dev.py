@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 import discord
 
-from ledger_bot.process_transactions import refresh_transaction
 from ledger_bot.reactions import add_reaction
 from ledger_bot.scheduled_commands import cleanup
 
@@ -56,7 +55,7 @@ async def command_dev(
         record_id = int(request.split(" ")[1])
         channel_id = int(request.split(" ")[2]) if len(request.split(" ")) > 2 else None
         await dm_channel.send(f"Refreshing transaction: {record_id}")
-        response = await refresh_transaction(
-            client=client, record_id=record_id, channel_id=channel_id
+        response = await client.refresh_transaction(
+            record_id=record_id, channel_id=channel_id
         )
         await dm_channel.send(response)

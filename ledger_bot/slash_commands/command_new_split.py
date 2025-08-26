@@ -7,9 +7,11 @@ from typing import Any, Dict, List
 import discord
 
 from ledger_bot.LedgerBot import LedgerBot
-from ledger_bot.message_generators import generate_transaction_status_message
+from ledger_bot.message_generators import (
+    generate_transaction_status_message,
+    send_message,
+)
 from ledger_bot.models import Transaction
-from ledger_bot.process_transactions import send_message
 
 log = logging.getLogger(__name__)
 
