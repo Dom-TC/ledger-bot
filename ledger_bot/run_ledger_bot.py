@@ -18,6 +18,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from .commands_slash import setup_slash
 from .config import parse
 from .database import setup_database
 from .errors import SignalHaltError
@@ -31,7 +32,6 @@ from .services import (
     Service,
     TransactionService,
 )
-from .slash_commands import setup_slash
 from .storage import (
     BotMessageStorage,
     MemberStorage,

@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING
 
 import discord
 
+from ledger_bot.commands_scheduled import cleanup
 from ledger_bot.reactions import add_reaction
-from ledger_bot.scheduled_commands import cleanup
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot

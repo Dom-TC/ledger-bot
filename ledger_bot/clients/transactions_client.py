@@ -6,13 +6,13 @@ from typing import Any, Dict
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from ledger_bot.commands_scheduled import cleanup
 from ledger_bot.message_generators import (
     generate_transaction_status_message,
     send_message,
 )
 from ledger_bot.reactions import add_reaction, remove_reaction
 from ledger_bot.reminder_manager import ReminderManager
-from ledger_bot.scheduled_commands import cleanup
 from ledger_bot.services import Service
 from ledger_bot.views import CreateReminderButton
 
