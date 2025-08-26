@@ -90,12 +90,12 @@ class ReactionRoleStorageABC(ABC):
         ...
 
     @abstractmethod
-    async def list_watched_message_ids(self) -> set[str]:
+    async def list_watched_message_ids(self) -> set[int]:
         """List message_ids that have reaction_roles.
 
         Returns
         -------
-        set[str]
+        set[int]
             A set containing message_ids
         """
         ...

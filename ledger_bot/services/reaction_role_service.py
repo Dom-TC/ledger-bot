@@ -1,0 +1,174 @@
+"""A service to provide interfacing for ReactionRoleStorage."""
+
+import logging
+from typing import List, Optional
+
+from sqlalchemy import and_, or_
+
+from ledger_bot.models import ReactionRole
+from ledger_bot.storage import ReactionRoleStorage
+
+log = logging.getLogger(__name__)
+
+
+class ReactionRoleService:
+    def __init__(self, reaction_role_storage: ReactionRoleStorage, bot_id: str):
+        self.reaction_role_storage = reaction_role_storage
+        self.bot_id = bot_id
+
+    async def get_reminder(self, record_id: int) -> Optional[ReactionRole]:
+        """Get a ReactionRole with the given record_id.
+
+        Parameters
+        ----------
+        record_id : int
+            The id of the record being retrieved
+
+        Returns
+        -------
+        Optional[ReactionRole]
+            The ReactionRole object
+        """
+        reminder = await self.reaction_role_storage.get_reaction_role(
+            record_id=record_id
+        )
+        return reminder
+
+    async def get_reaction_role_by_role_id(
+        self, server_id: int, role_id: int
+    ) -> List[ReactionRole]:
+        """Get the reaction role for a given role id.
+
+        Parameters
+        ----------
+        server_id : int
+            The id of the server the role is in
+        role_id : int
+            The id of the role
+
+        Returns
+        -------
+        List[ReactionRole]
+            A list of all reaction roles that match the provided server and role id's
+        """
+        log.debug(f"Finding ReactionRole with role {role_id} in server {server_id}")
+
+        filter_ = and_(
+            ReactionRole.server_id == server_id, ReactionRole.role_id == role_id
+        )
+
+        reaction_role = await self.reaction_role_storage.list_reeaction_roles(filter_)
+
+        log.debug(f"Found reaction roles: {reaction_role}")
+        return reaction_role or []
+
+    async def get_reaction_role_by_reaction(
+        self, server_id: int, reaction: str
+    ) -> List[ReactionRole]:
+        """Get the reaction role for a given reaction.
+
+        Parameters
+        ----------
+        server_id : int
+            The id of the server the role is in
+        reaction : str
+            The reaction being looked up
+
+        Returns
+        -------
+        List[ReactionRole]
+            A list of all reaction roles that match the provided server and reaction string
+        """
+        log.debug(
+            f"Finding ReactionRole with reaction {reaction} in server {server_id}"
+        )
+
+        reaction_bytecode = reaction.encode("unicode-escape").decode("ASCII")
+
+        filter_ = and_(
+            ReactionRole.server_id == server_id,
+            or_(
+                ReactionRole.reaction_name == reaction,
+                ReactionRole.reaction_bytecode == reaction_bytecode,
+            ),
+        )
+
+        reaction_role = await self.reaction_role_storage.list_reeaction_roles(filter_)
+
+        log.debug(f"Found reaction roles: {reaction_role}")
+        return reaction_role or []
+
+    async def save_reaction_role(
+        self, reaction_role: ReactionRole, fields: Optional[List[str]] = None
+    ) -> ReactionRole:
+        """Saves the provided ReactionRole.
+
+        If it has no primary key, inserts a new instance, otherwise updates the old instance.
+        If a list of fields are specified, only updates those fields.
+
+        Paramaters
+        ----------
+        reaction_role: ReactionRole
+            The ReactionRole to insert
+
+        fields : Optional
+            The fields to save / update
+
+        Returns
+        -------
+        ReactionRole
+            The saved ReactionRole object
+        """
+        log.info(
+            f"Saving reaction {reaction_role.reaction_name} for role {reaction_role.role_name}"
+        )
+        reaction_role.bot_id = self.bot_id
+
+        if reaction_role.id:
+            log.info(f"ReactionRole already has id {reaction_role.id}. Updating...")
+
+            if fields:
+                if "bot_id" not in fields:
+                    fields.append("bot_id")
+                log.info(f"Only updating fields: {fields}")
+
+            reaction_role = await self.reaction_role_storage.update_reaction_role(
+                reaction_role=reaction_role, fields=fields
+            )
+        else:
+            log.info("ReactionRole doesn't exist. Adding...")
+            reaction_role = await self.reaction_role_storage.add_reaction_role(
+                reaction_role=reaction_role
+            )
+
+        log.info(f"ReactionRole saved with id {reaction_role.id}")
+        return reaction_role
+
+    async def delete_reaction_role(self, reaction_role: ReactionRole) -> None:
+        """Delete the specified ReactionRole.
+
+        Parameters
+        ----------
+        reaction_role: ReactionRole
+            The ReactionRole to be deleted
+        """
+        log.info(f"Deleting ReactionRole {reaction_role.id}")
+        await self.reaction_role_storage.delete_reaction_role(reaction_role)
+
+    async def list_watched_message_ids(self) -> set[int]:
+        """List all the message ids that are being monitored for reactions.
+
+        Returns
+        -------
+        set[int]
+            The message ideas
+        """
+        watched_message_ids = (
+            await self.reaction_role_storage.list_watched_message_ids()
+        )
+
+        log.info(
+            f"Found {len(watched_message_ids)} messages to watch: {watched_message_ids}"
+        )
+
+        return watched_message_ids

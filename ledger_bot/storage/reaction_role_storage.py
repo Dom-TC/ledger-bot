@@ -86,7 +86,7 @@ class ReactionRoleStorage(ReactionRoleStorageABC):
             await session.refresh(db_reaction_role)
             return db_reaction_role
 
-    async def list_watched_message_ids(self) -> set[str]:
+    async def list_watched_message_ids(self) -> set[int]:
         async with self._session_factory() as session:
             log.info("Listing watched message ids")
             message_ids = session.scalars(select(ReactionRole.message_id))
