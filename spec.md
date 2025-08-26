@@ -223,7 +223,6 @@ REACTIONROLE
 
 1. Create services
 
-- reminders
 - reaction_roles
 
 2. Move `process_transaction` remnants to client
