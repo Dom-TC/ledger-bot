@@ -15,7 +15,16 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-from ledger_bot.models import Event, EventMember, EventWine, Member  # noqa: E402
+from ledger_bot.models import (  # noqa: E402
+    BotMessage,
+    Event,
+    EventMember,
+    EventWine,
+    Member,
+    ReactionRole,
+    Reminder,
+    Transaction,
+)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
