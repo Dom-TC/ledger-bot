@@ -22,7 +22,7 @@ class BotMessage(Base):
     id: Mapped[int] = mapped_column(  # noqa: A003
         Integer, primary_key=True, autoincrement=True
     )
-    bot_message_id: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)
+    message_id: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)
     channel_id: Mapped[int] = mapped_column(Integer, nullable=False)
     guild_id: Mapped[int] = mapped_column(Integer, nullable=False)
     transaction_id: Mapped[int] = mapped_column(

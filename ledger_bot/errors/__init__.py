@@ -2,6 +2,8 @@
 
 from .airtable_error import AirTableError
 from .service_errors import (
+    BotMessageInvalidTransactionError,
+    BotMessageServiceError,
     TransactionApprovedError,
     TransactionCancelledError,
     TransactionInvalidBuyerError,
@@ -30,4 +32,6 @@ __all__ = [
     "TransactionInvalidSellerError",
     "TransactionApprovedError",
     "TransactionInvalidMemberError",
+    "BotMessageServiceError",
+    "BotMessageInvalidTransactionError",
 ]
