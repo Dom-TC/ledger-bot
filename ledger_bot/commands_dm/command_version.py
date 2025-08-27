@@ -7,6 +7,7 @@ from subprocess import CalledProcessError, check_output
 from typing import TYPE_CHECKING
 
 import discord
+from sqlalchemy import text
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
@@ -36,7 +37,14 @@ async def command_version(
             log.warning(f"Git command failed with code: {error.returncode}")
         except FileNotFoundError:
             log.warning("Git command not found")
-    response = f"Version: {git_version}"
+
+    async with client.session_factory() as session:
+        alembic_db = await session.execute(
+            text("SELECT version_num FROM alembic_version")
+        )
+        alembic_version = alembic_db.scalar_one_or_none()
+
+    response = f"Version: {git_version}-db{alembic_version}"
     if bot_id := client.config["id"]:
         response = f"{response} ({bot_id})"
 
