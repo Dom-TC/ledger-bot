@@ -114,6 +114,11 @@ def generate_stats_message(
     transactions: List[Transaction], user_id: int, service: Service
 ) -> str:
     """Generate the message to send one someone uses the stats command."""
+    log.debug(f"transactions: {transactions}")
+    if len(transactions) == 0:
+        log.info("No transactions recorded. Can't generate stats.")
+        return "No transactions have been recorded. Can't generate stats."
+
     dataframe = _build_dataframe(transactions)
 
     log.info("Calculating stats")
