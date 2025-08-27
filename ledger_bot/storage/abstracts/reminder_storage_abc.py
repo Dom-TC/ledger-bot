@@ -2,6 +2,7 @@
 from abc import ABC, abstractmethod
 from typing import AsyncGenerator, List, Optional
 
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import ColumnElement
 
 from ledger_bot.models import Reminder
@@ -9,13 +10,17 @@ from ledger_bot.models import Reminder
 
 class ReminderStorageABC(ABC):
     @abstractmethod
-    async def get_reminder(self, record_id: int) -> Optional[Reminder]:
+    async def get_reminder(
+        self, record_id: int, session: AsyncSession
+    ) -> Optional[Reminder]:
         """Get a reminder by a record id.
 
         Parameters
         ----------
         record_id : int
             The id of the reminder
+        session : AsyncSession
+            The session to be used
 
         Returns
         -------
@@ -25,13 +30,15 @@ class ReminderStorageABC(ABC):
         ...
 
     @abstractmethod
-    async def add_reminder(self, reminder: Reminder) -> Reminder:
+    async def add_reminder(self, reminder: Reminder, session: AsyncSession) -> Reminder:
         """Add a reminder to the database.
 
         Parameters
         ----------
         reminder : Reminder
             The reminder object to add to the database.
+        session : AsyncSession
+            The session to be used
 
         Returns
         -------
@@ -42,7 +49,7 @@ class ReminderStorageABC(ABC):
 
     @abstractmethod
     async def list_reminders(
-        self, *filters: ColumnElement[bool]
+        self, *filters: ColumnElement[bool], session: AsyncSession
     ) -> Optional[List[Reminder]]:
         """List reminders that match a given filter.
 
@@ -50,6 +57,8 @@ class ReminderStorageABC(ABC):
         ----------
         *filters : ClauseElement
             A list of queries that reminders must match.
+        session : AsyncSession
+            The session to be used
 
         Returns
         -------
@@ -59,19 +68,24 @@ class ReminderStorageABC(ABC):
         ...
 
     @abstractmethod
-    async def delete_reminder(self, reminder: Reminder) -> None:
+    async def delete_reminder(self, reminder: Reminder, session: AsyncSession) -> None:
         """Deletes the reminder with the given id.
 
         Parameters
         ----------
         reminder : Reminder
             The reminder to be deleted
+        session : AsyncSession
+            The session to be used
         """
         ...
 
     @abstractmethod
     async def update_reminder(
-        self, reminder: Reminder, fields: Optional[List[str]] = None
+        self,
+        reminder: Reminder,
+        session: AsyncSession,
+        fields: Optional[List[str]] = None,
     ) -> Reminder:
         """Update the specified fields of a reminder.
 
@@ -81,6 +95,8 @@ class ReminderStorageABC(ABC):
             The reminder to update
         fields : Optional[List[str]], optional
             The optional list of filters to update.  If None, updates full model, by default None
+        session : AsyncSession
+            The session to be used
 
         Returns
         -------

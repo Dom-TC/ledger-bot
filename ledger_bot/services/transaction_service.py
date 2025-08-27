@@ -2,12 +2,13 @@
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import List
 
 from asyncache import cached
 from cachetools import LRUCache
 from discord import Member as DiscordMember
 from sqlalchemy import and_, or_
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ledger_bot.errors import (
     TransactionApprovedError,
@@ -20,35 +21,48 @@ from ledger_bot.models import Transaction
 from ledger_bot.storage import TransactionStorage
 
 from .bot_message_service import BotMessageService
+from .service_helpers import ServiceHelpers
 
 log = logging.getLogger(__name__)
 
 
-class TransactionService:
-    def __init__(self, transaction_storage: TransactionStorage, bot_id: str):
+class TransactionService(ServiceHelpers):
+    def __init__(
+        self,
+        transaction_storage: TransactionStorage,
+        bot_id: str,
+        session_factory: async_sessionmaker[AsyncSession],
+    ):
         self.transaction_storage = transaction_storage
         self.bot_id = bot_id
 
-    async def get_transaction(self, record_id: int) -> Optional[Transaction]:
+        super().__init__(session_factory)
+
+    async def get_transaction(
+        self, record_id: int, session: AsyncSession | None = None
+    ) -> Transaction | None:
         """Get a transaction with the given record_id.
 
         Parameters
         ----------
         record_id : int
             The id of the record being retrieved
+        session : AsyncSession | None, optional
+            An optional session, by default None
 
         Returns
         -------
         Optional[Transaction]
             The transaction object
         """
-        transaction = await self.transaction_storage.get_transaction(
-            record_id=record_id
-        )
-        return transaction
+        async with self._get_session(session) as session:
+            transaction = await self.transaction_storage.get_transaction(
+                record_id=record_id, session=session
+            )
+            return transaction
 
     async def get_completed_transaction(
-        self, hours_completed: int = 0
+        self, hours_completed: int = 0, session: AsyncSession | None = None
     ) -> List[Transaction]:
         """Get a list of transactions that are completed.
 
@@ -66,6 +80,8 @@ class TransactionService:
         ----------
         hours_completed : int, optional
             The minumum number of hours ago a transaction must have been completed for it to be included, by default 0
+        session : AsyncSession | None, optional
+            An optional session, by default None
 
         Returns
         -------
@@ -88,14 +104,18 @@ class TransactionService:
             Transaction.paid_date < cutoff,
         )
 
-        completed_transactions = await self.transaction_storage.list_transactions(
-            filter_
-        )
+        async with self._get_session(session) as session:
+            completed_transactions = await self.transaction_storage.list_transactions(
+                filter_, session=session
+            )
 
-        return completed_transactions or []
+            return completed_transactions or []
 
     async def save_transaction(
-        self, transaction: Transaction, fields: Optional[List[str]] = None
+        self,
+        transaction: Transaction,
+        fields: List[str] | None = None,
+        session: AsyncSession | None = None,
     ) -> Transaction:
         """Saves the provided Transaction.
 
@@ -106,6 +126,8 @@ class TransactionService:
         ----------
         transaction : Transaction
             The transaction to insert
+        session : AsyncSession | None, optional
+            An optional session, by default None
 
         fields : Optional
             The fields to save / update
@@ -120,28 +142,36 @@ class TransactionService:
         )
         transaction.bot_id = self.bot_id
 
-        if transaction.id:
-            log.info(f"Transaction already has id {transaction.id}. Updating...")
+        async with self._get_session(session) as session:
+            if transaction.id:
+                log.info(f"Transaction already has id {transaction.id}. Updating...")
 
-            if fields:
-                if "bot_id" not in fields:
-                    fields.append("bot_id")
-                log.info(f"Only updating fields: {fields}")
+                if fields:
+                    if "bot_id" not in fields:
+                        fields.append("bot_id")
+                    log.info(f"Only updating fields: {fields}")
 
-            transaction = await self.transaction_storage.update_transaction(
-                transaction=transaction, fields=fields
-            )
-        else:
-            log.info("Transaction doesn't exist. Adding...")
-            transaction = await self.transaction_storage.add_transaction(
-                transaction=transaction
-            )
+                transaction = await self.transaction_storage.update_transaction(
+                    transaction=transaction, fields=fields, session=session
+                )
+            else:
+                log.info("Transaction doesn't exist. Adding...")
+                transaction = await self.transaction_storage.add_transaction(
+                    transaction=transaction, session=session
+                )
 
-        log.info(f"Transaction saved with id {transaction.id}")
-        return transaction
+            log.info(f"Transaction saved with id {transaction.id}")
+            return transaction
 
-    async def list_all_transactions(self) -> List[Transaction]:
+    async def list_all_transactions(
+        self, session: AsyncSession | None = None
+    ) -> List[Transaction]:
         """Get a list of all transactions.
+
+        Parameters
+        ----------
+        session : AsyncSession | None, optional
+            An optional session, by default None
 
         Returns
         -------
@@ -149,29 +179,42 @@ class TransactionService:
             All the transactions in the database, empty if none exist
         """
         log.info("Listing all transactions")
-        transaction_list = await self.transaction_storage.list_transactions()
+        async with self._get_session(session) as session:
+            transaction_list = await self.transaction_storage.list_transactions(
+                session=session
+            )
 
-        # If no members found, return an empty list rather than None
-        if not transaction_list:
-            transaction_list = []
+            # If no members found, return an empty list rather than None
+            if not transaction_list:
+                transaction_list = []
 
-        log.info(f"Found {len(transaction_list)} transactions")
+            log.info(f"Found {len(transaction_list)} transactions")
 
-        return transaction_list
+            return transaction_list
 
-    async def delete_transaction(self, transaction: Transaction) -> None:
+    async def delete_transaction(
+        self, transaction: Transaction, session: AsyncSession | None = None
+    ) -> None:
         """Delete the specified transaction.
 
         Parameters
         ----------
         transaction : Transaction
             The transaction to be deleted
+        session : AsyncSession | None, optional
+            An optional session, by default None
         """
         log.info(f"Deleting transaction {transaction.id}")
-        await self.transaction_storage.delete_transaction(transaction)
+        async with self._get_session(session) as session:
+            await self.transaction_storage.delete_transaction(
+                transaction, session=session
+            )
 
     async def approve_transaction(
-        self, transaction: Transaction, reactor: DiscordMember
+        self,
+        transaction: Transaction,
+        reactor: DiscordMember,
+        session: AsyncSession | None = None,
     ) -> Transaction:
         """Approve the specified transaction.
 
@@ -181,6 +224,8 @@ class TransactionService:
             The transaction to be approved
         reactor : DiscordMember
             The member who made the reaction
+        session : AsyncSession | None, optional
+            An optional session, by default None
 
         Returns
         -------
@@ -213,10 +258,15 @@ class TransactionService:
         fields = ["sale_approved", "approved_date"]
         log.debug(f"transaction: {transaction}")
 
-        return await self.save_transaction(transaction=transaction, fields=fields)
+        return await self.save_transaction(
+            transaction=transaction, fields=fields, session=session
+        )
 
     async def cancel_transaction(
-        self, transaction: Transaction, reactor: DiscordMember
+        self,
+        transaction: Transaction,
+        reactor: DiscordMember,
+        session: AsyncSession | None = None,
     ) -> Transaction:
         """Cancel the specified transaction.
 
@@ -226,6 +276,8 @@ class TransactionService:
             The transaction to be cancelled
         reactor : DiscordMember
             The member who made the reaction
+        session : AsyncSession | None, optional
+            An optional session, by default None
 
         Returns
         -------
@@ -258,10 +310,15 @@ class TransactionService:
         fields = ["cancelled", "cancelled_date"]
         log.debug(f"transaction: {transaction}")
 
-        return await self.save_transaction(transaction=transaction, fields=fields)
+        return await self.save_transaction(
+            transaction=transaction, fields=fields, session=session
+        )
 
     async def mark_transaction_delivered(
-        self, transaction: Transaction, reactor: DiscordMember
+        self,
+        transaction: Transaction,
+        reactor: DiscordMember,
+        session: AsyncSession | None = None,
     ) -> Transaction:
         """Mark the transaction as delivered.
 
@@ -271,6 +328,8 @@ class TransactionService:
             The transaction to be updated
         reactor : DiscordMember
             The member who made the reaction
+        session : AsyncSession | None, optional
+            An optional session, by default None
 
         Returns
         -------
@@ -325,10 +384,15 @@ class TransactionService:
 
         log.debug(f"Transaction: {transaction}")
 
-        return await self.save_transaction(transaction=transaction, fields=fields)
+        return await self.save_transaction(
+            transaction=transaction, fields=fields, session=session
+        )
 
     async def mark_transaction_paid(
-        self, transaction: Transaction, reactor: DiscordMember
+        self,
+        transaction: Transaction,
+        reactor: DiscordMember,
+        session: AsyncSession | None = None,
     ) -> Transaction:
         """Mark the transaction as paid.
 
@@ -338,6 +402,8 @@ class TransactionService:
             The transaction to be updated
         reactor : DiscordMember
             The member who made the reaction
+        session : AsyncSession | None, optional
+            An optional session, by default None
 
         Returns
         -------
@@ -392,11 +458,16 @@ class TransactionService:
 
         log.debug(f"Transaction: {transaction}")
 
-        return await self.save_transaction(transaction=transaction, fields=fields)
+        return await self.save_transaction(
+            transaction=transaction, fields=fields, session=session
+        )
 
     async def get_transaction_by_bot_message_id(
-        self, bot_message_id: int, bot_message_service: BotMessageService
-    ) -> Optional[Transaction]:
+        self,
+        bot_message_id: int,
+        bot_message_service: BotMessageService,
+        session: AsyncSession | None = None,
+    ) -> Transaction | None:
         """
         Find the Transaction associated with a given BotMessage ID.
 
@@ -406,6 +477,8 @@ class TransactionService:
             The primary key of the bot message
         bot_message_service: BotMessageService
             An instance of the BotMessageService to do the lookup
+        session : AsyncSession | None, optional
+            An optional session, by default None
 
         Returns
         -------
@@ -413,10 +486,15 @@ class TransactionService:
             The associated transaction, or None if not found
         """
         # Get the BotMessage
-        bot_message = await bot_message_service.get_bot_message(bot_message_id)
-        if not bot_message:
-            return None
+        async with self._get_session(session) as session:
+            bot_message = await bot_message_service.get_bot_message(
+                bot_message_id, session=session
+            )
+            if not bot_message:
+                return None
 
-        # Get the Transaction linked to this BotMessage
-        transaction = await self.get_transaction(bot_message.transaction_id)
-        return transaction
+            # Get the Transaction linked to this BotMessage
+            transaction = await self.get_transaction(
+                bot_message.transaction_id, session=session
+            )
+            return transaction

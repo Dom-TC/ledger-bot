@@ -2,47 +2,63 @@
 
 import logging
 from datetime import datetime, timezone
-from typing import Optional
 
 from asyncache import cached
 from discord import Message
 from discord.interactions import InteractionMessage
 from sqlalchemy import and_, or_
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ledger_bot.errors import BotMessageInvalidTransactionError
 from ledger_bot.models import BotMessage, Transaction
 from ledger_bot.storage import BotMessageStorage
 
+from .service_helpers import ServiceHelpers
+
 log = logging.getLogger(__name__)
 
 
-class BotMessageService:
-    def __init__(self, bot_message_storage: BotMessageStorage, bot_id: str):
+class BotMessageService(ServiceHelpers):
+    def __init__(
+        self,
+        bot_message_storage: BotMessageStorage,
+        bot_id: str,
+        session_factory: async_sessionmaker[AsyncSession],
+    ):
         self.bot_message_storage = bot_message_storage
         self.bot_id = bot_id
 
-    async def get_bot_message(self, record_id: int) -> Optional[BotMessage]:
+        super().__init__(session_factory)
+
+    async def get_bot_message(
+        self, record_id: int, session: AsyncSession | None = None
+    ) -> BotMessage | None:
         """Get a bot_message with the given record_id.
 
         Parameters
         ----------
         record_id : int
             The id of the record being retrieved
+        session : AsyncSession | None, optional
+            An optional session, by default None
 
         Returns
         -------
         Optional[BotMessage]
             The bot_message object
         """
-        bot_message = await self.bot_message_storage.get_bot_message(
-            record_id=record_id
-        )
-        return bot_message
+        async with self._get_session(session) as session:
+            bot_message = await self.bot_message_storage.get_bot_message(
+                record_id=record_id,
+                session=session,
+            )
+            return bot_message
 
     async def save_bot_message(
         self,
         message: Message | InteractionMessage,
         transaction: Transaction,
+        session: AsyncSession | None = None,
     ) -> BotMessage:
         """Save the message into a bot_message for a given transaction.
 
@@ -52,6 +68,8 @@ class BotMessageService:
             The message
         transaction : Transaction
             The transaction
+        session : AsyncSession | None, optional
+            An optional session, by default None
 
         Returns
         -------
@@ -63,13 +81,13 @@ class BotMessageService:
         BotMessageInvalidTransactionError
             Transaction doesn't have a record id
         """
-        log.info(f"Saving bot message({message.id}) for transaction {transaction.id}")
-
         if transaction.id is None:
             log.info(
                 "Transaction doesn't have a record id. Can't store message. Skipping..."
             )
             raise BotMessageInvalidTransactionError(transaction=transaction)
+
+        log.info(f"Saving bot message({message.id}) for transaction {transaction.id}")
 
         bot_message = BotMessage(
             message_id=message.id,
@@ -81,35 +99,53 @@ class BotMessageService:
         )
 
         log.debug(f"Storing bot_message: {bot_message}")
-        return await self.bot_message_storage.add_bot_message(bot_message=bot_message)
+        async with self._get_session(session) as session:
+            bot_message = await self.bot_message_storage.add_bot_message(
+                bot_message=bot_message, session=session
+            )
+            await session.commit()
+            return bot_message
 
     async def get_bot_message_by_message_id(
-        self, message_id: int
-    ) -> Optional[BotMessage]:
+        self, message_id: int, session: AsyncSession | None = None
+    ) -> BotMessage | None:
         """Get the BotMessage that for a given message id.
 
         Parameters
         ----------
         message_id : int
             The message id of the bot message being searched for
+        session : AsyncSession | None, optional
+            An optional session, by default None
 
         Returns
         -------
         Optional[BotMessage]
             The BotMessage
         """
-        filter_ = BotMessage.message_id == message_id
-        bot_messages = await self.bot_message_storage.list_bot_message(filter_)
+        async with self._get_session(session) as session:
+            filter_ = BotMessage.message_id == message_id
+            bot_messages = await self.bot_message_storage.list_bot_message(
+                filter_, session=session
+            )
 
-        return bot_messages[0] if bot_messages else None
+            return bot_messages[0] if bot_messages else None
 
-    async def delete_bot_message(self, bot_message: BotMessage) -> None:
+    async def delete_bot_message(
+        self, bot_message: BotMessage, session: AsyncSession | None = None
+    ) -> None:
         """Delete the specified bot_message.
 
         Parameters
         ----------
         bot_message : BotMessage
             The bot_message to be deleted
+        session : AsyncSession | None, optional
+            An optional session, by default None
         """
         log.info(f"Deleting bot_message {bot_message.id}")
-        await self.bot_message_storage.delete_bot_message(bot_message)
+        async with self._get_session(session) as session:
+            await self.bot_message_storage.delete_bot_message(
+                bot_message, session=session
+            )
+            await session.commit()

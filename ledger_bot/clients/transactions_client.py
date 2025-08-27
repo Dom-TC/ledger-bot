@@ -5,6 +5,7 @@ from typing import Any, Dict
 
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ledger_bot.commands_scheduled import cleanup
 from ledger_bot.message_generators import (
@@ -28,12 +29,14 @@ class TransactionsClient(ExtendedClient):
         scheduler: AsyncIOScheduler,
         service: Service,
         reminders: ReminderManager,
+        session_factory: async_sessionmaker[AsyncSession],
         **kwargs,
     ) -> None:
         self.config = config
         self.scheduler = scheduler
         self.service = service
         self.reminders = reminders
+        self.session_factory = session_factory
 
         scheduler.add_job(
             func=cleanup,
@@ -45,7 +48,13 @@ class TransactionsClient(ExtendedClient):
             second=config["run_cleanup_time"]["second"],
             timezone="UTC",
         )
-        super().__init__(config=config, scheduler=scheduler, service=service, **kwargs)
+        super().__init__(
+            config=config,
+            scheduler=scheduler,
+            service=service,
+            session_factory=session_factory,
+            **kwargs,
+        )
 
     async def handle_transaction_reaction(
         self, payload: discord.RawReactionActionEvent

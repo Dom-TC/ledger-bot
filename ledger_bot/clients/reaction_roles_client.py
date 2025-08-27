@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Dict
 import arrow
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ledger_bot.services import Service
 
@@ -20,9 +21,11 @@ class ReactionRolesClient(ExtendedClient):
         config: Dict[str, Any],
         scheduler: AsyncIOScheduler,
         service: Service,
+        session_factory: async_sessionmaker[AsyncSession],
         **kwargs,
     ) -> None:
         self.service = service
+        self.session_factory = session_factory
 
         initial_refresh_time = arrow.utcnow().shift(minutes=1).datetime
         scheduler.add_job(

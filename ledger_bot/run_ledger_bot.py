@@ -78,21 +78,31 @@ def start_bot() -> None:
     # Create storage
     log.info("Setting up storage")
     storage = Storage(
-        member=MemberStorage(db_session_factory),
-        transaction=TransactionStorage(db_session_factory),
-        bot_message=BotMessageStorage(db_session_factory),
-        reminder=ReminderStorage(db_session_factory),
-        reaction_role=ReactionRoleStorage(db_session_factory),
+        member=MemberStorage(),
+        transaction=TransactionStorage(),
+        bot_message=BotMessageStorage(),
+        reminder=ReminderStorage(),
+        reaction_role=ReactionRoleStorage(),
     )
 
     # Create services
     log.info("Setting up services")
     service = Service(
-        member=MemberService(storage.member, config["name"]),
-        transaction=TransactionService(storage.transaction, config["name"]),
-        bot_message=BotMessageService(storage.bot_message, config["name"]),
-        reminder=ReminderService(storage.reminder, config["name"]),
-        reaction_role=ReactionRoleService(storage.reaction_role, config["name"]),
+        member=MemberService(
+            storage.member, config["name"], session_factory=db_session_factory
+        ),
+        transaction=TransactionService(
+            storage.transaction, config["name"], session_factory=db_session_factory
+        ),
+        bot_message=BotMessageService(
+            storage.bot_message, config["name"], session_factory=db_session_factory
+        ),
+        reminder=ReminderService(
+            storage.reminder, config["name"], session_factory=db_session_factory
+        ),
+        reaction_role=ReactionRoleService(
+            storage.reaction_role, config["name"], session_factory=db_session_factory
+        ),
     )
 
     # Create scheduler
@@ -114,6 +124,7 @@ def start_bot() -> None:
         service=service,
         scheduler=scheduler,
         reminders=reminder_manager,
+        session_factory=db_session_factory,
     )
 
     # Pass client back into reminder manager.

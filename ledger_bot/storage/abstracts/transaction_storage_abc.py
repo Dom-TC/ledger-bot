@@ -2,6 +2,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import ColumnElement
 
 from ledger_bot.models import Transaction
@@ -9,13 +10,17 @@ from ledger_bot.models import Transaction
 
 class TransactionStorageABC(ABC):
     @abstractmethod
-    async def get_transaction(self, record_id: int) -> Optional[Transaction]:
+    async def get_transaction(
+        self, record_id: int, session: AsyncSession
+    ) -> Optional[Transaction]:
         """Get a transaction by a record id.
 
         Parameters
         ----------
         record_id : int
             The id of the transaction
+        session : AsyncSession
+            The session to be used
 
         Returns
         -------
@@ -25,13 +30,17 @@ class TransactionStorageABC(ABC):
         ...
 
     @abstractmethod
-    async def add_transaction(self, transaction: Transaction) -> Transaction:
+    async def add_transaction(
+        self, transaction: Transaction, session: AsyncSession
+    ) -> Transaction:
         """Add a transaction to the database.
 
         Parameters
         ----------
         transaction : Transaction
             The transaction object to add to the database.
+        session : AsyncSession
+            The session to be used
 
         Returns
         -------
@@ -42,7 +51,7 @@ class TransactionStorageABC(ABC):
 
     @abstractmethod
     async def list_transactions(
-        self, *filters: ColumnElement[bool]
+        self, *filters: ColumnElement[bool], session: AsyncSession
     ) -> Optional[List[Transaction]]:
         """List transactions that match a given filter.
 
@@ -50,6 +59,8 @@ class TransactionStorageABC(ABC):
         ----------
         *filters : ClauseElement
             A list of queries that transactions must match.
+        session : AsyncSession
+            The session to be used
 
         Returns
         -------
@@ -59,19 +70,26 @@ class TransactionStorageABC(ABC):
         ...
 
     @abstractmethod
-    async def delete_transaction(self, transaction: Transaction) -> None:
+    async def delete_transaction(
+        self, transaction: Transaction, session: AsyncSession
+    ) -> None:
         """Deletes the transaction with the given id.
 
         Parameters
         ----------
         transaction : Transaction
             The transaction to be deleted
+        session : AsyncSession
+            The session to be used
         """
         ...
 
     @abstractmethod
     async def update_transaction(
-        self, transaction: Transaction, fields: Optional[List[str]] = None
+        self,
+        transaction: Transaction,
+        session: AsyncSession,
+        fields: Optional[List[str]] = None,
     ) -> Transaction:
         """Update the specified fields of a transaction.
 
@@ -81,6 +99,8 @@ class TransactionStorageABC(ABC):
             The transaction to update
         fields : Optional[List[str]], optional
             The optional list of filters to update.  If None, updates full model, by default None
+        session : AsyncSession
+            The session to be used
 
         Returns
         -------

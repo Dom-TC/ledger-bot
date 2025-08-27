@@ -5,6 +5,7 @@ from typing import Any, Dict
 
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from .clients import ExtendedClient, ReactionRolesClient, TransactionsClient
 from .commands_dm import is_dm, process_dm
@@ -22,11 +23,13 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
         service: Service,
         scheduler: AsyncIOScheduler,
         reminders: ReminderManager,
+        session_factory: async_sessionmaker[AsyncSession],
     ) -> None:
         self.config = config
         self.service = service
         self.scheduler = scheduler
         self.reminders = reminders
+        self.session_factory = session_factory
 
         # We need a guild object for various uses but can't get the full guild object until the bot is connected and on_ready is called, so use this as a tempory object.
         self.guild = discord.Object(id=self.config["guild"])
@@ -48,6 +51,7 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
             scheduler=self.scheduler,
             service=self.service,
             reminders=self.reminders,
+            session_factory=self.session_factory,
         )
 
     async def on_ready(self) -> None:
