@@ -134,6 +134,13 @@ def generate_help_message(
                 "requires_admin": False,
             },
             {
+                "command": "/ping",
+                "args": [],
+                "description": "Returns a Pong",
+                "requires_dev": False,
+                "requires_admin": False,
+            },
+            {
                 "command": "/list",
                 "args": [],
                 "description": "Returns a list of your transactions",
