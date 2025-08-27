@@ -29,7 +29,7 @@ class TransactionStorage(TransactionStorageABC):
         self, transaction: Transaction, session: AsyncSession
     ) -> Transaction:
         log.info(
-            f"Adding transaction for {transaction.wine} between {transaction.buyer.username} and {transaction.seller.username}"
+            f"Adding transaction for {transaction.wine} between {transaction.buyer_id} and {transaction.seller_id}"
         )
         session.add(transaction)
         await session.flush()

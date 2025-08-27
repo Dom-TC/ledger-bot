@@ -15,7 +15,7 @@ from ledger_bot.errors import (
     TransactionCancelledError,
     TransactionInvalidBuyerError,
     TransactionInvalidMemberError,
-    TransactionInvalidSellerError,
+    TransactionServiceError,
 )
 from ledger_bot.models import Transaction
 from ledger_bot.storage import TransactionStorage
@@ -137,9 +137,8 @@ class TransactionService(ServiceHelpers):
         Transaction
             The transaction object
         """
-        log.info(
-            f"Saving transaction for {transaction.wine} between {transaction.buyer.username} and {transaction.seller.username}"
-        )
+        log.debug(transaction)
+        log.info(f"Saving transaction for {transaction.wine}")
         transaction.bot_id = self.bot_id
 
         async with self._get_session(session) as session:
@@ -160,6 +159,8 @@ class TransactionService(ServiceHelpers):
                     transaction=transaction, session=session
                 )
 
+            await session.commit()
+            await session.refresh(transaction)
             log.info(f"Transaction saved with id {transaction.id}")
             return transaction
 
@@ -239,28 +240,50 @@ class TransactionService(ServiceHelpers):
         TransactionInvalidBuyerError
             The specified buyer doesn't match the transaction buyer
         """
-        log.info(f"Approving transaction {transaction.id}")
+        async with self._get_session(session) as session:
+            if transaction.id is None:
+                log.exception("Transaction has no id. Ignoring")
+                raise TransactionServiceError
 
-        if transaction.cancelled:
-            log.info(
-                f"Ignoring approval from {reactor.name} on {transaction.id} - Transaction cancelled."
+            refreshed_transaction = await self.get_transaction(
+                transaction.id, session=session
             )
-            raise TransactionCancelledError(transaction=transaction)
 
-        if reactor.id != transaction.buyer_id:
-            log.info(
-                f"Ignoring approval from {reactor.name} on {transaction.id} - Reactor is not the buyer."
+            if refreshed_transaction is None:
+                log.exception("Refreshed transaction returned None")
+                raise TransactionServiceError
+
+            transaction = refreshed_transaction
+
+            log.info(f"Approving transaction {transaction.id}")
+
+            if transaction.cancelled:
+                log.info(
+                    f"Ignoring approval from {reactor.name} on {transaction.id} - Transaction cancelled."
+                )
+                raise TransactionCancelledError(transaction=transaction)
+
+            await session.refresh(transaction, attribute_names=["buyer", "seller"])
+
+            if reactor.id != transaction.buyer.discord_id:
+                log.info(
+                    f"Ignoring approval from {reactor.name} on {transaction.id} - Reactor is not the buyer."
+                )
+                raise TransactionInvalidBuyerError(
+                    transaction=transaction, member=reactor
+                )
+
+            transaction.sale_approved = True
+            transaction.approved_date = datetime.now(timezone.utc)
+            fields = ["sale_approved", "approved_date"]
+            log.debug(f"transaction: {transaction}")
+
+            saved_transaction = await self.save_transaction(
+                transaction=transaction, fields=fields, session=session
             )
-            raise TransactionInvalidBuyerError(transaction=transaction, member=reactor)
 
-        transaction.sale_approved = True
-        transaction.approved_date = datetime.now(timezone.utc)
-        fields = ["sale_approved", "approved_date"]
-        log.debug(f"transaction: {transaction}")
-
-        return await self.save_transaction(
-            transaction=transaction, fields=fields, session=session
-        )
+            await session.refresh(transaction, attribute_names=["buyer", "seller"])
+            return saved_transaction
 
     async def cancel_transaction(
         self,
@@ -474,7 +497,7 @@ class TransactionService(ServiceHelpers):
         Parameters
         ----------
         bot_message_id : int
-            The primary key of the bot message
+            The discord message_id of the bot message
         bot_message_service: BotMessageService
             An instance of the BotMessageService to do the lookup
         session : AsyncSession | None, optional
@@ -487,7 +510,7 @@ class TransactionService(ServiceHelpers):
         """
         # Get the BotMessage
         async with self._get_session(session) as session:
-            bot_message = await bot_message_service.get_bot_message(
+            bot_message = await bot_message_service.get_bot_message_by_message_id(
                 bot_message_id, session=session
             )
             if not bot_message:

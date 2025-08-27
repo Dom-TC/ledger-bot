@@ -3,8 +3,7 @@
 import logging
 from typing import List, Optional
 
-from sqlalchemy import delete, update
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import ColumnElement
 
@@ -28,7 +27,7 @@ class BotMessageStorage(BotMessageStorageABC):
     async def add_bot_message(
         self, bot_message: BotMessage, session: AsyncSession
     ) -> BotMessage:
-        log.info(f"Adding bot_message for {bot_message.transaction.id}")
+        log.info(f"Adding bot_message for {bot_message.transaction_id}")
         session.add(bot_message)
         await session.flush()
         await session.refresh(bot_message)
@@ -51,7 +50,7 @@ class BotMessageStorage(BotMessageStorageABC):
         self, bot_message: BotMessage, session: AsyncSession
     ) -> None:
         log.info(
-            f"Deleting bot_message id {bot_message.id} (transaction {bot_message.transaction.id})"
+            f"Deleting bot_message id {bot_message.id} (transaction {bot_message.transaction_id})"
         )
         await session.delete(bot_message)
         await session.flush()
