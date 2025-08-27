@@ -1,8 +1,8 @@
-"""Initial model.
+"""Initial revision.
 
-Revision ID: 2e8950fafe56
+Revision ID: 6735840016d6
 Revises:
-Create Date: 2025-08-26 22:14:09.709785
+Create Date: 2025-08-27 02:36:15.627182
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "2e8950fafe56"
+revision: str = "6735840016d6"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -89,10 +89,10 @@ def upgrade() -> None:
         sa.Column("seller_paid", sa.Integer(), nullable=True),
         sa.Column("cancelled", sa.Integer(), nullable=True),
         sa.Column("creation_date", sa.DateTime(), nullable=False),
-        sa.Column("approved_date", sa.DateTime(), nullable=False),
-        sa.Column("paid_date", sa.DateTime(), nullable=False),
-        sa.Column("delivered_date", sa.DateTime(), nullable=False),
-        sa.Column("cancelled_date", sa.DateTime(), nullable=False),
+        sa.Column("approved_date", sa.DateTime(), nullable=True),
+        sa.Column("paid_date", sa.DateTime(), nullable=True),
+        sa.Column("delivered_date", sa.DateTime(), nullable=True),
+        sa.Column("cancelled_date", sa.DateTime(), nullable=True),
         sa.Column("bot_id", sa.String(), nullable=False),
         sa.CheckConstraint(
             "price >= 0", name=op.f("ck_transactions_price_not_negative")

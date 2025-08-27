@@ -50,10 +50,10 @@ class Transaction(Base):
     creation_date: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.now(timezone.utc)
     )
-    approved_date: Mapped[datetime] = mapped_column(DateTime)
-    paid_date: Mapped[datetime] = mapped_column(DateTime)
-    delivered_date: Mapped[datetime] = mapped_column(DateTime)
-    cancelled_date: Mapped[datetime] = mapped_column(DateTime)
+    approved_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    paid_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    delivered_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    cancelled_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     bot_id: Mapped[str] = mapped_column(String)
 
     # Relationships
