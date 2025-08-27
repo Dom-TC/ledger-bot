@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from ledger_bot.process_dm import is_dm
+from ledger_bot.commands_dm import is_dm
 from tests.helpers import MockDMChannel, MockMessage, MockTextChannel
 
 

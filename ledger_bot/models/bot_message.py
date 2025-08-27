@@ -2,32 +2,38 @@
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Any, Dict, Optional
+
+from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from .base import Base
+
+if TYPE_CHECKING:
+    from .transaction import Transaction
 
 log = logging.getLogger(__name__)
 
 
-@dataclass
-class BotMessage:
-    record_id: str
-    row_id: str
-    bot_message_id: int
-    channel_id: int
-    guild_id: int
-    transaction_id: str
-    message_creation_date: str
-    bot_id: str
+class BotMessage(Base):
+    __tablename__ = "bot_messages"
 
-    @classmethod
-    def from_airtable(cls, data: Dict[str, Any]) -> "BotMessage":
-        fields = data["fields"]
-        return cls(
-            record_id=data["id"],
-            row_id=fields.get("row_id"),
-            bot_message_id=int(fields.get("bot_message_id")),
-            channel_id=int(fields.get("channel_id")),
-            guild_id=int(fields.get("guild_id")),
-            transaction_id=fields.get("transaction_id")[0],
-            message_creation_date=fields.get("message_creation_date"),
-            bot_id=fields.get("bot_id"),
-        )
+    id: Mapped[int] = mapped_column(  # noqa: A003
+        Integer, primary_key=True, autoincrement=True
+    )
+    message_id: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)
+    channel_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    guild_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    transaction_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("transactions.id"), nullable=False
+    )
+    creation_date: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.now(timezone.utc)
+    )
+    bot_id: Mapped[Optional[str]] = mapped_column(String)
+
+    # Relationships
+    transaction: Mapped["Transaction"] = relationship(
+        "Transaction", foreign_keys=[transaction_id], back_populates="bot_messages"
+    )

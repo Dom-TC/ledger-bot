@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from ledger_bot.models import Reminder
+from ledger_bot.models import ReminderAirtable
 
 
 @pytest.fixture
@@ -21,7 +21,7 @@ def sample_data():
 
 
 def test_reminder_creation(sample_data):
-    member = Reminder.from_airtable(sample_data)
+    member = ReminderAirtable.from_airtable(sample_data)
 
     assert member.record_id == "test-123"
     assert member.row_id == "1"
@@ -45,14 +45,14 @@ def test_reminder_creation_invalid_types():
 
 
 def test_to_airtable_with_default_fields(sample_data):
-    reminder_instance = Reminder.from_airtable(sample_data)
+    reminder_instance = ReminderAirtable.from_airtable(sample_data)
     airtable_data = reminder_instance.to_airtable()
 
     assert airtable_data == sample_data
 
 
 def test_to_airtable_with_custom_fields(sample_data):
-    reminder_instance = Reminder.from_airtable(sample_data)
+    reminder_instance = ReminderAirtable.from_airtable(sample_data)
     fields = ["date", "member_id", "status"]
     airtable_data = reminder_instance.to_airtable(fields=fields)
 

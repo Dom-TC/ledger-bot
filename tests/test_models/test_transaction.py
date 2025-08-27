@@ -3,7 +3,7 @@ from ast import literal_eval
 
 import pytest
 
-from ledger_bot.models import BotMessage, Reminder, Transaction
+from ledger_bot.models import BotMessageAirtable, ReminderAirtable, TransactionAirtable
 
 
 @pytest.fixture
@@ -38,18 +38,18 @@ def sample_transaction_data():
 
 @pytest.fixture
 def mock_bot_message(mocker):
-    mocked_bot_message = mocker.MagicMock(name="BotMessage", spec=BotMessage)
+    mocked_bot_message = mocker.MagicMock(name="BotMessage", spec=BotMessageAirtable)
     return mocked_bot_message
 
 
 @pytest.fixture
 def mock_reminder(mocker):
-    mocked_bot_message = mocker.MagicMock(name="Reminder", spec=Reminder)
+    mocked_bot_message = mocker.MagicMock(name="Reminder", spec=ReminderAirtable)
     return mocked_bot_message
 
 
 def test_transaction_creation(sample_transaction_data):
-    transaction = Transaction.from_airtable(sample_transaction_data)
+    transaction = TransactionAirtable.from_airtable(sample_transaction_data)
 
     assert transaction.record_id == "12345"
     assert transaction.row_id == "56789"
@@ -86,7 +86,7 @@ def test_transaction_creation_invalid_types():
 
 
 def test_to_airtable_with_default_fields(sample_transaction_data):
-    transaction_instance = Transaction.from_airtable(sample_transaction_data)
+    transaction_instance = TransactionAirtable.from_airtable(sample_transaction_data)
     airtable_data = transaction_instance.to_airtable()
 
     assert airtable_data == {
@@ -114,7 +114,7 @@ def test_to_airtable_with_default_fields(sample_transaction_data):
 
 def test_to_airtable_with_custom_fields(sample_transaction_data):
     fields = ["wine", "price"]
-    transaction_instance = Transaction.from_airtable(sample_transaction_data)
+    transaction_instance = TransactionAirtable.from_airtable(sample_transaction_data)
     airtable_data = transaction_instance.to_airtable(fields=fields)
 
     assert airtable_data == {
@@ -129,7 +129,7 @@ def test_to_airtable_with_custom_fields(sample_transaction_data):
 def test_to_airtable_with_bot_messages(mock_bot_message):
     mock_bot_message.record_id = "mocked_bot_record_id"
 
-    transaction_instance = Transaction(
+    transaction_instance = TransactionAirtable(
         record_id="12345",
         seller_id="123",
         buyer_id="456",
@@ -152,7 +152,7 @@ def test_to_airtable_with_bot_messages(mock_bot_message):
 def test_to_airtable_with_reminder(mock_reminder):
     mock_reminder.record_id = "mocked_reminder_record_id"
 
-    transaction_instance = Transaction(
+    transaction_instance = TransactionAirtable(
         record_id="12345",
         seller_id="123",
         buyer_id="456",
@@ -186,7 +186,7 @@ def test_from_airtable_minimal_fields():
         },
     }
 
-    transaction = Transaction.from_airtable(data)
+    transaction = TransactionAirtable.from_airtable(data)
 
     assert transaction.record_id == "12345"
     assert transaction.row_id == "56789"

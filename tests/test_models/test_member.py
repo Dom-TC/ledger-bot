@@ -1,6 +1,6 @@
 import pytest
 
-from ledger_bot.models import Member
+from ledger_bot.models import MemberAirtable
 
 
 def test_member_creation():
@@ -18,7 +18,7 @@ def test_member_creation():
         },
     }
 
-    member = Member.from_airtable(data)
+    member = MemberAirtable.from_airtable(data)
     assert member.record_id == "test-123"
     assert member.row_id == "1"
     assert member.username == "username"
@@ -41,10 +41,10 @@ def test_member_creation_invalid_types():
 
 
 def test_member_dislayname_has_nick():
-    member = Member(username="testing", discord_id=123, nickname="nick")
+    member = MemberAirtable(username="testing", discord_id=123, nickname="nick")
     assert member.display_name == "nick"
 
 
 def test_member_dislayname_no_nick():
-    member = Member(username="testing", discord_id=123)
+    member = MemberAirtable(username="testing", discord_id=123)
     assert member.display_name == "testing"

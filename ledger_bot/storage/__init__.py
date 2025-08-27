@@ -1,6 +1,17 @@
-"""Module for interacting with the AirTable database."""
+"""The storage layers."""
 
-from .airtable_storage import AirtableStorage
-from .reaction_roles_storage import ReactionRolesStorage
+from . import (
+    bot_message_storage,
+    member_storage,
+    reaction_role_storage,
+    reminder_storage,
+    storage,
+    transaction_storage,
+)
 
-__all__ = ["AirtableStorage", "ReactionRolesStorage"]
+Storage = storage.Storage
+BotMessageStorage = bot_message_storage.BotMessageStorage
+MemberStorage = member_storage.MemberStorage
+ReminderStorage = reminder_storage.ReminderStorage
+TransactionStorage = transaction_storage.TransactionStorage
+ReactionRoleStorage = reaction_role_storage.ReactionRoleStorage

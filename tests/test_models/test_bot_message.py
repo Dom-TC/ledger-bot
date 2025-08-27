@@ -1,6 +1,6 @@
 import pytest
 
-from ledger_bot.models import BotMessage
+from ledger_bot.models import BotMessageAirtable
 
 
 def test_bot_message_creation():
@@ -16,7 +16,7 @@ def test_bot_message_creation():
             "bot_id": "bot789",
         },
     }
-    bot_message = BotMessage.from_airtable(data)
+    bot_message = BotMessageAirtable.from_airtable(data)
 
     assert bot_message.record_id == "rec123"
     assert bot_message.row_id == "row123"
@@ -36,7 +36,7 @@ def test_bot_message_creation_missing_fields():
 def test_bot_message_creation_invalid_types():
     data = {"id": "rec123", "fields": {"bot_message_id": 987, "channel_id": 123}}
     with pytest.raises(TypeError) as excinfo:
-        BotMessage.from_airtable(data)
+        BotMessageAirtable.from_airtable(data)
 
     assert (
         str(excinfo.value)

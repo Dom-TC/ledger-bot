@@ -28,7 +28,7 @@ repos:
         args:
           - "--pytest-test-first"
   - repo: https://github.com/PyCQA/flake8
-    rev: 3.9.2
+    rev: 7.3.0
     hooks:
       - id: flake8
         additional_dependencies:
@@ -66,7 +66,6 @@ repos:
     hooks:
       - id: poetry-check
       - id: poetry-lock
-        language_version: python3.11
       - id: poetry-export
         args: ["-f", "requirements.txt", "-o", "requirements.txt", "--without-hashes"]
   - repo: https://github.com/asottile/pyupgrade

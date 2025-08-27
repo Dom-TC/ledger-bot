@@ -71,6 +71,7 @@ def default_config():
         },
         "cleanup_removes_transaction_records": False,
         "admin_role": 1184878800408948847,
+        "database_name": "ledger_bot.sql",
     }
 
 

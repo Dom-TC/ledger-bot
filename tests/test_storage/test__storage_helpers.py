@@ -1,7 +1,7 @@
 import pytest
 from aiohttp import ClientSession
 
-from ledger_bot.storage._storage_helpers import airtable_sleep, run_request
+from ledger_bot.storage_airtable._storage_helpers import airtable_sleep, run_request
 
 
 @pytest.mark.asyncio
