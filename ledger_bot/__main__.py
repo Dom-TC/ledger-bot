@@ -27,6 +27,7 @@ logging.getLogger("aiosqlite").setLevel(logging.INFO)
 logging.getLogger("urllib").setLevel(logging.CRITICAL)
 logging.getLogger("apscheduler.scheduler").setLevel(logging.INFO)
 logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+logging.getLogger("sqlalchemy.engine.Engine").setLevel(logging.WARNING)
 
 if os.getenv("LOG_TO_FILE") == "false":
     logging.info("LOG_TO_FILE is false, removing FileHandlers")

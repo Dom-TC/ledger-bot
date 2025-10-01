@@ -30,7 +30,7 @@ def _split_text_on_newline(text: str, chunk_length: int) -> List[str]:
 async def _get_latest_message_link(
     transaction: Transaction,
 ) -> str:
-    if transaction.bot_messages is None:
+    if not transaction.bot_messages:
         return ""
 
     message = transaction.bot_messages[-1]
@@ -83,11 +83,6 @@ async def _build_transaction_lists(
         is_paid = bool(transaction.buyer_paid) and bool(transaction.seller_paid)
         is_cancelled = bool(transaction.cancelled)
 
-        log.debug(f"Is Approved: {is_approved}")
-        log.debug(f"Is Delivered: {is_delivered}")
-        log.debug(f"Is Paid: {is_paid}")
-        log.debug(f"Is Cancelled: {is_cancelled}")
-
         # Generate link for last status message
         last_message_link = await _get_latest_message_link(transaction=transaction)
 
@@ -101,15 +96,12 @@ async def _build_transaction_lists(
 
         # Check whether the user is the buyer or seller
         if int(transaction.seller.discord_id) == user_id:
-            log.debug("User is seller")
             section = "selling"
             other_party = transaction.buyer.discord_id
         elif int(transaction.buyer.discord_id) == user_id:
-            log.debug("User is buyer")
             section = "buying"
             other_party = transaction.seller.discord_id
         else:
-            log.error("Section is unknown")
             section = "unknown"
             other_party = None
 
@@ -169,14 +161,18 @@ def _split_message(intro: str, purchases_content: str, sales_content: str) -> Li
         )
         output = [intro]
 
+        log.debug(f"Intro length {len(intro)}")
+        log.debug(f"Purchase length {len(purchases_content)}")
+        log.debug(f"Sale length {len(sales_content)}")
+
         if len(purchases_content) < 2000:
-            output.append(purchases_content)
+            if len(purchases_content) != 0:
+                output.append(purchases_content)
         else:
             # Further split purchases:
 
             # Remove first line (otherwise it's classed as it's own section and sent as a single message)
             purchases_content = purchases_content[15:]
-
             # Split on section title
             sections = re.split(r"\n(?=[A-Za-z ]+:)", purchases_content)
 
@@ -192,13 +188,13 @@ def _split_message(intro: str, purchases_content: str, sales_content: str) -> Li
                     output = output + sub_sections
 
         if len(sales_content) < 2000:
-            output.append(sales_content)
+            if len(sales_content) != 0:
+                output.append(sales_content)
         else:
             # Further split sales:
 
             # Remove first line (otherwise it's classed as it's own section and sent as a single message)
             sales_content = sales_content[11:]
-
             # Split on section title
             sections = re.split(r"\n(?=[A-Za-z ]+:)", sales_content)
 
