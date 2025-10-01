@@ -33,6 +33,25 @@ class ExtendedClient(discord.Client):
         else:
             return await self.fetch_user(user_id)
 
+    async def get_or_fetch_guild(self, guild_id: int) -> discord.Guild:
+        if guild := self.get_guild(guild_id):
+            return guild
+        else:
+            return await self.fetch_guild(guild_id)
+
+    async def get_or_fetch_member(
+        self, user: int | discord.User, guild: int | discord.Guild
+    ) -> discord.Member:
+        user_id = user.id if isinstance(user, discord.User) else user
+        guild_obj = (
+            await self.get_or_fetch_guild(guild) if isinstance(guild, int) else guild
+        )
+
+        if member := guild_obj.get_member(user_id):
+            return member
+        else:
+            return await guild_obj.fetch_member(user_id)
+
     async def is_admin_or_maintainer(self, user_id: int) -> bool:
         if isinstance(self.guild, discord.Guild):
             member = self.guild.get_member(user_id)

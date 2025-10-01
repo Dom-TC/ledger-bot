@@ -67,6 +67,8 @@ class TransactionsClient(ExtendedClient):
             log.debug("Payload contained no reactor. Ignoring payload.")
             return False
 
+        reactor = await self.service.member.get_or_add_member(reactor)
+
         if not isinstance(channel, discord.TextChannel):
             log.debug("Couldn't get channel information. Ignoring reaction.")
             return False
@@ -87,13 +89,13 @@ class TransactionsClient(ExtendedClient):
             and channel.name not in self.config["channels"]["include"]
         ):
             log.debug(
-                f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Channel not included"
+                f"Ignoring {payload.emoji.name} from {reactor.username} on message {payload.message_id} in {channel.name} - Channel not included"
             )
             return False
         else:
             if channel.name in self.config["channels"].get("exclude", []):
                 log.debug(
-                    f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Channel excluded"
+                    f"Ignoring {payload.emoji.name} from {reactor.username} on message {payload.message_id} in {channel.name} - Channel excluded"
                 )
                 return False
 
@@ -106,7 +108,7 @@ class TransactionsClient(ExtendedClient):
         )
         if target_transaction is None:
             log.debug(
-                f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Invalid target message"
+                f"Ignoring {payload.emoji.name} from {reactor.username} on message {payload.message_id} in {channel.name} - Invalid target message"
             )
             return False
 
@@ -120,7 +122,7 @@ class TransactionsClient(ExtendedClient):
             channel_obj=channel,
         )
 
-        # Get buyer & seller discord.Member objects
+        # Get buyer & seller Member
         buyer = await self.service.member.get_member_from_record_id(
             target_transaction.buyer_id
         )
@@ -133,7 +135,6 @@ class TransactionsClient(ExtendedClient):
             )
             log.debug("No buyer found")
             return False
-        buyer = await self.get_or_fetch_user(buyer.discord_id)
 
         seller = await self.service.member.get_member_from_record_id(
             target_transaction.seller_id
@@ -147,12 +148,11 @@ class TransactionsClient(ExtendedClient):
             )
             log.debug("No seller found")
             return False
-        seller = await self.get_or_fetch_user(seller.discord_id)
 
         # Check if buyer or seller
         if reactor.id != buyer.id and reactor.id != seller.id:
             log.debug(
-                f"Ignoring {payload.emoji.name} from {reactor.name} on message {payload.message_id} in {channel.name} - Reactor is neither buyer nor seller"
+                f"Ignoring {payload.emoji.name} from {reactor.username} on message {payload.message_id} in {channel.name} - Reactor is neither buyer nor seller"
             )
             await remove_reaction(
                 client=self,
@@ -161,15 +161,28 @@ class TransactionsClient(ExtendedClient):
             )
             return False
 
+        return await self._process_transaction_reaction(
+            payload=payload,
+            reactor=reactor,
+            target_transaction=target_transaction,
+            buyer=buyer,
+            seller=seller,
+            channel=channel,
+        )
+
+    async def _process_transaction_reaction(
+        self, payload, reactor, target_transaction, buyer, seller, channel
+    ) -> bool:
+
         # Process reaction
         log.info(
-            f"Processing {payload.emoji.name} from {reactor.name} on message {payload.message_id}"
+            f"Processing {payload.emoji.name} from {reactor.username} on message {payload.message_id}"
         )
 
         if payload.emoji.name == self.config["emojis"]["approval"]:
             # Approval
             log.info(
-                f"Processing approval reaction from {reactor.name} on message {payload.message_id}"
+                f"Processing approval reaction from {reactor.username} on message {payload.message_id}"
             )
 
             processed_transaction = await self.service.transaction.approve_transaction(
@@ -195,7 +208,7 @@ class TransactionsClient(ExtendedClient):
         elif payload.emoji.name == self.config["emojis"]["paid"]:
             # Paid
             log.info(
-                f"Processing payment reaction from {reactor.name} on message {payload.message_id}"
+                f"Processing payment reaction from {reactor.username} on message {payload.message_id}"
             )
 
             processed_transaction = (
@@ -223,7 +236,7 @@ class TransactionsClient(ExtendedClient):
         elif payload.emoji.name == self.config["emojis"]["delivered"]:
             # Delivered
             log.info(
-                f"Processing delivered reaction from {reactor.name} on message {payload.message_id}"
+                f"Processing delivered reaction from {reactor.username} on message {payload.message_id}"
             )
 
             processed_transaction = (
@@ -251,7 +264,7 @@ class TransactionsClient(ExtendedClient):
         elif payload.emoji.name == self.config["emojis"]["cancel"]:
             # Cancelled
             log.info(
-                f"Processing cancel reaction from {reactor.name} on message {payload.message_id}"
+                f"Processing cancel reaction from {reactor.username} on message {payload.message_id}"
             )
 
             processed_transaction = await self.service.transaction.cancel_transaction(
@@ -277,14 +290,31 @@ class TransactionsClient(ExtendedClient):
         elif payload.emoji.name == self.config["emojis"]["reminder"]:
             # Watch
             log.info(
-                f"Processing reminder reaction from {reactor.name} on message {payload.message_id}"
+                f"Processing reminder reaction from {reactor.username} on message {payload.message_id}"
             )
-            await reactor.send(
-                content=f'Click here to add a reminder for "*{target_transaction.wine}*" from {buyer.mention} to {seller.mention} for £{target_transaction.price}',
+
+            if not isinstance(self.guild, discord.Guild):
+                # This is only to fix typing errors. As soon as the client is running, self.guild will be a discord.Guild object
+                log.error(f"guild is invalid: {self.guild} / {type(self.guild)}")
+                await remove_reaction(
+                    client=self,
+                    message_id=payload.message_id,
+                    reaction=self.config["emojis"]["thinking"],
+                    channel_obj=channel,
+                )
+                return False
+
+            reactor_user = await self.get_or_fetch_member(
+                reactor.discord_id, guild=self.guild
+            )
+            seller_user = await self.get_or_fetch_user(seller.discord_id)
+            buyer_user = await self.get_or_fetch_user(buyer.discord_id)
+            await reactor_user.send(
+                content=f'Click here to add a reminder for "*{target_transaction.wine}*" from {buyer_user.mention} to {seller_user.mention} for £{target_transaction.price}',
                 view=CreateReminderButton(
                     service=self.service,
                     transaction=target_transaction,
-                    user=reactor,
+                    user=reactor_user,
                     reminders=self.reminders,
                 ),
             )

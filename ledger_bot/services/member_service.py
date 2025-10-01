@@ -47,10 +47,10 @@ class MemberService(ServiceHelpers):
             The Member object
         """
         async with self._get_session(session) as session:
-            reminder = await self.member_storage.get_member(
+            member = await self.member_storage.get_member(
                 record_id=record_id, session=session
             )
-            return reminder
+            return member
 
     @cached(LRUCache(maxsize=64))
     async def get_or_add_member(

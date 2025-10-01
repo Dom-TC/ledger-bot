@@ -4,7 +4,7 @@ from typing import Optional
 
 from discord import Member as DiscordMember
 
-from ledger_bot.models import Transaction
+from ledger_bot.models import Member, Transaction
 
 
 class ServiceError(Exception):
@@ -44,7 +44,7 @@ class TransactionApprovedError(TransactionServiceError):
 class TransactionInvalidBuyerError(TransactionServiceError):
     """The specified buyer isn't the correct buyer for the transaction."""
 
-    def __init__(self, transaction: Transaction, member: DiscordMember, *args: object):
+    def __init__(self, transaction: Transaction, member: Member, *args: object):
         self.transaction = transaction
         self.member = member
         super().__init__(transaction, *args)
@@ -56,7 +56,7 @@ class TransactionInvalidBuyerError(TransactionServiceError):
 class TransactionInvalidSellerError(TransactionServiceError):
     """The specified seller isn't the correct seller for the transaction."""
 
-    def __init__(self, transaction: Transaction, member: DiscordMember, *args: object):
+    def __init__(self, transaction: Transaction, member: Member, *args: object):
         self.transaction = transaction
         self.member = member
         super().__init__(transaction, *args)
@@ -68,7 +68,7 @@ class TransactionInvalidSellerError(TransactionServiceError):
 class TransactionInvalidMemberError(TransactionServiceError):
     """The specified member isn't involved in the transaction."""
 
-    def __init__(self, transaction: Transaction, member: DiscordMember, *args: object):
+    def __init__(self, transaction: Transaction, member: Member, *args: object):
         self.transaction = transaction
         self.member = member
         super().__init__(transaction, *args)

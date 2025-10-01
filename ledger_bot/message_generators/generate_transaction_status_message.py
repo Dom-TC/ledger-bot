@@ -111,8 +111,11 @@ async def generate_transaction_status_message(
         paid_decleration = f"Paid:           {config['emojis']['status_cancelled']}"
         delivered_decleration = f"Delivered: {config['emojis']['status_cancelled']}"
 
-    if transaction.sale_approved is False and transaction.cancelled is False:
+    log.debug(f"approved: {transaction.sale_approved}")
+    log.debug(f"cancelled: {transaction.cancelled}")
+    if not transaction.sale_approved and not transaction.cancelled:
         cancel_message = f"*To cancel this transaction, please react with {config['emojis']['cancel']}*\n"
+        log.debug(f"Should display cancel_message - {cancel_message}")
     else:
         cancel_message = ""
 
@@ -122,7 +125,7 @@ async def generate_transaction_status_message(
         reminder_message = ""
 
     if transaction.id:
-        footer_message = f"\n-# Transaction ID: {str(transaction.id)}"
+        footer_message = f"-# Transaction ID: {str(transaction.id)}"
     else:
         footer_message = ""
 

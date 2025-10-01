@@ -17,7 +17,7 @@ from ledger_bot.errors import (
     TransactionInvalidMemberError,
     TransactionServiceError,
 )
-from ledger_bot.models import Transaction
+from ledger_bot.models import Member, Transaction
 from ledger_bot.storage import TransactionStorage
 
 from .bot_message_service import BotMessageService
@@ -214,7 +214,7 @@ class TransactionService(ServiceHelpers):
     async def approve_transaction(
         self,
         transaction: Transaction,
-        reactor: DiscordMember,
+        reactor: Member,
         session: AsyncSession | None = None,
     ) -> Transaction:
         """Approve the specified transaction.
@@ -223,7 +223,7 @@ class TransactionService(ServiceHelpers):
         ----------
         transaction : Transaction
             The transaction to be approved
-        reactor : DiscordMember
+        reactor : Member
             The member who made the reaction
         session : AsyncSession | None, optional
             An optional session, by default None
@@ -259,15 +259,15 @@ class TransactionService(ServiceHelpers):
 
             if transaction.cancelled:
                 log.info(
-                    f"Ignoring approval from {reactor.name} on {transaction.id} - Transaction cancelled."
+                    f"Ignoring approval from {reactor.username} on {transaction.id} - Transaction cancelled."
                 )
                 raise TransactionCancelledError(transaction=transaction)
 
             await session.refresh(transaction, attribute_names=["buyer", "seller"])
 
-            if reactor.id != transaction.buyer.discord_id:
+            if reactor.id != transaction.buyer_id:
                 log.info(
-                    f"Ignoring approval from {reactor.name} on {transaction.id} - Reactor is not the buyer."
+                    f"Ignoring approval from {reactor.username} on {transaction.id} - Reactor is not the buyer."
                 )
                 raise TransactionInvalidBuyerError(
                     transaction=transaction, member=reactor
@@ -288,7 +288,7 @@ class TransactionService(ServiceHelpers):
     async def cancel_transaction(
         self,
         transaction: Transaction,
-        reactor: DiscordMember,
+        reactor: Member,
         session: AsyncSession | None = None,
     ) -> Transaction:
         """Cancel the specified transaction.
@@ -297,7 +297,7 @@ class TransactionService(ServiceHelpers):
         ----------
         transaction : Transaction
             The transaction to be cancelled
-        reactor : DiscordMember
+        reactor : Member
             The member who made the reaction
         session : AsyncSession | None, optional
             An optional session, by default None
@@ -314,33 +314,51 @@ class TransactionService(ServiceHelpers):
         TransactionInvalidMemberError
             The member wasn't involved in the transaction
         """
-        log.info(f"Cancelling transaction {transaction.id}")
+        async with self._get_session(session) as session:
+            log.info(f"Cancelling transaction {transaction.id}")
 
-        if transaction.sale_approved:
-            log.info(
-                f"Ignoring cancellation of {transaction.id}. Transaction already approved."
+            refreshed_transaction = await self.get_transaction(
+                transaction.id, session=session
             )
-            raise TransactionApprovedError(transaction=transaction)
 
-        if (reactor.id != transaction.buyer_id) and (
-            reactor.id != transaction.seller_id
-        ):
-            log.info(f"Ignoring cancellation of {transaction.id} from invalid member")
-            raise TransactionInvalidMemberError(transaction=transaction, member=reactor)
+            if refreshed_transaction is None:
+                log.exception("Refreshed transaction returned None")
+                raise TransactionServiceError
 
-        transaction.cancelled = True
-        transaction.cancelled_date = datetime.now(timezone.utc)
-        fields = ["cancelled", "cancelled_date"]
-        log.debug(f"transaction: {transaction}")
+            transaction = refreshed_transaction
 
-        return await self.save_transaction(
-            transaction=transaction, fields=fields, session=session
-        )
+            if transaction.sale_approved:
+                log.info(
+                    f"Ignoring cancellation of {transaction.id}. Transaction already approved."
+                )
+                raise TransactionApprovedError(transaction=transaction)
+
+            if (reactor.id != transaction.buyer_id) and (
+                reactor.id != transaction.seller_id
+            ):
+                log.info(
+                    f"Ignoring cancellation of {transaction.id} from invalid member"
+                )
+                raise TransactionInvalidMemberError(
+                    transaction=transaction, member=reactor
+                )
+
+            transaction.cancelled = True
+            transaction.cancelled_date = datetime.now(timezone.utc)
+            fields = ["cancelled", "cancelled_date"]
+            log.debug(f"transaction: {transaction}")
+
+            transaction = await self.save_transaction(
+                transaction=transaction, fields=fields, session=session
+            )
+
+            await session.refresh(transaction, attribute_names=["buyer", "seller"])
+            return transaction
 
     async def mark_transaction_delivered(
         self,
         transaction: Transaction,
-        reactor: DiscordMember,
+        reactor: Member,
         session: AsyncSession | None = None,
     ) -> Transaction:
         """Mark the transaction as delivered.
@@ -349,7 +367,7 @@ class TransactionService(ServiceHelpers):
         ----------
         transaction : Transaction
             The transaction to be updated
-        reactor : DiscordMember
+        reactor : Member
             The member who made the reaction
         session : AsyncSession | None, optional
             An optional session, by default None
@@ -366,55 +384,73 @@ class TransactionService(ServiceHelpers):
         TransactionInvalidMemberError
             The member wasn't involved in the transaction
         """
-        log.info(f"Marking transaction {transaction.id} as delivered by {reactor.id}")
-
-        if transaction.cancelled:
-            log.info(f"Transaction {transaction.id} alrady cancelled")
-            raise TransactionCancelledError(transaction=transaction)
-
-        if reactor.id == transaction.buyer_id:
-            is_buyer = True
-            log.info("Processing buyer marked delivered")
-        elif reactor.id == transaction.seller_id:
-            is_buyer = False
-            log.info("Processing seller marked delivered")
-        else:
+        async with self._get_session(session) as session:
             log.info(
-                f"Ignoring marking delivered of {transaction.id} from invalid member"
+                f"Marking transaction {transaction.id} as delivered by {reactor.id}"
             )
-            raise TransactionInvalidMemberError(transaction=transaction, member=reactor)
 
-        if is_buyer and transaction.buyer_delivered:
-            log.info("Ignoring. Buyer already marked as delivered")
+            refreshed_transaction = await self.get_transaction(
+                transaction.id, session=session
+            )
+
+            if refreshed_transaction is None:
+                log.exception("Refreshed transaction returned None")
+                raise TransactionServiceError
+
+            transaction = refreshed_transaction
+
+            if transaction.cancelled:
+                log.info(f"Transaction {transaction.id} alrady cancelled")
+                raise TransactionCancelledError(transaction=transaction)
+
+            if reactor.id == transaction.buyer_id:
+                is_buyer = True
+                log.info("Processing buyer marked delivered")
+            elif reactor.id == transaction.seller_id:
+                is_buyer = False
+                log.info("Processing seller marked delivered")
+            else:
+                log.info(
+                    f"Ignoring marking delivered of {transaction.id} from invalid member"
+                )
+                raise TransactionInvalidMemberError(
+                    transaction=transaction, member=reactor
+                )
+
+            if is_buyer and transaction.buyer_delivered:
+                log.info("Ignoring. Buyer already marked as delivered")
+                return transaction
+            elif is_buyer is False and transaction.seller_delivered:
+                log.info("Ignoring. Seller already marked as delivered")
+                return transaction
+
+            # Start with empty list so we can add fields as we go
+            fields = []
+
+            if is_buyer:
+                fields.append("buyer_delivered")
+                transaction.buyer_delivered = True
+            else:
+                fields.append("seller_delivered")
+                transaction.seller_delivered = True
+
+            if transaction.buyer_delivered and transaction.seller_delivered:
+                transaction.delivered_date = datetime.now(timezone.utc)
+                fields.append("delivered_date")
+
+            log.debug(f"Transaction: {transaction}")
+
+            transaction = await self.save_transaction(
+                transaction=transaction, fields=fields, session=session
+            )
+
+            await session.refresh(transaction, attribute_names=["buyer", "seller"])
             return transaction
-        elif is_buyer is False and transaction.seller_delivered:
-            log.info("Ignoring. Seller already marked as delivered")
-            return transaction
-
-        # Start with empty list so we can add fields as we go
-        fields = []
-
-        if is_buyer:
-            fields.append("buyer_delivered")
-            transaction.buyer_delivered = True
-        else:
-            fields.append("seller_delivered")
-            transaction.seller_delivered = True
-
-        if transaction.buyer_delivered and transaction.seller_delivered:
-            transaction.delivered_date = datetime.now(timezone.utc)
-            fields.append("delivered_date")
-
-        log.debug(f"Transaction: {transaction}")
-
-        return await self.save_transaction(
-            transaction=transaction, fields=fields, session=session
-        )
 
     async def mark_transaction_paid(
         self,
         transaction: Transaction,
-        reactor: DiscordMember,
+        reactor: Member,
         session: AsyncSession | None = None,
     ) -> Transaction:
         """Mark the transaction as paid.
@@ -423,7 +459,7 @@ class TransactionService(ServiceHelpers):
         ----------
         transaction : Transaction
             The transaction to be updated
-        reactor : DiscordMember
+        reactor : Member
             The member who made the reaction
         session : AsyncSession | None, optional
             An optional session, by default None
@@ -440,50 +476,70 @@ class TransactionService(ServiceHelpers):
         TransactionInvalidMemberError
             The member wasn't involved in the transaction
         """
-        log.info(f"Marking transaction {transaction.id} as paid by {reactor.id}")
+        async with self._get_session(session) as session:
+            log.info(f"Marking transaction {transaction.id} as paid by {reactor.id}")
 
-        if transaction.cancelled:
-            log.info(f"Transaction {transaction.id} alrady cancelled")
-            raise TransactionCancelledError(transaction=transaction)
-
-        if reactor.id == transaction.buyer_id:
-            is_buyer = True
-            log.info("Processing buyer marked paid")
-        elif reactor.id == transaction.seller_id:
-            is_buyer = False
-            log.info("Processing seller marked paid")
-        else:
-            log.info(
-                f"Ignoring marking payment of {transaction.id} from invalid member"
+            refreshed_transaction = await self.get_transaction(
+                transaction.id, session=session
             )
-            raise TransactionInvalidMemberError(transaction=transaction, member=reactor)
 
-        if is_buyer and transaction.buyer_paid:
-            log.info("Ignoring. Buyer already marked as paid")
+            if refreshed_transaction is None:
+                log.exception("Refreshed transaction returned None")
+                raise TransactionServiceError
+
+            transaction = refreshed_transaction
+
+            if transaction.cancelled:
+                log.info(f"Transaction {transaction.id} alrady cancelled")
+                raise TransactionCancelledError(transaction=transaction)
+
+            log.debug(f"Reactor ID: {reactor.id}")
+            log.debug(f"Buyer ID: {transaction.buyer_id}")
+            log.debug(f"Seller ID: {transaction.seller_id}")
+
+            if reactor.id == transaction.buyer_id:
+                is_buyer = True
+                log.info("Processing buyer marked paid")
+            elif reactor.id == transaction.seller_id:
+                is_buyer = False
+                log.info("Processing seller marked paid")
+            else:
+                log.info(
+                    f"Ignoring marking payment of {transaction.id} from invalid member"
+                )
+                raise TransactionInvalidMemberError(
+                    transaction=transaction, member=reactor
+                )
+
+            if is_buyer and transaction.buyer_paid:
+                log.info("Ignoring. Buyer already marked as paid")
+                return transaction
+            elif is_buyer is False and transaction.seller_paid:
+                log.info("Ignoring. Seller already marked as paid")
+                return transaction
+
+            # Start with empty list so we can add fields as we go
+            fields = []
+
+            if is_buyer:
+                fields.append("buyer_paid")
+                transaction.buyer_paid = True
+            else:
+                fields.append("seller_paid")
+                transaction.seller_paid = True
+
+            if transaction.buyer_paid and transaction.seller_paid:
+                transaction.paid_date = datetime.now(timezone.utc)
+                fields.append("paid_date")
+
+            log.debug(f"Transaction: {transaction}")
+
+            transaction = await self.save_transaction(
+                transaction=transaction, fields=fields, session=session
+            )
+
+            await session.refresh(transaction, attribute_names=["buyer", "seller"])
             return transaction
-        elif is_buyer is False and transaction.seller_paid:
-            log.info("Ignoring. Seller already marked as paid")
-            return transaction
-
-        # Start with empty list so we can add fields as we go
-        fields = []
-
-        if is_buyer:
-            fields.append("buyer_paid")
-            transaction.buyer_paid = True
-        else:
-            fields.append("seller_paid")
-            transaction.seller_paid = True
-
-        if transaction.buyer_paid and transaction.seller_paid:
-            transaction.paid_date = datetime.now(timezone.utc)
-            fields.append("paid_date")
-
-        log.debug(f"Transaction: {transaction}")
-
-        return await self.save_transaction(
-            transaction=transaction, fields=fields, session=session
-        )
 
     async def get_transaction_by_bot_message_id(
         self,
