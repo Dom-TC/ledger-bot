@@ -35,6 +35,13 @@ async def command_list(
             sell_transactions = member.selling_transactions
 
             transactions = buy_transactions + sell_transactions
+
+            # Load bot_messages for each transaction
+            for tx in transactions:
+                await session.refresh(
+                    tx, attribute_names=["seller", "buyer", "bot_messages"]
+                )
+
     except AirTableError as error:
         log.error(f"There was an error processing the AirTable request: {error}")
         await dm_channel.send("An unexpected error occured.")
