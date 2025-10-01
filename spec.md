@@ -225,3 +225,5 @@ REACTIONROLE
 1. Move to single `MessageGenerators` class? At least switch to just passing in Transaction object
 1. Consolidate dm and slash commands?
 1. Implement events system
+1. Add `/lookup` command - shows a users history (don't include prices or wine details)
+1. Add schedule to automatically delete events channels. Post one month after event date giving two weeks notice. Let user react or comment to stop. If no response, delete in a further two weeks
