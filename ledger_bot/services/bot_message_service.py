@@ -2,6 +2,7 @@
 
 import logging
 from datetime import datetime, timezone
+from typing import List
 
 from asyncache import cached
 from discord import Message
@@ -149,3 +150,16 @@ class BotMessageService(ServiceHelpers):
                 bot_message, session=session
             )
             await session.commit()
+
+    async def get_bot_messages_by_transaction_id(
+        self, transaction_id: int, session: AsyncSession | None = None
+    ) -> List[BotMessage] | None:
+        """Get all the bot messages for a given transaction id."""
+        log.debug(f"Getting bot messages for transaction {transaction_id}")
+
+        async with self._get_session(session) as session:
+            messages = await self.bot_message_storage.list_bot_message(
+                BotMessage.transaction_id == transaction_id,
+                session=session,
+            )
+            return messages

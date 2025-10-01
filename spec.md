@@ -224,9 +224,8 @@ REACTIONROLE
 1. Test / Fix / Update existing commands to work with SQLite
    1. /add_role
    2. !dev refresh_reminders
-   3. !dev refresh_message
-   4. schedule.cleanup
-   5. reminders
+   3. schedule.cleanup
+   4. reminders
 1. Add `/going_dark` and `/welcome_back` commands. `going_dark` should post that its about to be stopped for maintenence, finish all processes and shut bot down. `welcome_back` should post that it's back online, include current bot version, alembic version, and latency.
 1. Move to single `MessageGenerators` class? At least switch to just passing in Transaction object
 1. Consolidate dm and slash commands?

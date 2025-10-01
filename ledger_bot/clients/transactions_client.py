@@ -8,7 +8,12 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ledger_bot.commands_scheduled import cleanup
-from ledger_bot.errors import TransactionApprovedError, TransactionCancelledError
+from ledger_bot.errors import (
+    TransactionApprovedError,
+    TransactionCancelledError,
+    TransactionInvalidBuyerError,
+    TransactionInvalidSellerError,
+)
 from ledger_bot.message_generators import (
     generate_transaction_status_message,
     send_message,
@@ -192,7 +197,11 @@ class TransactionsClient(ExtendedClient):
                         transaction=target_transaction, reactor=reactor
                     )
                 )
-            except TransactionCancelledError:
+            except (
+                TransactionCancelledError,
+                TransactionInvalidBuyerError,
+                TransactionInvalidSellerError,
+            ):
                 await remove_reaction(
                     client=self,
                     message_id=payload.message_id,
@@ -399,6 +408,8 @@ class TransactionsClient(ExtendedClient):
         )
 
         # Delete all previous bot messages, if they exist
+        log.debug(f"Bot Messages: {bot_messages}")
+
         if bot_messages is not None:
             for bot_message in bot_messages:
                 log.debug(f"Message: {bot_message}")

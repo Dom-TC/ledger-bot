@@ -20,11 +20,20 @@ class TransactionStorage(TransactionStorageABC):
     """SQLite implementation of TransactionStorageABC."""
 
     async def get_transaction(
-        self, record_id: int, session: AsyncSession
+        self,
+        record_id: int,
+        session: AsyncSession,
+        options: Optional[List] = None,
     ) -> Optional[Transaction]:
         log.info(f"Getting transaction with record_id {record_id}")
-        result: Transaction | None = await session.get(Transaction, record_id)
-        return result
+
+        query = select(Transaction).where(Transaction.id == record_id)
+
+        if options:
+            query = query.options(*options)
+
+        result = await session.execute(query)
+        return result.scalar_one_or_none()
 
     async def add_transaction(
         self, transaction: Transaction, session: AsyncSession

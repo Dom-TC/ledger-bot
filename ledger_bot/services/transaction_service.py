@@ -2,13 +2,14 @@
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import List
+from typing import List, Optional
 
 from asyncache import cached
 from cachetools import LRUCache
 from discord import Member as DiscordMember
 from sqlalchemy import and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.orm import selectinload
 
 from ledger_bot.errors import (
     TransactionApprovedError,
@@ -39,7 +40,10 @@ class TransactionService(ServiceHelpers):
         super().__init__(session_factory)
 
     async def get_transaction(
-        self, record_id: int, session: AsyncSession | None = None
+        self,
+        record_id: int,
+        session: AsyncSession | None = None,
+        options: Optional[List] = None,
     ) -> Transaction | None:
         """Get a transaction with the given record_id.
 
@@ -57,7 +61,13 @@ class TransactionService(ServiceHelpers):
         """
         async with self._get_session(session) as session:
             transaction = await self.transaction_storage.get_transaction(
-                record_id=record_id, session=session
+                record_id=record_id,
+                session=session,
+                options=[
+                    selectinload(Transaction.bot_messages),
+                    selectinload(Transaction.buyer),
+                    selectinload(Transaction.seller),
+                ],
             )
             return transaction
 
