@@ -70,7 +70,7 @@ async def command_new_split(
 
     # Discord Interactions need to be responded to in <3s or they time out.  We take longer, so defer the interaction.
     # We can't dynamically choose whether the response will be ephemeral or not, so this has to be after the above channel checks, or they can't be emphemeral.
-    await interaction.response.defer()
+    await interaction.response.defer(ephemeral=True)
 
     log.info("Processing split...")
 
@@ -96,33 +96,40 @@ async def command_new_split(
             )
             return
 
-        log.info(f"Getting / adding seller: {interaction.user}")
-        seller_record = await client.service.member.get_or_add_member(interaction.user)
-        log.info(f"Getting / adding buyer: {buyer}")
-        buyer_record = await client.service.member.get_or_add_member(buyer)
+        async with client.session_factory() as session:
+            log.info(f"Getting / adding seller: {interaction.user}")
+            seller_record = await client.service.member.get_or_add_member(
+                interaction.user
+            )
+            log.info(f"Getting / adding buyer: {buyer}")
+            buyer_record = await client.service.member.get_or_add_member(buyer)
 
-        # Build Transaction object from provided data
-        transaction = Transaction(
-            seller_id=seller_record.id,
-            buyer_id=buyer_record.id,
-            wine=wine_name,
-            price=price,
-            sale_approved=False,
-            buyer_delivered=False,
-            seller_delivered=False,
-            buyer_paid=False,
-            seller_paid=False,
-            cancelled=False,
-            creation_date=datetime.datetime.now(datetime.timezone.utc),
-        )
+            # Build Transaction object from provided data
+            transaction = Transaction(
+                seller_id=seller_record.id,
+                buyer_id=buyer_record.id,
+                wine=wine_name,
+                price=price,
+                sale_approved=False,
+                buyer_delivered=False,
+                seller_delivered=False,
+                buyer_paid=False,
+                seller_paid=False,
+                cancelled=False,
+                creation_date=datetime.datetime.now(datetime.timezone.utc),
+            )
 
-        # Format price to 2dp
-        price = float("{:.2f}".format(price))
-        log.debug(f"{price=}, {type(price)}")
+            # Format price to 2dp
+            price = float("{:.2f}".format(price))
+            log.debug(f"{price=}, {type(price)}")
 
-        transaction_record = await client.service.transaction.save_transaction(
-            transaction=transaction
-        )
+            transaction_record = await client.service.transaction.save_transaction(
+                transaction=transaction, session=session
+            )
+
+            await session.refresh(
+                transaction_record, attribute_names=["buyer", "seller"]
+            )
 
         response_contents = await generate_transaction_status_message(
             transaction=transaction_record,
