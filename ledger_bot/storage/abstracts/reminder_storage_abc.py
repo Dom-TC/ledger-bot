@@ -1,4 +1,5 @@
 """The abstraction interface for reminder_storage."""
+
 from abc import ABC, abstractmethod
 from typing import AsyncGenerator, List, Optional
 

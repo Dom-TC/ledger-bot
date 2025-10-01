@@ -1,4 +1,5 @@
 """The abstraction interface for reaction_role_storage."""
+
 from abc import ABC, abstractmethod
 from typing import List, Optional
 

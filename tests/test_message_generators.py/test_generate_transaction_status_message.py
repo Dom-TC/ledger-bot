@@ -84,7 +84,7 @@ def test_generate_new_transaction_message_paramatise_price(
         wine_name=wine_name,
         wine_price=price,
         config=emoji_config,
-        transaction_id=transaction_id
+        transaction_id=transaction_id,
     )
 
     assert "New Sale Listed" in result
@@ -119,7 +119,7 @@ def test_generate_new_transaction_message_approved(emoji_config):
         config=emoji_config,
         is_approved=True,
         is_update=True,
-        transaction_id=transaction_id
+        transaction_id=transaction_id,
     )
 
     assert "Sale Updated" in result
@@ -259,7 +259,7 @@ def test_generate_new_transaction_completed(emoji_config):
         is_marked_delivered_by_seller=True,
         is_marked_paid_by_buyer=True,
         is_marked_paid_by_seller=True,
-        transaction_id=transaction_id
+        transaction_id=transaction_id,
     )
 
     assert "Sale Completed" in result

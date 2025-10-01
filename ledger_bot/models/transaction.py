@@ -1,4 +1,5 @@
 """The data model for a record in the `wines` table."""
+
 import logging
 from ast import literal_eval
 from dataclasses import dataclass

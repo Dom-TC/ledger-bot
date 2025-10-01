@@ -85,9 +85,11 @@ class MemberService(ServiceHelpers):
                 member_object = Member(
                     username=discord_member.name,
                     discord_id=discord_member.id,
-                    nickname=discord_member.nick
-                    if type(discord_member) is DiscordMember
-                    else None,
+                    nickname=(
+                        discord_member.nick
+                        if type(discord_member) is DiscordMember
+                        else None
+                    ),
                     bot_id=self.bot_id,
                 )
 
