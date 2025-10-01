@@ -30,6 +30,7 @@ from .services import (
     ReactionRoleService,
     ReminderService,
     Service,
+    StatsService,
     TransactionService,
 )
 from .storage import (
@@ -102,6 +103,9 @@ def start_bot() -> None:
         ),
         reaction_role=ReactionRoleService(
             storage.reaction_role, config["name"], session_factory=db_session_factory
+        ),
+        stats=StatsService(
+            storage.transaction, config["name"], session_factory=db_session_factory
         ),
     )
 

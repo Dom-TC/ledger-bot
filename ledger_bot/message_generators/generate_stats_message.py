@@ -3,9 +3,7 @@
 import logging
 from typing import List
 
-import pandas as pd
-
-from ledger_bot.models import Transaction
+from ledger_bot.models import Stats
 from ledger_bot.services import Service
 
 log = logging.getLogger(__name__)
@@ -21,345 +19,132 @@ def _pluralise_word(qty: int, word: str) -> str:
     return f"{word}s" if qty != 1 else word
 
 
-def _build_dataframe(transactions: List[Transaction]) -> pd.DataFrame:
-    log.debug("Generating dataframe")
-    transactions_df = pd.DataFrame(
-        [transaction.__dict__ for transaction in transactions]
-    )
-
-    # Convert string to float
-    transactions_df["price"] = pd.to_numeric(transactions_df["price"], errors="coerce")
-
-    # Convert strings to boolean
-    transactions_df["sale_approved"] = transactions_df["sale_approved"].astype(bool)
-    transactions_df["buyer_marked_delivered"] = transactions_df[
-        "buyer_marked_delivered"
-    ].astype(bool)
-    transactions_df["seller_marked_delivered"] = transactions_df[
-        "seller_marked_delivered"
-    ].astype(bool)
-    transactions_df["buyer_marked_paid"] = transactions_df["buyer_marked_paid"].astype(
-        bool
-    )
-    transactions_df["seller_marked_paid"] = transactions_df[
-        "seller_marked_paid"
-    ].astype(bool)
-    transactions_df["cancelled"] = transactions_df["cancelled"].astype(bool)
-
-    # Convert strings to datetime
-    transactions_df["creation_date"] = pd.to_datetime(transactions_df["creation_date"])
-    transactions_df["approved_date"] = pd.to_datetime(transactions_df["approved_date"])
-    transactions_df["paid_date"] = pd.to_datetime(transactions_df["paid_date"])
-    transactions_df["delivered_date"] = pd.to_datetime(
-        transactions_df["delivered_date"]
-    )
-    transactions_df["cancelled_date"] = pd.to_datetime(
-        transactions_df["cancelled_date"]
-    )
-
-    # Create summary frames
-    transactions_df["is_none_status"] = (
-        ~transactions_df["sale_approved"]
-        & ~transactions_df["buyer_marked_delivered"]
-        & ~transactions_df["seller_marked_delivered"]
-        & ~transactions_df["buyer_marked_paid"]
-        & ~transactions_df["seller_marked_paid"]
-        & ~transactions_df["cancelled"]
-    )
-    transactions_df["is_approved"] = (
-        transactions_df["sale_approved"]
-        & ~transactions_df["buyer_marked_delivered"]
-        & ~transactions_df["seller_marked_delivered"]
-        & ~transactions_df["buyer_marked_paid"]
-        & ~transactions_df["seller_marked_paid"]
-        & ~transactions_df["cancelled"]
-    )
-    transactions_df["is_delivered"] = (
-        transactions_df["sale_approved"]
-        & transactions_df["buyer_marked_delivered"]
-        & transactions_df["seller_marked_delivered"]
-        & ~transactions_df["buyer_marked_paid"]
-        & ~transactions_df["seller_marked_paid"]
-        & ~transactions_df["cancelled"]
-    )
-    transactions_df["is_paid"] = (
-        transactions_df["sale_approved"]
-        & ~transactions_df["buyer_marked_delivered"]
-        & ~transactions_df["seller_marked_delivered"]
-        & transactions_df["buyer_marked_paid"]
-        & transactions_df["seller_marked_paid"]
-        & ~transactions_df["cancelled"]
-    )
-    transactions_df["is_completed"] = (
-        transactions_df["sale_approved"]
-        & transactions_df["buyer_marked_delivered"]
-        & transactions_df["seller_marked_delivered"]
-        & transactions_df["buyer_marked_paid"]
-        & transactions_df["seller_marked_paid"]
-        & ~transactions_df["cancelled"]
-    )
-    transactions_df["is_cancelled"] = (
-        ~transactions_df["sale_approved"]
-        & ~transactions_df["buyer_marked_delivered"]
-        & ~transactions_df["seller_marked_delivered"]
-        & ~transactions_df["buyer_marked_paid"]
-        & ~transactions_df["seller_marked_paid"]
-        & transactions_df["cancelled"]
-    )
-
-    return transactions_df
-
-
-def generate_stats_message(
-    transactions: List[Transaction], user_id: int, service: Service
-) -> str:
+def generate_stats_message(stats: Stats) -> str:
     """Generate the message to send one someone uses the stats command."""
-    log.debug(f"transactions: {transactions}")
-    if len(transactions) == 0:
+    if stats.server is None:
         log.info("No transactions recorded. Can't generate stats.")
         return "No transactions have been recorded. Can't generate stats."
 
-    dataframe = _build_dataframe(transactions)
-
-    log.info("Calculating stats")
-
-    # Create user dataframes
-    buyer_dataframe = dataframe[dataframe["buyer_discord_id"] == user_id]
-    seller_dataframe = dataframe[dataframe["seller_discord_id"] == user_id]
-
-    # User Stats
-    user_count_buyer_all = buyer_dataframe.shape[0]
-    user_count_seller_all = seller_dataframe.shape[0]
-
-    seller_has_transactions = bool(
-        not seller_dataframe[~seller_dataframe["is_cancelled"]].empty
-    )
-    buyer_has_transactions = bool(
-        not buyer_dataframe[~buyer_dataframe["is_cancelled"]].empty
-    )
-
-    user_count_buyer_unapproved = buyer_dataframe[
-        buyer_dataframe["is_none_status"]
-    ].shape[0]
-    user_count_buyer_approved = buyer_dataframe[buyer_dataframe["is_approved"]].shape[0]
-    user_count_buyer_delivered = buyer_dataframe[buyer_dataframe["is_delivered"]].shape[
-        0
-    ]
-    user_count_buyer_paid = buyer_dataframe[buyer_dataframe["is_paid"]].shape[0]
-    user_count_buyer_completed = buyer_dataframe[buyer_dataframe["is_completed"]].shape[
-        0
-    ]
-    user_count_buyer_cancelled = buyer_dataframe[buyer_dataframe["is_cancelled"]].shape[
-        0
-    ]
-
-    user_count_seller_unapproved = seller_dataframe[
-        seller_dataframe["is_none_status"]
-    ].shape[0]
-    user_count_seller_approved = seller_dataframe[
-        seller_dataframe["is_approved"]
-    ].shape[0]
-    user_count_seller_delivered = seller_dataframe[
-        seller_dataframe["is_delivered"]
-    ].shape[0]
-    user_count_seller_paid = seller_dataframe[seller_dataframe["is_paid"]].shape[0]
-    user_count_seller_completed = seller_dataframe[
-        seller_dataframe["is_completed"]
-    ].shape[0]
-    user_count_seller_cancelled = seller_dataframe[
-        seller_dataframe["is_cancelled"]
-    ].shape[0]
-
-    # User purchase stats
-    user_average_purchase_price: float | None = None
-    user_total_purchase_price: float | None = None
-    user_max_purchase_wine_name: str | None = None
-    user_max_purchase_wine_seller: str | None = None
-    user_max_purchase_wine_price: float | None = None
-    if buyer_has_transactions:
-        user_average_purchase_price = buyer_dataframe[~buyer_dataframe["is_cancelled"]][
-            "price"
-        ].mean()
-        user_total_purchase_price = buyer_dataframe[~buyer_dataframe["is_cancelled"]][
-            "price"
-        ].sum()
-
-        buyer_max_price_idx = (
-            buyer_dataframe[~buyer_dataframe["is_cancelled"]]
-            .dropna(subset=["price"])["price"]
-            .idxmax()
-        )
-
-        user_max_purchase_wine_name = str(
-            buyer_dataframe[~buyer_dataframe["is_cancelled"]]
-            .dropna(subset=["price"])
-            .at[buyer_max_price_idx, "wine"]
-        )
-        user_max_purchase_wine_seller = str(
-            buyer_dataframe[~buyer_dataframe["is_cancelled"]]
-            .dropna(subset=["price"])
-            .at[buyer_max_price_idx, "seller_discord_id"]
-        )
-        user_max_purchase_wine_price = float(
-            buyer_dataframe[~buyer_dataframe["is_cancelled"]]
-            .dropna(subset=["price"])
-            .at[buyer_max_price_idx, "price"]
-        )
-
-    # User sale stats
-    user_average_sale_price: float | None = None
-    user_total_sale_price: float | None = None
-    user_max_sale_wine_name: str | None = None
-    user_max_sale_wine_buyer: str | None = None
-    user_max_sale_wine_price: float | None = None
-    if seller_has_transactions:
-        user_average_sale_price = seller_dataframe[~seller_dataframe["is_cancelled"]][
-            "price"
-        ].mean()
-        user_total_sale_price = seller_dataframe[~seller_dataframe["is_cancelled"]][
-            "price"
-        ].sum()
-
-        seller_max_price_idx = (
-            seller_dataframe[~seller_dataframe["is_cancelled"]]
-            .dropna(subset=["price"])["price"]
-            .idxmax()
-        )
-
-        user_max_sale_wine_name = str(
-            seller_dataframe[~seller_dataframe["is_cancelled"]]
-            .dropna(subset=["price"])
-            .at[seller_max_price_idx, "wine"]
-        )
-        user_max_sale_wine_buyer = str(
-            seller_dataframe[~seller_dataframe["is_cancelled"]]
-            .dropna(subset=["price"])
-            .at[seller_max_price_idx, "buyer_discord_id"]
-        )
-        user_max_sale_wine_price = float(
-            seller_dataframe[~seller_dataframe["is_cancelled"]]
-            .dropna(subset=["price"])
-            .at[seller_max_price_idx, "price"]
-        )
-
-    # Server Stats
-    server_count_all = dataframe.shape[0]
-    server_average_price = dataframe[~dataframe["is_cancelled"]]["price"].mean()
-    server_total_price = dataframe[~dataframe["is_cancelled"]]["price"].sum()
-    server_max_wine_name = dataframe.loc[
-        dataframe[~dataframe["is_cancelled"]]["price"].idxmax(), "wine"
-    ]
-    server_max_wine_price = dataframe.loc[
-        dataframe[~dataframe["is_cancelled"]]["price"].idxmax(), "price"
-    ]
-    server_max_wine_buyer = dataframe.loc[
-        dataframe[~dataframe["is_cancelled"]]["price"].idxmax(), "buyer_discord_id"
-    ]
-    server_max_wine_seller = dataframe.loc[
-        dataframe[~dataframe["is_cancelled"]]["price"].idxmax(), "seller_discord_id"
-    ]
-
-    top_buyers = dataframe["buyer_discord_id"].value_counts().head(3)
-    top_buyers_output = ""
-    for buyer_discord_id, count in top_buyers.items():
-        top_buyers_output += f"- <@{buyer_discord_id}> ({count} purchases)\n"
-
-    top_sellers = dataframe["seller_discord_id"].value_counts().head(3)
-    top_sellers_output = ""
-    for seller_discord_id, count in top_sellers.items():
-        top_sellers_output += f"- <@{seller_discord_id}> ({count} sales)\n"
-
-    user_sales_percentage = int(
-        ((user_count_buyer_all + user_count_seller_all) / server_count_all) * 100
-    )
-
     # Generate output
     log.debug("Building stats output")
-    output = "**Personal Stats**\n"
-    output += f"You've made {user_count_buyer_all} {_pluralise_word(user_count_buyer_all, 'purchase')} and {user_count_seller_all} {_pluralise_word(user_count_seller_all, 'sale')}.\n"
-    output += "\n"
-    output += f"Of your {user_count_buyer_all} {_pluralise_word(user_count_buyer_all, 'purchase')}:\n"
-    output += (
-        f"- {user_count_buyer_unapproved} {_is_or_are(user_count_buyer_unapproved)} unapproved\n"
-        if user_count_buyer_unapproved > 0
-        else ""
-    )
-    output += (
-        f"- {user_count_buyer_approved} {_is_or_are(user_count_buyer_approved)} approved\n"
-        if user_count_buyer_approved > 0
-        else ""
-    )
-    output += (
-        f"- {user_count_buyer_delivered} {_is_or_are(user_count_buyer_delivered)} delivered\n"
-        if user_count_buyer_delivered > 0
-        else ""
-    )
-    output += (
-        f"- {user_count_buyer_paid} {_is_or_are(user_count_buyer_paid)} paid\n"
-        if user_count_buyer_paid > 0
-        else ""
-    )
-    output += (
-        f"- {user_count_buyer_completed} {_is_or_are(user_count_buyer_completed)} completed\n"
-        if user_count_buyer_completed > 0
-        else ""
-    )
-    output += (
-        f"- {user_count_buyer_cancelled} {_is_or_are(user_count_buyer_cancelled)} cancelled\n"
-        if user_count_buyer_cancelled > 0
-        else ""
-    )
-    output += "\n"
-    output += f"Of your {user_count_seller_all} {_pluralise_word(user_count_seller_all, 'sale')}:\n"
-    output += (
-        f"- {user_count_seller_unapproved} {_is_or_are(user_count_seller_unapproved)} unapproved\n"
-        if user_count_seller_unapproved > 0
-        else ""
-    )
-    output += (
-        f"- {user_count_seller_approved} {_is_or_are(user_count_seller_approved)} approved\n"
-        if user_count_seller_approved > 0
-        else ""
-    )
-    output += (
-        f"- {user_count_seller_delivered} {_is_or_are(user_count_seller_delivered)} delivered\n"
-        if user_count_seller_delivered > 0
-        else ""
-    )
-    output += (
-        f"- {user_count_seller_paid} {_is_or_are(user_count_seller_paid)} paid\n"
-        if user_count_seller_paid > 0
-        else ""
-    )
-    output += (
-        f"- {user_count_seller_completed} {_is_or_are(user_count_seller_completed)} completed\n"
-        if user_count_seller_completed > 0
-        else ""
-    )
-    output += (
-        f"- {user_count_seller_cancelled} {_is_or_are(user_count_seller_cancelled)} cancelled\n"
-        if user_count_seller_cancelled > 0
-        else ""
-    )
-    output += "\n"
 
-    if buyer_has_transactions:
-        output += f"Your average purchase price is £{user_average_purchase_price:.2f}, and you've spent a total of £{user_total_purchase_price:.2f}.\n"
-        output += f"Your most expensive purchase is *{user_max_purchase_wine_name}* which you bought from <@{user_max_purchase_wine_seller}> for £{user_max_purchase_wine_price:.2f}.\n"
+    output = ""
 
-    if seller_has_transactions:
-        output += f"Your average sale price is £{user_average_sale_price:.2f}, and you've made a total of £{user_total_sale_price:.2f}.\n"
-        output += f"Your most expensive sale is *{user_max_sale_wine_name}* which you sold to <@{user_max_sale_wine_buyer}> for £{user_max_sale_wine_price:.2f}.\n"
+    log.debug(f"Purchase: {stats.purchase}")
+    log.debug(f"Sale: {stats.sale}")
+    log.debug(f"Server: {stats.server}")
 
-    output += "\n"
-    output += "**Server Stats**\n"
-    output += f"There have been {server_count_all} transactions recorded in the server, with a total value of £{server_total_price:.2f}. You account for {user_sales_percentage}% of transactions in the server!\n"
-    output += f"The average price has been £{server_average_price:.2f}.\n"
-    output += f"The most expensive sale recorded was *{server_max_wine_name}* from <@{server_max_wine_seller}> to <@{server_max_wine_buyer}> for £{server_max_wine_price:.2f}.\n"
-    output += "\n"
-    output += "The three users with the most purchases are:\n"
-    output += top_buyers_output
-    output += "\n"
-    output += "The three users with the most sales are:\n"
-    output += top_sellers_output
+    if stats.purchase or stats.sale:
+        output += "**Personal Stats**\n"
+
+    if stats.purchase and stats.sale:
+        output += f"You've made {stats.purchase.total_count} {_pluralise_word(stats.purchase.total_count, 'purchase')} and {stats.sale.total_count} {_pluralise_word(stats.sale.total_count, 'sale')}.\n"
+        output += "\n"
+    elif stats.purchase:
+        output += f"You've made {stats.purchase.total_count} {_pluralise_word(stats.purchase.total_count, 'purchase')}.\n"
+        output += "\n"
+    elif stats.sale:
+        output += f"You've made {stats.sale.total_count} {_pluralise_word(stats.sale.total_count, 'sale')}.\n"
+        output += "\n"
+
+    if stats.purchase:
+        output += f"Of your {stats.purchase.total_count} {_pluralise_word(stats.purchase.total_count, 'purchase')}:\n"
+        output += (
+            f"- {stats.purchase.unapproved} {_is_or_are(stats.purchase.unapproved)} unapproved\n"
+            if stats.purchase.unapproved > 0
+            else ""
+        )
+        output += (
+            f"- {stats.purchase.approved} {_is_or_are(stats.purchase.approved)} approved\n"
+            if stats.purchase.approved > 0
+            else ""
+        )
+        output += (
+            f"- {stats.purchase.paid} {_is_or_are(stats.purchase.paid)} paid\n"
+            if stats.purchase.paid > 0
+            else ""
+        )
+        output += (
+            f"- {stats.purchase.delivered} {_is_or_are(stats.purchase.delivered)} delivered\n"
+            if stats.purchase.delivered > 0
+            else ""
+        )
+        output += (
+            f"- {stats.purchase.completed} {_is_or_are(stats.purchase.completed)} completed\n"
+            if stats.purchase.completed > 0
+            else ""
+        )
+        output += (
+            f"- {stats.purchase.cancelled} {_is_or_are(stats.purchase.cancelled)} cancelled\n"
+            if stats.purchase.cancelled > 0
+            else ""
+        )
+        output += "\n"
+
+    if stats.sale:
+        output += f"Of your {stats.sale.total_count} {_pluralise_word(stats.sale.total_count, 'purchase')}:\n"
+        output += (
+            f"- {stats.sale.unapproved} {_is_or_are(stats.sale.unapproved)} unapproved\n"
+            if stats.sale.unapproved > 0
+            else ""
+        )
+        output += (
+            f"- {stats.sale.approved} {_is_or_are(stats.sale.approved)} approved\n"
+            if stats.sale.approved > 0
+            else ""
+        )
+        output += (
+            f"- {stats.sale.paid} {_is_or_are(stats.sale.paid)} paid\n"
+            if stats.sale.paid > 0
+            else ""
+        )
+        output += (
+            f"- {stats.sale.delivered} {_is_or_are(stats.sale.delivered)} delivered\n"
+            if stats.sale.delivered > 0
+            else ""
+        )
+        output += (
+            f"- {stats.sale.completed} {_is_or_are(stats.sale.completed)} completed\n"
+            if stats.sale.completed > 0
+            else ""
+        )
+        output += (
+            f"- {stats.sale.cancelled} {_is_or_are(stats.sale.cancelled)} cancelled\n"
+            if stats.sale.cancelled > 0
+            else ""
+        )
+        output += "\n"
+
+    if stats.purchase:
+        output += f"Your average purchase price is £{stats.purchase.avg_price:.2f}, and you've spent a total of £{stats.purchase.total_price:.2f}.\n"
+        output += f"Your most expensive purchase is *{stats.purchase.most_expensive_name}* which you bought from <@{stats.purchase.most_expensive_member.discord_id}> for £{stats.purchase.most_expensive_price:.2f}.\n"
+
+    if stats.sale:
+        output += f"Your average sale price is £{stats.sale.avg_price:.2f}, and you've made a total of £{stats.sale.total_price:.2f}.\n"
+        output += f"Your most expensive sale is *{stats.sale.most_expensive_name}* which you sold to <@{stats.sale.most_expensive_member.discord_id}> for £{stats.sale.most_expensive_price:.2f}.\n"
+
+    if stats.server:
+        log.debug(f"Percentage: {stats.user_percentage}")
+        log.debug(f"User Total: {stats.user_total}")
+        log.debug(
+            f"Purchase total: {stats.purchase.total_count if stats.purchase else 'NA'}"
+        )
+        log.debug(f"Sale total: {stats.sale.total_count if stats.sale else 'NA'}")
+        log.debug(f"Server total: {stats.server.total_count if stats.server else 'NA'}")
+
+        output += "\n"
+        output += "**Server Stats**\n"
+        output += f"There have been {stats.server.total_count} transactions recorded in the server, with a total value of £{stats.server.total_value:.2f}. You account for {stats.user_percentage:.1f}% of transactions in the server!\n"
+        output += f"The average price has been £{stats.server.avg_price:.2f}.\n"
+        output += f"The most expensive sale recorded was *{stats.server.most_expensive_name}* for £{stats.server.most_expensive_value:.2f}.\n"
+        output += "\n"
+        output += "The three users with the most purchases are:\n"
+
+        for buyer in stats.server.top_buyers[0:2]:
+            output += f"- <@{buyer.discord_id}>\n"
+        output += "\n"
+        output += "The three users with the most sales are:\n"
+        for seller in stats.server.top_sellers[0:2]:
+            output += f"- <@{seller.discord_id}>\n"
+
     return output

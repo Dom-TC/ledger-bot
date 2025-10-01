@@ -20,19 +20,14 @@ async def command_stats(
     """DM command - stats."""
     log.info(f"Getting stats for user {message.author.name} ({message.author.id})")
 
-    try:
-        transactions = await client.service.transaction.list_all_transactions()
-    except AirTableError as error:
-        log.error(f"There was an error processing the AirTable request: {error}")
-        await dm_channel.send("An unexpected error occured.")
-        return
+    stats_obj = await client.service.stats.get_stats(
+        user=await client.service.member.get_or_add_member(message.author)
+    )
 
-    if transactions is None:
+    if stats_obj.server is None:
         await dm_channel.send("No transactions have been recorded.")
 
     else:
-        response = generate_stats_message(
-            transactions=transactions, user_id=message.author.id, service=client.service
-        )
+        response = generate_stats_message(stats=stats_obj)
 
         await dm_channel.send(response)

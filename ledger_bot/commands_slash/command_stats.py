@@ -1,13 +1,11 @@
 """Slash command - stats."""
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any
 
 import discord
 
-from ledger_bot.errors import AirTableError
 from ledger_bot.message_generators import generate_stats_message
-from ledger_bot.models import Transaction
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
@@ -25,23 +23,14 @@ async def command_stats(
     # Defer interaction so we can respond to it later
     await interaction.response.defer(ephemeral=True)
 
-    try:
-        transactions = await client.service.transaction.list_all_transactions()
-    except AirTableError as error:
-        log.error(f"There was an error processing the AirTable request: {error}")
-        await interaction.response.send_message(
-            "An unexpected error occured.", ephemeral=True
-        )
-        return
+    stats_obj = await client.service.stats.get_stats(
+        user=await client.service.member.get_or_add_member(interaction.user)
+    )
 
-    if transactions is None:
+    if stats_obj.server is None:
         await interaction.response.send_message("No transactions have been recorded.")
 
     else:
-        response = generate_stats_message(
-            transactions=transactions,
-            user_id=interaction.user.id,
-            service=client.service,
-        )
+        response = generate_stats_message(stats=stats_obj)
 
         await interaction.followup.send(response, ephemeral=True)

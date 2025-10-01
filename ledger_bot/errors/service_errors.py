@@ -19,6 +19,12 @@ class TransactionServiceError(ServiceError):
     pass
 
 
+class StatsServiceError(ServiceError):
+    """Base class for all StatsService errors."""
+
+    pass
+
+
 class TransactionCancelledError(TransactionServiceError):
     """Transaction already cancelled."""
 
@@ -92,3 +98,14 @@ class BotMessageInvalidTransactionError(BotMessageServiceError):
 
     def __str__(self) -> str:
         return f"The specified transaction {self.transaction} is invalid."
+
+
+class InvalidRoleError(StatsServiceError):
+    """THe role provided is invalid."""
+
+    def __init__(self, role: str, *args: object):
+        self.role = role
+        super().__init__(*args)
+
+    def __str__(self) -> str:
+        return f"The provided role ({self.role}) is invalid."

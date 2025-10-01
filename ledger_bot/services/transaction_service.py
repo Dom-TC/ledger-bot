@@ -17,7 +17,7 @@ from ledger_bot.errors import (
     TransactionInvalidMemberError,
     TransactionServiceError,
 )
-from ledger_bot.models import Member, Transaction
+from ledger_bot.models import Member, ServerStats, Stats, Transaction, TransactionStats
 from ledger_bot.storage import TransactionStorage
 
 from .bot_message_service import BotMessageService

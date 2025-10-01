@@ -6,6 +6,7 @@ from . import (
     reaction_role_service,
     reminder_service,
     service,
+    stats_service,
     transaction_service,
 )
 
@@ -16,3 +17,4 @@ TransactionService = transaction_service.TransactionService
 BotMessageService = bot_message_service.BotMessageService
 ReminderService = reminder_service.ReminderService
 ReactionRoleService = reaction_role_service.ReactionRoleService
+StatsService = stats_service.StatsService

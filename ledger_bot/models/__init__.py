@@ -8,6 +8,7 @@ from . import (
     member,
     reaction_role,
     reminder,
+    stats,
     transaction,
 )
 
@@ -23,3 +24,7 @@ EventMember = event_member.EventMember
 EventWine = event_wine.EventWine
 
 ReactionRole = reaction_role.ReactionRole
+
+Stats = stats.Stats
+ServerStats = stats.ServerStats
+TransactionStats = stats.TransactionStats

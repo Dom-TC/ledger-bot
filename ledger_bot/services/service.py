@@ -6,6 +6,7 @@ from .bot_message_service import BotMessageService
 from .member_service import MemberService
 from .reaction_role_service import ReactionRoleService
 from .reminder_service import ReminderService
+from .stats_service import StatsService
 from .transaction_service import TransactionService
 
 
@@ -16,3 +17,4 @@ class Service:
     reaction_role: ReactionRoleService
     reminder: ReminderService
     transaction: TransactionService
+    stats: StatsService
