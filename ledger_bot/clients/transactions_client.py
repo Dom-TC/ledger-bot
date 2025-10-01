@@ -8,6 +8,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ledger_bot.commands_scheduled import cleanup
+from ledger_bot.errors import TransactionApprovedError, TransactionCancelledError
 from ledger_bot.message_generators import (
     generate_transaction_status_message,
     send_message,
@@ -185,9 +186,20 @@ class TransactionsClient(ExtendedClient):
                 f"Processing approval reaction from {reactor.username} on message {payload.message_id}"
             )
 
-            processed_transaction = await self.service.transaction.approve_transaction(
-                transaction=target_transaction, reactor=reactor
-            )
+            try:
+                processed_transaction = (
+                    await self.service.transaction.approve_transaction(
+                        transaction=target_transaction, reactor=reactor
+                    )
+                )
+            except TransactionCancelledError:
+                await remove_reaction(
+                    client=self,
+                    message_id=payload.message_id,
+                    reaction=self.config["emojis"]["thinking"],
+                    channel_obj=channel,
+                )
+                return False
 
             response_contents = await generate_transaction_status_message(
                 transaction=processed_transaction,
@@ -211,11 +223,20 @@ class TransactionsClient(ExtendedClient):
                 f"Processing payment reaction from {reactor.username} on message {payload.message_id}"
             )
 
-            processed_transaction = (
-                await self.service.transaction.mark_transaction_paid(
-                    transaction=target_transaction, reactor=reactor
+            try:
+                processed_transaction = (
+                    await self.service.transaction.mark_transaction_paid(
+                        transaction=target_transaction, reactor=reactor
+                    )
                 )
-            )
+            except TransactionCancelledError:
+                await remove_reaction(
+                    client=self,
+                    message_id=payload.message_id,
+                    reaction=self.config["emojis"]["thinking"],
+                    channel_obj=channel,
+                )
+                return False
 
             response_contents = await generate_transaction_status_message(
                 transaction=processed_transaction,
@@ -239,11 +260,20 @@ class TransactionsClient(ExtendedClient):
                 f"Processing delivered reaction from {reactor.username} on message {payload.message_id}"
             )
 
-            processed_transaction = (
-                await self.service.transaction.mark_transaction_delivered(
-                    transaction=target_transaction, reactor=reactor
+            try:
+                processed_transaction = (
+                    await self.service.transaction.mark_transaction_delivered(
+                        transaction=target_transaction, reactor=reactor
+                    )
                 )
-            )
+            except TransactionCancelledError:
+                await remove_reaction(
+                    client=self,
+                    message_id=payload.message_id,
+                    reaction=self.config["emojis"]["thinking"],
+                    channel_obj=channel,
+                )
+                return False
 
             response_contents = await generate_transaction_status_message(
                 transaction=processed_transaction,
@@ -267,9 +297,20 @@ class TransactionsClient(ExtendedClient):
                 f"Processing cancel reaction from {reactor.username} on message {payload.message_id}"
             )
 
-            processed_transaction = await self.service.transaction.cancel_transaction(
-                transaction=target_transaction, reactor=reactor
-            )
+            try:
+                processed_transaction = (
+                    await self.service.transaction.cancel_transaction(
+                        transaction=target_transaction, reactor=reactor
+                    )
+                )
+            except TransactionApprovedError:
+                await remove_reaction(
+                    client=self,
+                    message_id=payload.message_id,
+                    reaction=self.config["emojis"]["thinking"],
+                    channel_obj=channel,
+                )
+                return False
 
             response_contents = await generate_transaction_status_message(
                 transaction=processed_transaction,
