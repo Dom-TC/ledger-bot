@@ -57,6 +57,9 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
     async def on_ready(self) -> None:
         log.info(f"We have logged in as {self.user}")
 
+        self.version = await self.get_version_number()
+        log.info(f"Current version number: {self.version}")
+
         await self.change_presence(
             activity=discord.Activity(
                 type=discord.ActivityType.watching,
