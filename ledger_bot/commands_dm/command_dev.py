@@ -194,10 +194,13 @@ async def command_dev(
         )
         if channel is not None and isinstance(channel, discord.TextChannel):
             msg = f"<@{client.user.id if client.user else None}> has been restarted.  Full service has resumed.\n"
-            msg += f"Current version: {client.version}"
+            msg += f"-# Version: {client.version}"
 
             if bot_id := client.config["id"]:
                 msg = f"{msg} ({bot_id})"
+
+            msg += "\n"
+            msg += f"-# Latency: {(client.latency * 1000):.3f}ms"
 
             await channel.send(msg)
 
