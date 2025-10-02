@@ -17,6 +17,109 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
+async def _process_shutdown_authcode(
+    client: "LedgerBot",
+    received_auth_code: str | None,
+    message: discord.Message,
+    dm_channel: discord.DMChannel,
+) -> str:
+    """Handle the provided shutdown authcode.
+
+    Parameters
+    ----------
+    client : LedgerBot
+        The bot instance
+    received_auth_code : str | None
+        The auth code provided by the user, if any.
+    message : discord.Message
+        The discord message object that triggered the command.
+    dm_channel : discord.DMChannel
+        The DM channel of the user who triggered the command
+
+    Returns
+    -------
+    str
+        The message to return to the user
+    """
+    now = int(time.time())
+    window_duration = 120  # Window to every 2 minutes
+    window = now // window_duration
+    expiry = now + (window_duration - (now % window_duration))
+
+    token_input = f"{client.version}:{window}".encode()
+    token_hash = hashlib.sha256(token_input).hexdigest().upper()
+
+    auth_code = f"{token_hash[:4]}-{token_hash[4:8]}"
+
+    log.debug(f"Received auth code: {received_auth_code}")
+    log.debug(f"Required auth code: {auth_code}")
+
+    if received_auth_code is None:
+        response = (
+            f"To shutdown {client.config["name"]}, please use the following command:\n"
+        )
+        response += f"`!dev shutdown {auth_code}`\n"
+        response += f"The code expires <t:{expiry}:R>\n"
+        response += "\n"
+        response += "⚠️⚠️⚠️"
+        response += "\n"
+        response += "This cannot be undone.\n"
+        response += (
+            f"The only way to restart {client.config["name"]} is via a deployment.\n"
+        )
+        response += "⚠️⚠️⚠️"
+        response += "\n"
+
+        return response
+
+    if received_auth_code == auth_code:
+        log.info(f"Received valid shutdown code from {message.author.name}.")
+
+        shutdown_time = datetime.datetime.now(
+            datetime.timezone.utc
+        ) + datetime.timedelta(minutes=5)
+        shutdown_ts = int(shutdown_time.timestamp())
+
+        client.scheduler.add_job(
+            func=shutdown,
+            trigger="date",
+            run_date=shutdown_time,
+            kwargs={"client": client, "dm_channel": dm_channel},
+            id="shutdown",
+            name="Shutdown",
+        )
+
+        response = "Received valid shutdown command.\n"
+        response += (
+            f"Shutdown will commence at <t:{shutdown_ts}:t> (<t:{shutdown_ts}:R>).\n"
+        )
+        response += "Use `!dev cancel_shutdown` to cancel."
+
+        return response
+
+    else:
+        log.info("Received invalid shutdown code.")
+
+        response = "Invalid code. Please try again.\n"
+        response += "\n"
+        response += (
+            f"To shutdown {client.config["name"]}, please use the following command:\n"
+        )
+        response += f"`!dev shutdown {auth_code}`\n"
+        response += f"The code expires <t:{expiry}:R>\n"
+        response += "\n"
+        response += "⚠️⚠️⚠️"
+        response += "\n"
+        response += "This cannot be undone.\n"
+        response += (
+            f"The only way to restart {client.config["name"]} is via a deployment.\n"
+        )
+        response += "⚠️⚠️⚠️"
+        response += "\n"
+
+        return response
+
+
 async def command_dev(
     client: "LedgerBot", message: discord.Message, dm_channel: discord.DMChannel
 ) -> None:
@@ -68,73 +171,14 @@ async def command_dev(
         parts = request.split(" ", 1)  # Split at most once
         received_auth_code = parts[1].upper() if len(parts) > 1 else None
 
-        now = int(time.time())
-        window_duration = 120  # Window to every 2 minutes
-        window = now // window_duration
-        expiry = now + (window_duration - (now % window_duration))
+        response = await _process_shutdown_authcode(
+            client=client,
+            received_auth_code=received_auth_code,
+            message=message,
+            dm_channel=dm_channel,
+        )
 
-        token_input = f"{client.version}:{window}".encode()
-        token_hash = hashlib.sha256(token_input).hexdigest().upper()
-
-        auth_code = f"{token_hash[:4]}-{token_hash[4:8]}"
-
-        log.debug(f"Received auth code: {received_auth_code}")
-        log.debug(f"Required auth code: {auth_code}")
-
-        if received_auth_code is None:
-            response = f"To shutdown {client.config["name"]}, please use the following command:\n"
-            response += f"`!dev shutdown {auth_code}`\n"
-            response += f"The code expires <t:{expiry}:R>\n"
-            response += "\n"
-            response += "⚠️⚠️⚠️"
-            response += "\n"
-            response += "This cannot be undone.\n"
-            response += f"The only way to restart {client.config["name"]} is via a deployment.\n"
-            response += "⚠️⚠️⚠️"
-            response += "\n"
-
-            await dm_channel.send(response)
-
-        if received_auth_code == auth_code:
-            log.info(f"Received valid shutdown code from {message.author.name}.")
-
-            shutdown_time = datetime.datetime.now(
-                datetime.timezone.utc
-            ) + datetime.timedelta(minutes=5)
-            shutdown_ts = int(shutdown_time.timestamp())
-
-            client.scheduler.add_job(
-                func=shutdown,
-                trigger="date",
-                run_date=shutdown_time,
-                kwargs={"client": client, "dm_channel": dm_channel},
-                id="shutdown",
-                name="Shutdown",
-            )
-
-            response = "Received valid shutdown command.\n"
-            response += f"Shutdown will commence at <t:{shutdown_ts}:t> (<t:{shutdown_ts}:R>).\n"
-            response += "Use `!dev cancel_shutdown` to cancel."
-
-            await dm_channel.send(response)
-
-        else:
-            log.info("Received invalid shutdown code.")
-
-            response = "Invalid code. Please try again.\n"
-            response += "\n"
-            response += f"To shutdown {client.config["name"]}, please use the following command:\n"
-            response += f"`!dev shutdown {auth_code}`\n"
-            response += f"The code expires <t:{expiry}:R>\n"
-            response += "\n"
-            response += "⚠️⚠️⚠️"
-            response += "\n"
-            response += "This cannot be undone.\n"
-            response += f"The only way to restart {client.config["name"]} is via a deployment.\n"
-            response += "⚠️⚠️⚠️"
-            response += "\n"
-
-            await dm_channel.send(response)
+        await dm_channel.send(response)
 
     if request.startswith("cancel_shutdown"):
         job = client.scheduler.get_job("shutdown")
@@ -142,3 +186,29 @@ async def command_dev(
             log.debug(f"Removing job {job}")
             job.remove()
             await dm_channel.send("Shutdown has been cancelled.")
+
+    if request.startswith("welcome_back"):
+        log.info("Sending welcome back message")
+        channel = await client.get_or_fetch_channel(
+            client.config["shutdown_post_channel"]
+        )
+        if channel is not None and isinstance(channel, discord.TextChannel):
+            msg = f"<@{client.user.id if client.user else None}> has been restarted.  Full service has resumed.\n"
+            msg += f"Current version: {client.version}"
+
+            if bot_id := client.config["id"]:
+                msg = f"{msg} ({bot_id})"
+
+            await channel.send(msg)
+
+            response = (
+                f"Successfully posted welcome back message in {channel.jump_url}."
+            )
+
+        else:
+            log.warning(
+                '`client.config["shutdown_post_channel"]` did not return an id for a valid discord.TextChannel'
+            )
+            response = "Failed to post welcome back message"
+
+        await dm_channel.send(response)

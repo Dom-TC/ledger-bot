@@ -242,6 +242,13 @@ def generate_help_message(
                 "requires_dev": True,
                 "requires_admin": False,
             },
+            {
+                "command": "!dev welcome_back",
+                "args": [],
+                "description": "Posts a message saying ledger_bot is running again.",
+                "requires_dev": True,
+                "requires_admin": False,
+            },
         ],
     }
 
