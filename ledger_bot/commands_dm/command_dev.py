@@ -77,7 +77,7 @@ async def _process_shutdown_authcode(
 
         shutdown_time = datetime.datetime.now(
             datetime.timezone.utc
-        ) + datetime.timedelta(minutes=5)
+        ) + datetime.timedelta(minutes=client.config["shutdown_delay"])
         shutdown_ts = int(shutdown_time.timestamp())
 
         client.scheduler.add_job(
