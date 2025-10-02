@@ -113,10 +113,11 @@ class TransactionService(ServiceHelpers):
             Transaction.delivered_date < cutoff,
             Transaction.paid_date < cutoff,
         )
+        options = [selectinload(Transaction.bot_messages)]
 
         async with self._get_session(session) as session:
             completed_transactions = await self.transaction_storage.list_transactions(
-                filter_, session=session
+                filter_, session=session, options=options
             )
 
             return completed_transactions or []

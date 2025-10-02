@@ -9,6 +9,7 @@ import json
 import logging
 import os
 from asyncio.events import AbstractEventLoop
+from contextlib import suppress
 from datetime import timezone, tzinfo
 from functools import partial
 from signal import SIGINT, SIGTERM, Signals
@@ -150,9 +151,5 @@ def start_bot() -> None:
         if platform != "win32" and platform != "cygwin":
             loop.add_signal_handler(signal_enum, exit_func)
 
-    try:
+    with suppress(SignalHaltError):
         loop.run_until_complete(_run_bot(client=client, config=config))
-    except SignalHaltError:
-        pass
-    else:
-        raise
