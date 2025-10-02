@@ -150,13 +150,3 @@ async def generate_transaction_status_message(
     )
 
     return message_contents
-
-
-# **@<seller> sold <wine_name> to @<buyer>**
-# Price: <price>
-# <sale_link>
-
-# **Status:**
-# <approved_emoji> Approved:
-# <paid_emoji> Paid:
-# <delivered_emoji> Delivered:

@@ -224,11 +224,9 @@ REACTIONROLE
 1. Test / Fix / Update existing commands to work with SQLite
    1. /add_role
    2. !dev refresh_reminders
-   3. schedule.cleanup
-   4. reminders
-1. Add `/going_dark` and `/welcome_back` commands. `going_dark` should post that its about to be stopped for maintenence, finish all processes and shut bot down. `welcome_back` should post that it's back online, include current bot version, alembic version, and latency.
-1. Move to single `MessageGenerators` class? At least switch to just passing in Transaction object. Ensure all messages are split by length.
-1. Consolidate dm and slash commands?
-1. Implement events system
-1. Add `/lookup` command - shows a users history (don't include prices or wine details)
-1. Add schedule to automatically delete events channels. Post one month after event date giving two weeks notice. Let user react or comment to stop. If no response, delete in a further two weeks
+   3. reminders
+2. Move to single `MessageGenerators` class? At least switch to just passing in Transaction object. Ensure all messages are split by length.
+3. Consolidate dm and slash commands?
+4. Implement events system
+5. Add `/lookup` command - shows a users history (don't include prices or wine details)
+6. Add schedule to automatically delete events channels. Post one month after event date giving two weeks notice. Let user react or comment to stop. If no response, delete in a further two weeks
