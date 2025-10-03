@@ -24,4 +24,6 @@ async def command_help(
         has_dev_commands=has_dev_commands,
         has_admin_commands=has_admin_commands,
     )
-    await dm_channel.send(response)
+
+    for msg in response:
+        await dm_channel.send(msg)

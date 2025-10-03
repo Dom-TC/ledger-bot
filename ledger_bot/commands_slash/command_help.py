@@ -40,4 +40,7 @@ async def command_help(
         has_dev_commands=has_dev_commands,
         has_admin_commands=has_admin_commands,
     )
-    await interaction.response.send_message(response, ephemeral=True)
+
+    await interaction.response.defer(ephemeral=True)
+    for transmit_message in response:
+        await interaction.followup.send(transmit_message, ephemeral=True)

@@ -1,7 +1,10 @@
 """Generate help message text."""
 
 import logging
-from typing import Any, Dict
+import re
+from typing import Any, Dict, List
+
+from .split_message import split_message
 
 log = logging.getLogger(__name__)
 
@@ -10,7 +13,7 @@ def generate_help_message(
     config: Dict[str, Any],
     has_dev_commands: bool = False,
     has_admin_commands: bool = False,
-) -> str:
+) -> List[str]:
     """Generates help text.
 
     Taking into account whether someone has access to dev commands
@@ -266,12 +269,14 @@ def generate_help_message(
     else:
         maintainers = f"<@{str(config['maintainer_ids'][0])}>"
 
+    content = []
     prefix = f"{config['name']} allows you to track in-progress sales to other users.\nCreate a new transaction with `/new_sale`. To update a transactions status, react to the message from {config['name']}."
     suffix = f"{config['name']} was built by {maintainers} and is hosted by <https://snailedit.dev/>."
 
-    body = ""
+    content.append(prefix)
+
     for section in sections:
-        body += f"\n**{section}**\n"
+        body = f"\n**{section}**\n"
 
         # Only checking first element.  Probably not totally safe but works as long as we don't mix list types.
         if "command" in sections[section][0]:
@@ -304,5 +309,10 @@ def generate_help_message(
                 else:
                     body += f"{reaction['reaction']}: {reaction['description']}\n"
 
-    response = prefix + "\n" + body + "\n" + suffix
-    return response
+        content.append(body)
+
+    content.append(suffix)
+
+    message = split_message(content)
+
+    return message
