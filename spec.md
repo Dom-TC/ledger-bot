@@ -222,9 +222,8 @@ REACTIONROLE
 ## TODO
 
 1. Test / Fix / Update existing commands to work with SQLite
-   1. /add_role
-   2. !dev refresh_reminders
-   3. reminders
+   1. !dev refresh_reminders
+   2. reminders
 2. Move to single `MessageGenerators` class? At least switch to just passing in Transaction object. Ensure all messages are split by length.
 3. Consolidate dm and slash commands?
 4. Implement events system

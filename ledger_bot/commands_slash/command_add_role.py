@@ -85,4 +85,9 @@ async def command_add_role(
         reaction=stored_record.reaction_name,
     )
 
+    log.info("Clearing caches")
+    await client.refresh_reaction_role_caches()
+    client.service.reaction_role._get_reaction_role_by_role_id_cache.clear()
+    client.service.reaction_role._get_reaction_role_by_reaction_cache.clear()
+
     await interaction.followup.send(f'Successfully added {emoji} for "{role.name}".')

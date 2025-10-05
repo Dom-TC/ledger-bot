@@ -17,6 +17,9 @@ log = logging.getLogger(__name__)
 
 
 class ReactionRoleService(ServiceHelpers):
+    _get_reaction_role_by_role_id_cache = LRUCache(maxsize=64)
+    _get_reaction_role_by_reaction_cache = LRUCache(maxsize=64)
+
     def __init__(
         self,
         reaction_role_storage: ReactionRoleStorage,
@@ -50,7 +53,7 @@ class ReactionRoleService(ServiceHelpers):
             )
             return reminder
 
-    @cached(LRUCache(maxsize=64))
+    @cached(_get_reaction_role_by_role_id_cache)
     async def get_reaction_role_by_role_id(
         self, server_id: int, role_id: int, session: AsyncSession | None = None
     ) -> ReactionRole | None:
@@ -82,7 +85,7 @@ class ReactionRoleService(ServiceHelpers):
             log.debug(f"Found reaction roles: {reaction_role}")
             return reaction_role[0] if reaction_role else None
 
-    @cached(LRUCache(maxsize=64))
+    @cached(_get_reaction_role_by_reaction_cache)
     async def get_reaction_role_by_reaction(
         self,
         server_id: int,

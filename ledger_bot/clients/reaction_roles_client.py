@@ -51,13 +51,20 @@ class ReactionRolesClient(ExtendedClient):
     async def handle_role_reaction(
         self, payload: discord.RawReactionActionEvent
     ) -> bool:
+        log.debug("Running handle_role_reaction")
+
         watched_message_ids = (
             self.service.reaction_role.watched_message_ids
             if len(self.service.reaction_role.watched_message_ids) > 0
             else await self.service.reaction_role.list_watched_message_ids()
         )
 
-        if str(payload.message_id) not in watched_message_ids:
+        log.debug(f"watched_message_ids: {watched_message_ids}")
+
+        if payload.message_id not in watched_message_ids:
+            log.debug(
+                f"{payload.message_id} not in watched_message_ids {watched_message_ids}"
+            )
             return False
 
         if self.user is await self.get_or_fetch_user(payload.user_id):
@@ -68,8 +75,11 @@ class ReactionRolesClient(ExtendedClient):
             f"Handling reaction role request - {payload.emoji} on {payload.message_id} from {payload.member}"
         )
 
-        if not payload.guild_id or not payload.message_id or payload.emoji:
+        if not payload.guild_id or not payload.message_id or not payload.emoji:
             log.info(f"Invalid payload {payload}")
+            log.debug(f"payload.guild_id: {payload.guild_id}")
+            log.debug(f"payload.message_id: {payload.message_id}")
+            log.debug(f"payload.emoji: {payload.emoji}")
             return False
 
         reaction_role = await self.service.reaction_role.get_reaction_role_by_reaction(
@@ -124,7 +134,7 @@ class ReactionRolesClient(ExtendedClient):
             else await self.service.reaction_role.list_watched_message_ids()
         )
 
-        if str(payload.message_id) not in watched_message_ids:
+        if payload.message_id not in watched_message_ids:
             return False
 
         if self.user is await self.get_or_fetch_user(payload.user_id):
