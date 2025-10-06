@@ -33,6 +33,7 @@ class Member(Base):
         DateTime, default=datetime.now(timezone.utc)
     )
     dietary_requirements: Mapped[str] = mapped_column(String, nullable=True)
+    timezone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     bot_id: Mapped[Optional[str]] = mapped_column(String)
 
     # Relationships

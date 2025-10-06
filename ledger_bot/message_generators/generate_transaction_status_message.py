@@ -115,7 +115,6 @@ async def generate_transaction_status_message(
     log.debug(f"cancelled: {transaction.cancelled}")
     if not transaction.sale_approved and not transaction.cancelled:
         cancel_message = f"*To cancel this transaction, please react with {config['emojis']['cancel']}*\n"
-        log.debug(f"Should display cancel_message - {cancel_message}")
     else:
         cancel_message = ""
 

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import discord
 
 from ledger_bot.commands_scheduled import cleanup, shutdown
-from ledger_bot.reactions import add_reaction
+from ledger_bot.utils import add_reaction
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot

@@ -1,6 +1,7 @@
 """A service to provide interfacing for MemberStorage."""
 
 import logging
+import re
 from typing import List
 
 from asyncache import cached
@@ -11,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ledger_bot.models import Member
 from ledger_bot.storage import MemberStorage
+from ledger_bot.utils import is_valid_timezone, resolve_timezone
 
 from .service_helpers import ServiceHelpers
 
@@ -161,5 +163,47 @@ class MemberService(ServiceHelpers):
 
             log.info(
                 f"Updated dietary_requirements for member {member.id} ({member.username}) to '{requirement}'"
+            )
+            return updated_member
+
+    async def set_timezone(
+        self,
+        discord_member: DiscordMember,
+        timezone: str,
+        session: AsyncSession | None = None,
+    ) -> Member:
+        """Set the dietary requirement for the given discord user.
+
+        Parameters
+        ----------
+        discord_member : DiscordMember
+            The discord member
+        timezone : str
+            The users timezone
+        session : AsyncSession | None, optional
+            An optional session, by default None
+
+        Returns
+        -------
+        Member
+            The updated member object
+        """
+        async with self._get_session(session) as session:
+            member = await self.get_or_add_member(discord_member, session=session)
+
+            if not is_valid_timezone(timezone):
+                log.info(f"Invalid timezone: {timezone}")
+                return member
+
+            member.timezone = resolve_timezone(timezone)
+
+            updated_member = await self.member_storage.update_member(
+                member, fields=["timezone"], session=session
+            )
+
+            await session.commit()
+
+            log.info(
+                f"Updated timezone for member {member.id} ({member.username}) to '{timezone}'"
             )
             return updated_member

@@ -26,7 +26,7 @@ class ReminderStorage(ReminderStorageABC):
         return result
 
     async def add_reminder(self, reminder: Reminder, session: AsyncSession) -> Reminder:
-        log.info(f"Adding reminder for {reminder.member.username}")
+        log.info(f"Adding reminder for {reminder.member_id}")
         session.add(reminder)
         await session.flush()
         await session.refresh(reminder)

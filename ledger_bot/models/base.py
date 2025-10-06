@@ -15,3 +15,9 @@ convention = {
 class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=convention)
     pass
+
+    def __repr__(self):
+        fields = ", ".join(
+            f"{c.name}={getattr(self, c.name)!r}" for c in self.__table__.columns
+        )
+        return f"<Reminder({fields})>"

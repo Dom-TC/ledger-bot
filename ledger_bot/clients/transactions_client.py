@@ -18,9 +18,9 @@ from ledger_bot.message_generators import (
     generate_transaction_status_message,
     send_message,
 )
-from ledger_bot.reactions import add_reaction, remove_reaction
 from ledger_bot.reminder_manager import ReminderManager
 from ledger_bot.services import Service
+from ledger_bot.utils import add_reaction, remove_reaction
 from ledger_bot.views import CreateReminderButton
 
 from .extended_client import ExtendedClient
@@ -360,11 +360,12 @@ class TransactionsClient(ExtendedClient):
             seller_user = await self.get_or_fetch_user(seller.discord_id)
             buyer_user = await self.get_or_fetch_user(buyer.discord_id)
             await reactor_user.send(
-                content=f'Click here to add a reminder for "*{target_transaction.wine}*" from {buyer_user.mention} to {seller_user.mention} for £{target_transaction.price}',
                 view=CreateReminderButton(
                     service=self.service,
                     transaction=target_transaction,
                     user=reactor_user,
+                    buyer_user=buyer_user,
+                    seller_user=seller_user,
                     reminders=self.reminders,
                 ),
             )

@@ -74,10 +74,12 @@ class ReminderService(ServiceHelpers):
         Reminder
             The saved Reminder object
         """
-        log.info(f"Saving reminder for {reminder.member.username}")
-        reminder.bot_id = self.bot_id
-
         async with self._get_session(session) as session:
+            log.debug(f"reminder: {reminder}")
+
+            log.info(f"Saving reminder for member with id{reminder.member_id}")
+            reminder.bot_id = self.bot_id
+
             if reminder.id:
                 log.info(f"Reminder already has id {reminder.id}. Updating...")
 
