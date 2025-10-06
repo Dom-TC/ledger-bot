@@ -38,7 +38,7 @@ class FixedReminderModal(discord.ui.Modal, title="Create fixed reminder"):
 
         super().__init__()
 
-        self.date = discord.ui.Label(
+        self.date: discord.ui.Label = discord.ui.Label(
             text="Reminder Date",
             description="Please enter a date as DD-MM-YYYY",
             component=discord.ui.TextInput(
@@ -49,7 +49,7 @@ class FixedReminderModal(discord.ui.Modal, title="Create fixed reminder"):
             ),
         )
 
-        self.time = discord.ui.Label(
+        self.time: discord.ui.Label = discord.ui.Label(
             text="Reminder Time",
             description="Please a time as HH:MM",
             component=discord.ui.TextInput(
@@ -60,7 +60,7 @@ class FixedReminderModal(discord.ui.Modal, title="Create fixed reminder"):
             ),
         )
 
-        self.timezone = discord.ui.Label(
+        self.timezone: discord.ui.Label = discord.ui.Label(
             text="Timezone",
             description="You don't have a timezone stored.\nPlease add your timezone e.g. Europe/London or UTC+1",
             component=discord.ui.TextInput(
@@ -69,7 +69,7 @@ class FixedReminderModal(discord.ui.Modal, title="Create fixed reminder"):
             ),
         )
 
-        self.filter = discord.ui.Label(
+        self.filter: discord.ui.Label = discord.ui.Label(
             text="Set a filter (Optional)",
             description="A reminder will only be delivered if the selected status hasn't been met.",
             component=discord.ui.Select(
@@ -99,10 +99,10 @@ class FixedReminderModal(discord.ui.Modal, title="Create fixed reminder"):
         log.debug("FixedReminderModal submitted")
 
         # Tell TypeChecker about the component types
-        assert isinstance(self.date.component, discord.ui.TextInput)
-        assert isinstance(self.time.component, discord.ui.TextInput)
-        assert isinstance(self.timezone.component, discord.ui.TextInput)
-        assert isinstance(self.filter.component, discord.ui.Select)
+        assert isinstance(self.date.component, discord.ui.TextInput)  # nosec B101
+        assert isinstance(self.time.component, discord.ui.TextInput)  # nosec B101
+        assert isinstance(self.timezone.component, discord.ui.TextInput)  # nosec B101
+        assert isinstance(self.filter.component, discord.ui.Select)  # nosec B101
 
         date = self.date.component.value
         time = self.time.component.value
@@ -134,13 +134,15 @@ class FixedReminderModal(discord.ui.Modal, title="Create fixed reminder"):
 
         if filter_:
             try:
-                filter_ = ReminderStatus(filter_)
+                reminder_filter = ReminderStatus(filter_)
             except ValueError:
                 log.error(f"Invalid filter: {filter_}")
                 await interaction.response.send_message(
                     f"Invalid filter ({filter_}). Please try again."
                 )
                 return None
+        else:
+            reminder_filter = None
 
         # If timezone already stored, use that, if not store timezone
         user_set_timezone = self.member_record.timezone
@@ -177,7 +179,7 @@ class FixedReminderModal(discord.ui.Modal, title="Create fixed reminder"):
             reminder_date=reminder_datetime,
             member_id=self.member_record.id,
             transaction_id=self.transaction.id,
-            category=filter_,
+            category=reminder_filter,
         )
 
         log.debug(f"{reminder} / {type(reminder)}")
@@ -213,7 +215,7 @@ class RelativeReminderModal(discord.ui.Modal, title="Create relative reminder"):
 
         super().__init__()
 
-        self.days = discord.ui.Label(
+        self.days: discord.ui.Label = discord.ui.Label(
             text="Number of Days",
             description="How many days until the reminder?",
             component=discord.ui.TextInput(
@@ -222,7 +224,7 @@ class RelativeReminderModal(discord.ui.Modal, title="Create relative reminder"):
             ),
         )
 
-        self.hours = discord.ui.Label(
+        self.hours: discord.ui.Label = discord.ui.Label(
             text="Number of Hours",
             description="How many hours until the reminder?",
             component=discord.ui.TextInput(
@@ -231,7 +233,7 @@ class RelativeReminderModal(discord.ui.Modal, title="Create relative reminder"):
             ),
         )
 
-        self.filter = discord.ui.Label(
+        self.filter: discord.ui.Label = discord.ui.Label(
             text="Set a filter (Optional)",
             description="A reminder will only be delivered if the selected status hasn't been met.",
             component=discord.ui.Select(
@@ -255,9 +257,9 @@ class RelativeReminderModal(discord.ui.Modal, title="Create relative reminder"):
         log.debug("RelativeReminderModal submitted")
 
         # Tell TypeChecker about the component types
-        assert isinstance(self.days.component, discord.ui.TextInput)
-        assert isinstance(self.hours.component, discord.ui.TextInput)
-        assert isinstance(self.filter.component, discord.ui.Select)
+        assert isinstance(self.days.component, discord.ui.TextInput)  # nosec B101
+        assert isinstance(self.hours.component, discord.ui.TextInput)  # nosec B101
+        assert isinstance(self.filter.component, discord.ui.Select)  # nosec B101
 
         days = self.days.component.value or 0
         hours = self.hours.component.value or 0
@@ -281,13 +283,15 @@ class RelativeReminderModal(discord.ui.Modal, title="Create relative reminder"):
 
         if filter_:
             try:
-                filter_ = ReminderStatus(filter_)
+                reminder_filter = ReminderStatus(filter_)
             except ValueError:
                 log.error(f"Invalid filter: {filter_}")
                 await interaction.response.send_message(
                     f"Invalid filter ({filter_}). Please try again."
                 )
                 return None
+        else:
+            reminder_filter = None
 
         # If timezone already stored, use that, if not store timezone
         timezone = self.member_record.timezone or "Etc/UTC"
@@ -311,7 +315,7 @@ class RelativeReminderModal(discord.ui.Modal, title="Create relative reminder"):
             reminder_date=reminder_datetime,
             member_id=self.member_record.id,
             transaction_id=self.transaction.id,
-            category=filter_,
+            category=reminder_filter,
         )
 
         log.debug(f"{reminder} / {type(reminder)}")
@@ -350,18 +354,18 @@ class CreateReminderButton(discord.ui.LayoutView):
 
         super().__init__()
 
-        container = discord.ui.Container(
+        container: discord.ui.Container = discord.ui.Container(
             discord.ui.TextDisplay(
                 f'Click one of the buttons to add a reminder for "*{self.transaction.wine}*" from {self.seller.mention} to {self.buyer.mention} for £{self.transaction.price:.2f}.\nA fixed reminder will let let you input a specific date to receive a reminder.\nA relative reminder will let you set how long until the reminder goes off (in days and hours).'
             ),
         )
 
-        row = discord.ui.ActionRow()
-        fixed_button = discord.ui.Button(
+        row: discord.ui.ActionRow = discord.ui.ActionRow()
+        fixed_button: discord.ui.Button = discord.ui.Button(
             label="Create Fixed Reminder.",
         )
 
-        relative_button = discord.ui.Button(
+        relative_button: discord.ui.Button = discord.ui.Button(
             label="Create Relative Reminder",
         )
 
@@ -391,8 +395,8 @@ class CreateReminderButton(discord.ui.LayoutView):
                 )
             )
 
-        fixed_button.callback = fixed_button_callback
-        relative_button.callback = relative_button_callback
+        fixed_button.callback = fixed_button_callback  # type: ignore[method-assign]
+        relative_button.callback = relative_button_callback  # type: ignore[method-assign]
 
         # Add buttons to row
         row.add_item(fixed_button)

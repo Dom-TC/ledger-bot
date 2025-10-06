@@ -171,7 +171,7 @@ class TransactionStorage(TransactionStorageABC):
             raise ValueError(f"Unknown status: {status}")
 
         # Use list_transactions with filters
-        transactions = await self.list_transactions(
+        transactions = await self.list_transactions(  # type: ignore[misc]
             role_column == member_id,
             *status_filters[status],
             session=session,

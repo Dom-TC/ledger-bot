@@ -189,7 +189,13 @@ class MemberService(ServiceHelpers):
             The updated member object
         """
         async with self._get_session(session) as session:
-            member = await self.get_or_add_member(discord_member, session=session)
+            # I don't know why we have to specify type Member here
+            # self.get_or_add_member is set to return Member
+            # VSCode doesn't complain but mypy does, for some reason
+            # So heere we are
+            member: Member = await self.get_or_add_member(
+                discord_member, session=session
+            )
 
             if not is_valid_timezone(timezone):
                 log.info(f"Invalid timezone: {timezone}")

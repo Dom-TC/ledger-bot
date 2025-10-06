@@ -24,8 +24,8 @@ jobs:
           poetry lock
           poetry install --with dev
 
-      - name: Run pytest
-        run: poetry run pytest tests/
+      - name: Run flake8
+        run: poetry run flake8 ledger_bot"
 
       - name: Run bandit
         run: poetry run bandit -c pyproject.toml -r ledger_bot

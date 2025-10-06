@@ -144,7 +144,7 @@ async def command_dev(
         else:
             result = "The following jobs are currently configured: \n"
             for job in jobs:
-                assert isinstance(job.next_run_time, datetime.datetime)
+                assert isinstance(job.next_run_time, datetime.datetime)  # nosec B101
                 result += f"- {job.id}: {job.name} - {job.trigger} {job.next_run_time} (Next running: <t:{job.next_run_time.timestamp():.0f}:f>)\n"
 
         await dm_channel.send(result)

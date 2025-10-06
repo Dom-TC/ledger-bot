@@ -91,7 +91,7 @@ warn_unused_ignores = true
 warn_return_any = true
 
 [[tool.mypy.overrides]]
-module = ["apscheduler", "apscheduler.schedulers.asyncio", "asyncache"]
+module = ["apscheduler", "apscheduler.schedulers.asyncio", "asyncache", "apscheduler.job"]
 ignore_missing_imports = true
 
 [tool.bandit]

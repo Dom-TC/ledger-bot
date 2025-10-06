@@ -70,6 +70,10 @@ def build_datetime(date_str: str, time_str: str, tz_str: str) -> datetime:
 
     # Handle explicit UTC offset timezones
     offset_match = re.fullmatch(r"^(?:UTC|GMT)?([+-])(\d{1,2})(?::?(\d{2}))?$", tz_str)
+
+    # Prevent mypy error on differing type assignments in the if statement
+    tz: timezone | ZoneInfo
+
     if offset_match:
         sign, hours, minutes = offset_match.groups()
         hours = int(hours)
@@ -129,6 +133,10 @@ def build_relative_datetime(days: int, hours: int, tz_str: str | None) -> dateti
         tz_str = "Etc/UTC"
 
     # Handle explicit UTC offset timezones
+
+    # Prevent mypy error on differing type assignments in the if statement
+    tz: timezone | ZoneInfo
+
     offset_match = re.fullmatch(r"^(?:UTC|GMT)?([+-])(\d{1,2})(?::?(\d{2}))?$", tz_str)
     if offset_match:
         offset_sign, offset_hours, offset_mins = offset_match.groups()
