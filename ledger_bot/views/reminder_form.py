@@ -186,6 +186,11 @@ class FixedReminderModal(discord.ui.Modal, title="Create fixed reminder"):
 
         # Store reminder
         stored_reminder = await self.service.reminder.save_reminder(reminder)
+        log.info(f"Successfully stored reminder {stored_reminder.id}")
+
+        log.info("Refreshing reminders")
+        await self.reminders.refresh_reminders()
+
         await interaction.response.send_message(
             f"Successfully stored the reminder.\nYour reminder will be scheduled for <t:{stored_reminder.reminder_date.timestamp():.0f}:f> (<t:{stored_reminder.reminder_date.timestamp():.0f}:R>)."
         )
@@ -315,6 +320,12 @@ class RelativeReminderModal(discord.ui.Modal, title="Create relative reminder"):
 
         # Store reminder
         stored_reminder = await self.service.reminder.save_reminder(reminder)
+
+        log.info(f"Successfully stored reminder {stored_reminder.id}")
+
+        log.info("Refreshing reminders")
+        await self.reminders.refresh_reminders()
+
         await interaction.response.send_message(
             f"Successfully stored the reminder.\nYour reminder will be scheduled for <t:{stored_reminder.reminder_date.timestamp():.0f}:f> (<t:{stored_reminder.reminder_date.timestamp():.0f}:R>)."
         )

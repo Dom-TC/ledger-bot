@@ -4,9 +4,10 @@ import datetime
 import hashlib
 import logging
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 import discord
+from apscheduler.job import Job
 
 from ledger_bot.commands_scheduled import cleanup, shutdown
 from ledger_bot.utils import add_reaction
@@ -136,16 +137,15 @@ async def command_dev(
         await add_reaction(client, message_id, reaction)
 
     elif request.startswith("get_jobs"):
-        jobs = client.scheduler.get_jobs()
+        jobs: List[Job] = client.scheduler.get_jobs()
 
         if len(jobs) == 0:
             result = "There are no jobs currently configured."
         else:
             result = "The following jobs are currently configured: \n"
             for job in jobs:
-                result += (
-                    f"- {job.id}: {job.name} - {job.trigger} {job.next_run_time}\n"
-                )
+                assert isinstance(job.next_run_time, datetime.datetime)
+                result += f"- {job.id}: {job.name} - {job.trigger} {job.next_run_time} (Next running: <t:{job.next_run_time.timestamp():.0f}:f>)\n"
 
         await dm_channel.send(result)
 

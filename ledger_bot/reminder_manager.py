@@ -64,9 +64,11 @@ class ReminderManager:
         reminders = await self.service.reminder.list_all_reminders()
 
         for reminder in reminders:
+            log.debug(f"reminder: {reminder}")
+
             self.scheduler.add_job(
                 self.send_reminder,
-                id=reminder.id,
+                id=f"reminder-{str(reminder.id)}",
                 name=f"Reminder: {reminder.id}",
                 trigger="date",
                 next_run_time=reminder.reminder_date,
@@ -91,11 +93,11 @@ class ReminderManager:
         log.debug(f"status: {status}")
 
         member_record = await self.service.member.get_member_from_record_id(
-            int(member_id[0])
+            int(member_id)
         )
 
         if member_record is None:
-            log.warning(f"No member found for record {int(member_id[0])}")
+            log.warning(f"No member found for record {int(member_id)}")
             return
 
         log.debug(f"{member_record} / {type(member_record)}")
@@ -106,11 +108,11 @@ class ReminderManager:
 
         # Get transaction record from record_id transaction_id[0]
         transaction_record = await self.service.transaction.get_transaction(
-            int(transaction_id[0])
+            int(transaction_id)
         )
 
         if transaction_record is None:
-            log.warning(f"No transaction found for record {int(transaction_id[0])}")
+            log.warning(f"No transaction found for record {int(transaction_id)}")
             return
 
         # Filter if matched status
