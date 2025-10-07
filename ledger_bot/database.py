@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 def setup_database(config):
     """Setup the database session factory."""
-    db_path = f"sqlite+aiosqlite:///data/{config['database_name']}"
+    db_path = f"sqlite+aiosqlite:///{config['database_path']}"
 
     log.info(f"Setting up database: {db_path}")
     engine = create_async_engine(db_path, connect_args={"check_same_thread": False})

@@ -72,7 +72,7 @@ def parse(config: Dict[str, Any] | None) -> Dict[str, Any]:
         },
         "cleanup_removes_transaction_records": False,
         "admin_role": 1184878800408948847,
-        "database_name": "ledger_bot.sql",
+        "database_path": "data/ledger_bot.sql",
         "shutdown_post_channel": None,
         "shutdown_delay": 5,  # Time in minutes to wait after receiving a shutdown command
     }
@@ -94,6 +94,9 @@ def parse(config: Dict[str, Any] | None) -> Dict[str, Any]:
 
     if token := os.getenv("BOT_AIRTABLE_BASE"):
         defaults["authentication"]["airtable_base"] = token
+
+    if token := os.getenv("DATABASE_URL"):
+        defaults["database_path"] = token
 
     if bot_id := os.getenv("BOT_ID"):
         defaults["id"] = bot_id
