@@ -21,8 +21,9 @@ ARG bot_version
 ENV BOT_VERSION=$bot_version
 
 COPY logs ./logs
-COPY pyproject.toml poetry.lock README.md log.conf ./
+COPY pyproject.toml poetry.lock README.md log.conf alembic.ini ./
 COPY ledger_bot ./ledger_bot
+COPY alembic/ ./alembic
 
 RUN poetry config virtualenvs.in-project true && \
     poetry install --only=main --no-root && \

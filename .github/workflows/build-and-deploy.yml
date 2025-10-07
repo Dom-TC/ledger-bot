@@ -181,7 +181,7 @@ jobs:
             docker compose -f /opt/dev-ledger-bot/docker-compose.yml pull
 
             # Upgrade database
-            docker compose run --rm ledger-bot alembic upgrade head
+            docker compose run --rm ledger-bot poetry run alembic upgrade head
 
             # Run ledger-bot
             docker compose -f /opt/dev-ledger-bot/docker-compose.yml up -d
