@@ -221,8 +221,7 @@ REACTIONROLE
 
 ## TODO
 
-1. Move to single `MessageGenerators` class? At least switch to just passing in Transaction object. Ensure all messages are split by length.
+1. Move to single `MessageGenerators` class? At least switch to just passing in Transaction object. Ensure all messages are split by length. Include /lookup output
 2. Consolidate dm and slash commands?
 3. Implement events system
-4. Add `/lookup` command - shows a users history (don't include prices or wine details)
-5. Add schedule to automatically delete events channels. Post one month after event date giving two weeks notice. Let user react or comment to stop. If no response, delete in a further two weeks
+4. Add schedule to automatically delete events channels. Post one month after event date giving two weeks notice. Let user react or comment to stop. If no response, delete in a further two weeks

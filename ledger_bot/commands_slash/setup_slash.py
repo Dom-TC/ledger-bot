@@ -13,6 +13,7 @@ from .command_add_role import command_add_role
 from .command_hello import command_hello
 from .command_help import command_help
 from .command_list import command_list
+from .command_lookup import command_lookup
 from .command_new_sale import command_new_sale
 from .command_new_split import command_new_split
 from .command_ping import command_ping
@@ -282,3 +283,23 @@ def setup_slash(
             )
         else:
             log.error("An unhandled error occured", exc_info=error)
+
+    @client.tree.command(
+        guild=client.guild,
+        name="lookup",
+        description="Lookup another users transactions.",
+    )
+    @app_commands.describe(
+        user="The user you want information about",
+    )
+    async def lookup(
+        interaction: discord.Interaction[Any],
+        user: discord.Member,
+    ) -> None:
+        """Lookup a user."""
+        log.info(f"Recognised command: /lookup from {interaction.user.name}")
+        await command_lookup(
+            client=client,
+            interaction=interaction,
+            user=user,
+        )

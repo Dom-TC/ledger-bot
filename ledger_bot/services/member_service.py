@@ -10,7 +10,7 @@ from discord import Member as DiscordMember
 from discord import User as DiscordUser
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from ledger_bot.models import Member
+from ledger_bot.models import Member, MemberTransactionSummary
 from ledger_bot.storage import MemberStorage
 from ledger_bot.utils import is_valid_timezone, resolve_timezone
 
@@ -213,3 +213,11 @@ class MemberService(ServiceHelpers):
                 f"Updated timezone for member {member.id} ({member.username}) to '{timezone}'"
             )
             return updated_member
+
+    async def get_member_transaction_summary(
+        self, member: Member, session: AsyncSession | None = None
+    ) -> MemberTransactionSummary:
+        async with self._get_session(session) as session:
+            return await self.member_storage.get_transaction_summary(
+                member, session=session
+            )

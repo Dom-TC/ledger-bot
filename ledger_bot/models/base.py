@@ -20,4 +20,4 @@ class Base(DeclarativeBase):
         fields = ", ".join(
             f"{c.name}={getattr(self, c.name)!r}" for c in self.__table__.columns
         )
-        return f"<Reminder({fields})>"
+        return f"<{self.__class__.__name__}({fields})>"

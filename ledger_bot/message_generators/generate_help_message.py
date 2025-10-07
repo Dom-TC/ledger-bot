@@ -164,6 +164,13 @@ def generate_help_message(
                 "requires_dev": False,
                 "requires_admin": True,
             },
+            {
+                "command": "/lookup",
+                "args": ["user"],
+                "description": "Lookup another users transactions.",
+                "requires_dev": False,
+                "requires_admin": False,
+            },
         ],
         "DM Commands": [
             {

@@ -1,12 +1,11 @@
 """SQLite implementation of MemberStorageABC."""
 
 import logging
-from typing import List, Optional
+from typing import Dict, List, Optional
 
-from sqlalchemy import delete, update
+from sqlalchemy import Row, case, delete, func, select, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy.future import select
 from sqlalchemy.sql import ColumnElement
 
 from ledger_bot.errors import (
@@ -14,7 +13,7 @@ from ledger_bot.errors import (
     MemberCreationError,
     MemberQueryError,
 )
-from ledger_bot.models import Member
+from ledger_bot.models import Member, MemberTransactionSummary, Transaction
 
 from .abstracts import MemberStorageABC
 
@@ -94,3 +93,61 @@ class MemberStorage(MemberStorageABC):
         await session.flush()
         await session.refresh(db_member)
         return db_member
+
+    async def get_transaction_summary(
+        self, member: Member, session: AsyncSession
+    ) -> MemberTransactionSummary:
+        log.debug(f"Getting transaction summery for {member.username} ({member.id})")
+
+        stmt = select(
+            func.sum(case((Transaction.seller_id == member.id, 1), else_=0)).label(
+                "sales"
+            ),
+            func.sum(case((Transaction.buyer_id == member.id, 1), else_=0)).label(
+                "purchases"
+            ),
+            func.sum(case((Transaction.cancelled.is_(True), 1), else_=0)).label(
+                "cancelled"
+            ),
+            func.sum(
+                case(
+                    (
+                        Transaction.buyer_paid.is_(True)
+                        & Transaction.seller_paid.is_(True)
+                        & Transaction.seller_delivered.is_(True)
+                        & Transaction.buyer_delivered.is_(True)
+                        & Transaction.cancelled.is_(False),
+                        1,
+                    ),
+                    else_=0,
+                )
+            ).label("complete"),
+            func.sum(
+                case(
+                    (
+                        Transaction.cancelled.is_(False)
+                        & (
+                            (Transaction.buyer_paid.is_(False))
+                            | (Transaction.seller_paid.is_(False))
+                            | (Transaction.buyer_delivered.is_(False))
+                            | (Transaction.seller_delivered.is_(False))
+                        ),
+                        1,
+                    ),
+                    else_=0,
+                )
+            ).label("open"),
+        ).where(
+            (Transaction.seller_id == member.id) | (Transaction.buyer_id == member.id)
+        )
+
+        result = await session.execute(stmt)
+        row = result.one()
+
+        return MemberTransactionSummary(
+            sales_count=row.sales,
+            purchases_count=row.purchases,
+            completed_count=row.complete,
+            cancelled_count=row.cancelled,
+            open_count=row.open,
+        )

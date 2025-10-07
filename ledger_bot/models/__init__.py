@@ -6,6 +6,7 @@ from . import (
     event_member,
     event_wine,
     member,
+    member_transaction_summary,
     reaction_role,
     reminder,
     stats,
@@ -28,3 +29,5 @@ ReactionRole = reaction_role.ReactionRole
 Stats = stats.Stats
 ServerStats = stats.ServerStats
 TransactionStats = stats.TransactionStats
+
+MemberTransactionSummary = member_transaction_summary.MemberTransactionSummary

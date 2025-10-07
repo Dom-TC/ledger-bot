@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from .member import Member
 
 
-@dataclass
+@dataclass(slots=True)
 class TransactionStats:
     unapproved: int
     approved: int
@@ -23,7 +23,7 @@ class TransactionStats:
     most_expensive_price: float
 
 
-@dataclass
+@dataclass(slots=True)
 class ServerStats:
     total_count: int
     total_value: float
@@ -34,7 +34,7 @@ class ServerStats:
     top_sellers: list[Member]
 
 
-@dataclass
+@dataclass(slots=True)
 class Stats:
     purchase: TransactionStats | None
     sale: TransactionStats | None
