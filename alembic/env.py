@@ -1,6 +1,7 @@
 """Setup alembic."""
 
 from logging.config import fileConfig
+from os import getenv
 
 from sqlalchemy import engine_from_config, pool
 
@@ -34,7 +35,10 @@ target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
-config.set_main_option("sqlalchemy.url", "sqlite:///data/ledger_bot.sql")
+db_url = getenv("DATABASE_URL")
+
+if db_url:
+    config.set_main_option("sqlalchemy.url", db_url)
 
 
 def run_migrations_offline() -> None:

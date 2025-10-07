@@ -106,6 +106,7 @@ jobs:
             echo "BOT_DISCORD_TOKEN=${{ secrets.BOT_DISCORD_TOKEN }}" >> /opt/ledger-bot/env_file
             echo "BOT_AIRTABLE_BASE=${{ secrets.BOT_AIRTABLE_BASE }}" >> /opt/ledger-bot/env_file
             echo "BOT_ID=${{ vars.BOT_ID }}" >> /opt/ledger-bot/env_file
+            echo "DATABASE_URL=${{ vars.DB_URL }}" >> /opt/dev-ledger-bot/env_file
 
             # Create log folder, if needed
             log_path="/opt/ledger-bot/ledger-bot$(echo "${{ vars.LOG_FOLDER_PATH }}" | sed 's#/etc/ledger-bot##')"
@@ -170,6 +171,7 @@ jobs:
             echo "BOT_DISCORD_TOKEN=${{ secrets.DEV_BOT_DISCORD_TOKEN }}" >> /opt/dev-ledger-bot/env_file
             echo "BOT_AIRTABLE_BASE=${{ secrets.DEV_BOT_AIRTABLE_BASE }}" >> /opt/dev-ledger-bot/env_file
             echo "BOT_ID=${{ vars.DEV_BOT_ID }}" >> /opt/dev-ledger-bot/env_file
+            echo "DATABASE_URL=${{ vars.DB_URL }}" >> /opt/dev-ledger-bot/env_file
 
             # Create log folder, if needed
             log_path="/opt/dev-ledger-bot/ledger-bot$(echo "${{ vars.LOG_FOLDER_PATH }}" | sed 's#/etc/ledger-bot##')"
