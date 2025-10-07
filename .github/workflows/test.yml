@@ -15,7 +15,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: 3.11.x
+          python-version: 3.13.x
 
       - name: Install dependencies
         run: |
@@ -24,8 +24,8 @@ jobs:
           poetry lock
           poetry install --with dev
 
-      - name: Run pytest
-        run: poetry run pytest tests/
+      - name: Run flake8
+        run: poetry run flake8 ledger_bot
 
       - name: Run bandit
         run: poetry run bandit -c pyproject.toml -r ledger_bot

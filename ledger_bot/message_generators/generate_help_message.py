@@ -1,7 +1,10 @@
 """Generate help message text."""
 
 import logging
-from typing import Any, Dict
+import re
+from typing import Any, Dict, List
+
+from .split_message import split_message
 
 log = logging.getLogger(__name__)
 
@@ -10,7 +13,7 @@ def generate_help_message(
     config: Dict[str, Any],
     has_dev_commands: bool = False,
     has_admin_commands: bool = False,
-) -> str:
+) -> List[str]:
     """Generates help text.
 
     Taking into account whether someone has access to dev commands
@@ -134,6 +137,13 @@ def generate_help_message(
                 "requires_admin": False,
             },
             {
+                "command": "/ping",
+                "args": [],
+                "description": "Returns a Pong",
+                "requires_dev": False,
+                "requires_admin": False,
+            },
+            {
                 "command": "/list",
                 "args": [],
                 "description": "Returns a list of your transactions",
@@ -153,6 +163,13 @@ def generate_help_message(
                 "description": "Add a new role reaction. Emoji is the reaction users will user to add the role, message_id is the id of the message they will react against.",
                 "requires_dev": False,
                 "requires_admin": True,
+            },
+            {
+                "command": "/lookup",
+                "args": ["user"],
+                "description": "Lookup another users transactions.",
+                "requires_dev": False,
+                "requires_admin": False,
             },
         ],
         "DM Commands": [
@@ -216,7 +233,30 @@ def generate_help_message(
                 "command": "!dev refresh_message",
                 "args": ["transaction_row_id", "optional: channel_id"],
                 "description": "Deletes all existing messages for a given transaction, and posts a new status update",
-                "requires_dev": False,
+                "requires_dev": True,
+                "requires_admin": False,
+            },
+            {
+                "command": "!dev shutdown",
+                "args": [
+                    "confirmation_token",
+                ],
+                "description": "Shutdown ledger_bot, requires a confirmation token that will be displayed when first run",
+                "requires_dev": True,
+                "requires_admin": False,
+            },
+            {
+                "command": "!dev cancel_shutdown",
+                "args": [],
+                "description": "Cancels the scheduled shutdown",
+                "requires_dev": True,
+                "requires_admin": False,
+            },
+            {
+                "command": "!dev welcome_back",
+                "args": [],
+                "description": "Posts a message saying ledger_bot is running again.",
+                "requires_dev": True,
                 "requires_admin": False,
             },
         ],
@@ -236,12 +276,14 @@ def generate_help_message(
     else:
         maintainers = f"<@{str(config['maintainer_ids'][0])}>"
 
+    content = []
     prefix = f"{config['name']} allows you to track in-progress sales to other users.\nCreate a new transaction with `/new_sale`. To update a transactions status, react to the message from {config['name']}."
     suffix = f"{config['name']} was built by {maintainers} and is hosted by <https://snailedit.dev/>."
 
-    body = ""
+    content.append(prefix)
+
     for section in sections:
-        body += f"\n**{section}**\n"
+        body = f"\n**{section}**\n"
 
         # Only checking first element.  Probably not totally safe but works as long as we don't mix list types.
         if "command" in sections[section][0]:
@@ -274,5 +316,10 @@ def generate_help_message(
                 else:
                     body += f"{reaction['reaction']}: {reaction['description']}\n"
 
-    response = prefix + "\n" + body + "\n" + suffix
-    return response
+        content.append(body)
+
+    content.append(suffix)
+
+    message = split_message(content)
+
+    return message

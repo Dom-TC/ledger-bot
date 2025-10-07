@@ -5,48 +5,27 @@ import re
 from typing import Any, Dict, List
 
 from ledger_bot.models import BotMessage, Transaction
-from ledger_bot.storage import AirtableStorage
+from ledger_bot.services import Service
+
+from .split_message import split_message
 
 log = logging.getLogger(__name__)
 
 
-def _split_text_on_newline(text: str, chunk_length: int) -> List[str]:
-    chunks = []
-    current_chunk = ""
-
-    for line in text.splitlines(True):
-        if len(current_chunk) + len(line) <= chunk_length:
-            current_chunk += line
-        else:
-            chunks.append(current_chunk)
-            current_chunk = line
-
-    if current_chunk:
-        chunks.append(current_chunk)
-
-    return chunks
-
-
 async def _get_latest_message_link(
-    transaction: Transaction, storage: AirtableStorage
+    transaction: Transaction,
 ) -> str:
-    if transaction.bot_messages is None:
+    if not transaction.bot_messages:
         return ""
 
-    latest_message_record = transaction.bot_messages[-1]
-    latest_message_record_id = (
-        latest_message_record.record_id
-        if isinstance(latest_message_record, BotMessage)
-        else latest_message_record
-    )
-    message = await storage.find_bot_message_by_record_id(latest_message_record_id)
+    message = transaction.bot_messages[-1]
 
-    link = f"- https://discord.com/channels/{message.guild_id}/{message.channel_id}/{message.bot_message_id}"
+    link = f"- https://discord.com/channels/{message.guild_id}/{message.channel_id}/{message.message_id}"
     return link
 
 
 async def _build_transaction_lists(
-    transactions: List[Transaction], user_id: int, storage: AirtableStorage
+    transactions: List[Transaction], user_id: int, service: Service
 ) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
     """
     Converts a list of transactions into a filtered dictionary.
@@ -57,7 +36,7 @@ async def _build_transaction_lists(
     - other_party
     - last_message_link
     """
-    log.debug(f"Building transaction lists with {transactions}")
+    log.debug("Building transaction lists")
     transaction_lists: Dict[str, Dict[str, List[Dict[str, Any]]]] = {
         "buying": {
             "awaiting_approval": [],
@@ -79,47 +58,34 @@ async def _build_transaction_lists(
 
     # Filter transactions
     for transaction in transactions:
-        log.debug(f"Processing transaction: {transaction}")
         # Add transaction details to transaction_lists split by buyer / seller and transaction status
 
         is_approved = bool(transaction.sale_approved)
-        is_delivered = bool(transaction.buyer_marked_delivered) and bool(
-            transaction.seller_marked_delivered
+        is_delivered = bool(transaction.buyer_delivered) and bool(
+            transaction.seller_delivered
         )
-        is_paid = bool(transaction.buyer_marked_paid) and bool(
-            transaction.seller_marked_paid
-        )
+        is_paid = bool(transaction.buyer_paid) and bool(transaction.seller_paid)
         is_cancelled = bool(transaction.cancelled)
 
-        log.debug(f"Is Approved: {is_approved}")
-        log.debug(f"Is Delivered: {is_delivered}")
-        log.debug(f"Is Paid: {is_paid}")
-        log.debug(f"Is Cancelled: {is_cancelled}")
-
         # Generate link for last status message
-        last_message_link = await _get_latest_message_link(
-            transaction=transaction, storage=storage
-        )
+        last_message_link = await _get_latest_message_link(transaction=transaction)
 
-        if transaction.seller_discord_id is None:
+        if transaction.seller.discord_id is None:
             log.warning("No Seller Discord ID specified. Skipping")
             raise ValueError
 
-        if transaction.buyer_discord_id is None:
+        if transaction.buyer.discord_id is None:
             log.warning("No Buyer Discord ID specified. Skipping")
             raise ValueError
 
         # Check whether the user is the buyer or seller
-        if int(transaction.seller_discord_id) == user_id:
-            log.debug("User is seller")
+        if int(transaction.seller.discord_id) == user_id:
             section = "selling"
-            other_party = transaction.buyer_discord_id
-        elif int(transaction.buyer_discord_id) == user_id:
-            log.debug("User is buyer")
+            other_party = transaction.buyer.discord_id
+        elif int(transaction.buyer.discord_id) == user_id:
             section = "buying"
-            other_party = transaction.seller_discord_id
+            other_party = transaction.seller.discord_id
         else:
-            log.error("Section is unknown")
             section = "unknown"
             other_party = None
 
@@ -153,84 +119,8 @@ async def _build_transaction_lists(
     return transaction_lists
 
 
-def _split_message(intro: str, purchases_content: str, sales_content: str) -> List[str]:
-    """
-    Splits the message content into 2000 character chunks.
-
-    Discord can't accept messages more than 2000 characters, so we have to return long lists as multiple messages.
-
-    Parameters
-    ----------
-    intro : str
-        The intro section
-    purchases_content : str
-        The purchases section
-    sales_content : str
-        The sales section
-
-    Returns
-    -------
-    List[str]
-        A list of messages to send
-    """
-    if len(intro + purchases_content + sales_content) > 1995:
-        log.info(
-            f"Splitting large message ({len(intro + purchases_content + sales_content)} characters)"
-        )
-        output = [intro]
-
-        if len(purchases_content) < 2000:
-            output.append(purchases_content)
-        else:
-            # Further split purchases:
-
-            # Remove first line (otherwise it's classed as it's own section and sent as a single message)
-            purchases_content = purchases_content[15:]
-
-            # Split on section title
-            sections = re.split(r"\n(?=[A-Za-z ]+:)", purchases_content)
-
-            for i, section in enumerate(sections):
-                if i == 0:
-                    section = "**Purchases**\n" + section
-
-                if len(section) < 1995:
-                    output.append(section)
-                else:
-                    # Further split section
-                    sub_sections = _split_text_on_newline(section, 1995)
-                    output = output + sub_sections
-
-        if len(sales_content) < 2000:
-            output.append(sales_content)
-        else:
-            # Further split sales:
-
-            # Remove first line (otherwise it's classed as it's own section and sent as a single message)
-            sales_content = sales_content[11:]
-
-            # Split on section title
-            sections = re.split(r"\n(?=[A-Za-z ]+:)", sales_content)
-
-            for i, section in enumerate(sections):
-                if i == 0:
-                    section = "**Sales**\n" + section
-
-                if len(section) < 1995:
-                    output.append(section)
-                else:
-                    # Further split section
-                    sub_sections = _split_text_on_newline(section, 1995)
-                    output = output + sub_sections
-
-    else:
-        output = [intro + purchases_content + sales_content]
-
-    return output
-
-
 async def generate_list_message(
-    transactions: List[Transaction], user_id: int, storage: AirtableStorage
+    transactions: List[Transaction], user_id: int, service: Service
 ) -> List[str]:
     """
     Generates formatted text for listing the provided transactions to return to the user.
@@ -243,8 +133,8 @@ async def generate_list_message(
     user_id : int
         The id of the user who sent the message
 
-    storage : AirtableStorage
-        The storage set
+    service : Service
+        The services to interface with the database
 
     Returns
     -------
@@ -260,7 +150,7 @@ async def generate_list_message(
         intro = "You don't have any transactions."
     else:
         transaction_lists = await _build_transaction_lists(
-            transactions=transactions, user_id=user_id, storage=storage
+            transactions=transactions, user_id=user_id, service=service
         )
         # Produce Output
         has_purchases = False
@@ -273,15 +163,14 @@ async def generate_list_message(
             if transaction_lists["buying"][category]:
                 # If first category with contents, add title
                 if not has_purchases:
-                    purchases_content += "\n**Purchases**\n"
+                    purchases_content += "\n**Purchases**"
                     has_purchases = True
 
                 purchases_content += (
-                    f"{category.replace('_', ' ').title().replace('And', 'and')}:\n"
+                    f"\n{category.replace('_', ' ').title().replace('And', 'and')}:\n"
                 )
 
                 for item in transaction_lists["buying"][category]:
-                    log.debug(f"Generating output for {item}")
                     purchases_content += f"- \"{item['wine_name']}\" from <@{item['other_party']}> for £{item['price']} {item['last_message_link']}\n"
                     purchase_count += 1
 
@@ -290,15 +179,14 @@ async def generate_list_message(
             if transaction_lists["selling"][category]:
                 # If first category with contents, add title
                 if not has_sales:
-                    sales_content += "\n**Sales**\n"
+                    sales_content += "\n**Sales**"
                     has_sales = True
 
                 sales_content += (
-                    f"{category.replace('_', ' ').title().replace('And', 'and')}:\n"
+                    f"\n{category.replace('_', ' ').title().replace('And', 'and')}:\n"
                 )
 
                 for item in transaction_lists["selling"][category]:
-                    log.debug(f"Generating output for {item}")
                     sales_content += f"- \"{item['wine_name']}\" to <@{item['other_party']}> for £{item['price']} {item['last_message_link']}\n"
                     sale_count += 1
 
@@ -310,6 +198,5 @@ async def generate_list_message(
         elif sale_count and not purchase_count:
             intro = f"You have {sale_count} sale{'s' if sale_count > 1 else ''}.\n"
 
-    output = _split_message(intro, purchases_content, sales_content)
-
+    output = split_message([intro, purchases_content, sales_content])
     return output

@@ -1,4 +1,4 @@
-FROM python:3.11.2-slim as base
+FROM python:3.13.6-slim as base
 
 ENV PYTHONFAULTHANDLER=1 \
     PYTHONHASHSEED=random \
@@ -13,7 +13,7 @@ LABEL org.opencontainers.image.source=https://github.com/Dom-TC/ledger-bot
 ENV PIP_DEFAULT_TIMEOUT=100 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
-    POETRY_VERSION=1.6.1
+    POETRY_VERSION=2.2.1
 
 RUN pip install "poetry==$POETRY_VERSION"
 
