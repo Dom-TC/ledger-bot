@@ -115,6 +115,11 @@ jobs:
             # Rebuild container
             docker compose -f /opt/ledger-bot/docker-compose.yml down
             docker compose -f /opt/ledger-bot/docker-compose.yml pull
+
+            # Upgrade database
+            docker compose run --rm ledger-bot alembic upgrade head
+
+            # Run ledger-bot
             docker compose -f /opt/ledger-bot/docker-compose.yml up -d
 
             # Prune old images
@@ -174,4 +179,9 @@ jobs:
             # Rebuild container
             docker compose -f /opt/dev-ledger-bot/docker-compose.yml down
             docker compose -f /opt/dev-ledger-bot/docker-compose.yml pull
+
+            # Upgrade database
+            docker compose run --rm ledger-bot alembic upgrade head
+
+            # Run ledger-bot
             docker compose -f /opt/dev-ledger-bot/docker-compose.yml up -d
