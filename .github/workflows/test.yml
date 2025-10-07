@@ -25,7 +25,7 @@ jobs:
           poetry install --with dev
 
       - name: Run flake8
-        run: poetry run flake8 ledger_bot"
+        run: poetry run flake8 ledger_bot
 
       - name: Run bandit
         run: poetry run bandit -c pyproject.toml -r ledger_bot
