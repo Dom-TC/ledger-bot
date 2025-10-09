@@ -4,10 +4,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
-from asyncache import cached
-from cachetools import LRUCache
-from discord import Member as DiscordMember
-from sqlalchemy import and_, or_
+from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
 
@@ -18,7 +15,7 @@ from ledger_bot.errors import (
     TransactionInvalidMemberError,
     TransactionServiceError,
 )
-from ledger_bot.models import Member, ServerStats, Stats, Transaction, TransactionStats
+from ledger_bot.models import Member, Transaction
 from ledger_bot.storage import TransactionStorage
 
 from .bot_message_service import BotMessageService

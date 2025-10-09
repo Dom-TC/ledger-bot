@@ -1,15 +1,12 @@
 """The data model for a record in the `wines` table."""
 
 import logging
-from ast import literal_eval
-from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
-    Enum,
     Float,
     ForeignKey,
     Integer,

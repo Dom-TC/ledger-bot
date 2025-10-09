@@ -1,9 +1,5 @@
 """Errors relating to services."""
 
-from typing import Optional
-
-from discord import Member as DiscordMember
-
 from ledger_bot.models import Member, Transaction
 
 

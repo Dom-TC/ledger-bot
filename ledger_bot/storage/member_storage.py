@@ -1,11 +1,11 @@
 """SQLite implementation of MemberStorageABC."""
 
 import logging
-from typing import Dict, List, Optional
+from typing import List, Optional
 
-from sqlalchemy import Row, case, delete, func, select, update
+from sqlalchemy import case, func, select, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import ColumnElement
 
 from ledger_bot.errors import (

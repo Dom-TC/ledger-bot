@@ -1,10 +1,8 @@
 """Generates a message telling a user their stats."""
 
 import logging
-from typing import List
 
 from ledger_bot.models import Stats
-from ledger_bot.services import Service
 
 log = logging.getLogger(__name__)
 

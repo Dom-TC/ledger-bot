@@ -1,10 +1,9 @@
 """Generates a message listing a users active transactions."""
 
 import logging
-import re
 from typing import Any, Dict, List
 
-from ledger_bot.models import BotMessage, Transaction
+from ledger_bot.models import Transaction
 from ledger_bot.services import Service
 
 from .split_message import split_message

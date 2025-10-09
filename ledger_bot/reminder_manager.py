@@ -10,7 +10,7 @@ from apscheduler import events
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from .message_generators import generate_reminder_status_message
-from .models import BotMessage, Reminder, Transaction
+from .models import Reminder, Transaction
 from .services import Service
 
 if TYPE_CHECKING:

@@ -1,13 +1,9 @@
 """DM command - version."""
 
 import logging
-import os
-from shutil import which
-from subprocess import CalledProcessError, check_output
 from typing import TYPE_CHECKING
 
 import discord
-from sqlalchemy import text
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot

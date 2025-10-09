@@ -1,7 +1,7 @@
 """A service to provide interfacing for ReminderStorage."""
 
 import logging
-from typing import AsyncGenerator, List
+from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 

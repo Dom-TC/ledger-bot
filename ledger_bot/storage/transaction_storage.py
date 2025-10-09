@@ -3,8 +3,8 @@
 import logging
 from typing import List, Optional, Tuple
 
-from sqlalchemy import delete, func, or_, update
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy import func, or_
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import ColumnElement
 

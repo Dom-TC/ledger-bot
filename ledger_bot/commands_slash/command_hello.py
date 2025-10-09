@@ -1,7 +1,7 @@
 """Slash command - hello."""
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 import discord
 

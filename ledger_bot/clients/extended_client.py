@@ -4,7 +4,7 @@ import logging
 import os
 from shutil import which
 from subprocess import CalledProcessError, check_output
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import discord
 from discord import app_commands

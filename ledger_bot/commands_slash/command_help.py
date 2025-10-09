@@ -1,7 +1,7 @@
 """Slash command - help."""
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any
 
 import discord
 

@@ -3,9 +3,6 @@
 import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-
-from ledger_bot.models.base import Base  # your declarative base
 
 log = logging.getLogger(__name__)
 

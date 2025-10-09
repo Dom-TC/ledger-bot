@@ -1,14 +1,11 @@
 """Slash command - lookup."""
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any
 
 import discord
 
 from ledger_bot.errors import AirTableError
-from ledger_bot.models import ReactionRole
-from ledger_bot.services import Service
-from ledger_bot.utils import add_reaction, is_valid_emoji
 
 if TYPE_CHECKING:
     from ledger_bot.clients import ReactionRolesClient

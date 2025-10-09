@@ -1,7 +1,6 @@
 """Generate help message text."""
 
 import logging
-import re
 from typing import Any, Dict, List
 
 from .split_message import split_message

@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 import discord
 
-from ledger_bot.errors import AirTableError
 from ledger_bot.message_generators import generate_stats_message
 
 if TYPE_CHECKING:

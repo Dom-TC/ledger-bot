@@ -6,7 +6,6 @@ import logging
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from ledger_bot.models import Transaction
-from ledger_bot.services import Service
 
 if TYPE_CHECKING:
     from ledger_bot.clients import TransactionsClient

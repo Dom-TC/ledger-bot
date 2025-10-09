@@ -1,13 +1,12 @@
 """DM command - list."""
 
 import logging
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 import discord
 
 from ledger_bot.errors import AirTableError
 from ledger_bot.message_generators import generate_list_message
-from ledger_bot.models import Transaction
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot

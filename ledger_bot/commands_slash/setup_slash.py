@@ -1,13 +1,12 @@
 """Register our slash commands with Discord."""
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict
+from typing import Any
 
 import discord
 from discord import app_commands
 
 from ledger_bot.LedgerBot import LedgerBot
-from ledger_bot.services import Service
 
 from .command_add_role import command_add_role
 from .command_hello import command_hello

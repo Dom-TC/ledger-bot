@@ -1,7 +1,7 @@
 """A mixin for dealing with reaction roles."""
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict
+from typing import Any, Dict
 
 import arrow
 import discord

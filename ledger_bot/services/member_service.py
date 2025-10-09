@@ -1,7 +1,6 @@
 """A service to provide interfacing for MemberStorage."""
 
 import logging
-import re
 from typing import List
 
 from asyncache import cached
