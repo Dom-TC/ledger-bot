@@ -58,6 +58,7 @@ bandit = "bandit -c pyproject.toml -r ledger_bot"
 mypy = "mypy ledger_bot"
 db_revision = "alembic revision --autogenerate"
 db_update = "alembic upgrade head"
+migrate_airtable = "python scripts/migrate_from_airtable_csv.py"
 
 [tool.isort]
 profile = "black"
