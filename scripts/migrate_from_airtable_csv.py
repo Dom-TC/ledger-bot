@@ -635,7 +635,7 @@ def migrate_reminders(csv_folder: str):
 def main(csv_folder: str = "data/migrations"):
     """Migrate airtable data from provided csvs into the SQLite database.
 
-    --csv_folder: the folder where the CSVs are stored
+    --csv-folder: the folder where the CSVs are stored
     """
     log.info(f"CSV folder: {csv_folder}")
     log.info("Starting data migration...")
