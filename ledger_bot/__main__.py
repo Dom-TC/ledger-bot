@@ -39,7 +39,9 @@ if os.getenv("LOG_TO_FILE") == "false":
     for handler in file_handlers:
         logging.root.removeHandler(handler)
 elif os.getenv("LOG_FOLDER_PATH") is not None:
-    logging.info(f"Updating logging FileHandler path to {os.getenv('LOG_FOLDER_PATH')}")
+    logging.info(
+        f"Updating logging FileHandler path to `{os.getenv('LOG_FOLDER_PATH')}`"
+    )
 
     file_handlers = (
         handler

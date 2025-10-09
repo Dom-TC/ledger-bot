@@ -11,6 +11,7 @@ from math import ceil
 from pathlib import Path
 from typing import Generator, List
 
+import typer
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -43,7 +44,9 @@ if os.getenv("LOG_TO_FILE") == "false":
     for handler in file_handlers:
         logging.root.removeHandler(handler)
 elif os.getenv("LOG_FOLDER_PATH") is not None:
-    logging.info(f"Updating logging FileHandler path to {os.getenv('LOG_FOLDER_PATH')}")
+    logging.info(
+        f"Updating logging FileHandler path to `{os.getenv('LOG_FOLDER_PATH')}`"
+    )
 
     file_handlers = (
         handler
@@ -629,11 +632,13 @@ def migrate_reminders(csv_folder: str):
         log.info(f"Added {row_count} reminders, validated {len(samples)}")
 
 
-def main():
-    """Main."""
-    log.info("Starting data migration...")
+def main(csv_folder: str = "data/migrations"):
+    """Migrate airtable data from provided csvs into the SQLite database.
 
-    csv_folder = "data/migrations"
+    --csv_folder: the folder where the CSVs are stored
+    """
+    log.info(f"CSV folder: {csv_folder}")
+    log.info("Starting data migration...")
 
     migrate_reaction_roles(csv_folder=csv_folder)
     migrate_members(csv_folder=csv_folder)
@@ -645,4 +650,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)
