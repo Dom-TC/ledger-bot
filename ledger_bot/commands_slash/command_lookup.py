@@ -31,7 +31,7 @@ async def command_lookup(
     try:
         async with client.session_factory() as session:
             member = await client.service.member.get_or_add_member(
-                interaction.user, session=session
+                user, session=session
             )
 
             await session.refresh(
