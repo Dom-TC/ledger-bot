@@ -46,9 +46,12 @@ async def command_lookup(
         )
         return
 
-    if not (transaction_summary.purchases_count + transaction_summary.sales_count):
-        response = f"<@{member.discord_id}> has no recorded transactions."
+    if member.lookup_enabled:
+        if not (transaction_summary.purchases_count + transaction_summary.sales_count):
+            response = f"<@{member.discord_id}> has no recorded transactions."
+        else:
+            response = f"<@{member.discord_id}> has {transaction_summary.purchases_count} purchases and {transaction_summary.sales_count} sales.\n\nOf their transactions:\n- {transaction_summary.open_count} are open\n- {transaction_summary.completed_count} are completed\n- {transaction_summary.cancelled_count} are cancelled"
     else:
-        response = f"<@{member.discord_id}> has {transaction_summary.purchases_count} purchases and {transaction_summary.sales_count} sales.\n\nOf their transactions:\n- {transaction_summary.open_count} are open\n- {transaction_summary.completed_count} are completed\n- {transaction_summary.cancelled_count} are cancelled"
+        response = f"<@{member.discord_id}> has disabled lookups."
 
     await interaction.followup.send(response, ephemeral=True)

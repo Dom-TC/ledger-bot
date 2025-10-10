@@ -16,12 +16,13 @@ from .command_lookup import command_lookup
 from .command_new_sale import command_new_sale
 from .command_new_split import command_new_split
 from .command_ping import command_ping
+from .command_settings import command_settings
 from .command_stats import command_stats
 
 log = logging.getLogger(__name__)
 
 
-def setup_slash(
+def setup_slash(  # noqa C901
     client: LedgerBot,
 ) -> None:
     """
@@ -301,4 +302,19 @@ def setup_slash(
             client=client,
             interaction=interaction,
             user=user,
+        )
+
+    @client.tree.command(
+        guild=client.guild,
+        name="settings",
+        description="Adjust your settings.",
+    )
+    async def settings(
+        interaction: discord.Interaction[Any],
+    ) -> None:
+        """Lookup a user."""
+        log.info(f"Recognised command: /lookup from {interaction.user.name}")
+        await command_settings(
+            client=client,
+            interaction=interaction,
         )

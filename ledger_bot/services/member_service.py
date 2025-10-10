@@ -171,7 +171,7 @@ class MemberService(ServiceHelpers):
         timezone: str,
         session: AsyncSession | None = None,
     ) -> Member:
-        """Set the dietary requirement for the given discord user.
+        """Set the timezone for the given discord user.
 
         Parameters
         ----------
@@ -191,7 +191,7 @@ class MemberService(ServiceHelpers):
             # I don't know why we have to specify type Member here
             # self.get_or_add_member is set to return Member
             # VSCode doesn't complain but mypy does, for some reason
-            # So heere we are
+            # So here we are
             member: Member = await self.get_or_add_member(
                 discord_member, session=session
             )
@@ -200,7 +200,11 @@ class MemberService(ServiceHelpers):
                 log.info(f"Invalid timezone: {timezone}")
                 return member
 
-            member.timezone = resolve_timezone(timezone)
+            if resolve_timezone(timezone):
+                member.timezone = timezone
+            else:
+                log.error(f"Failed to resolve timezone {timezone}")
+                return member
 
             updated_member = await self.member_storage.update_member(
                 member, fields=["timezone"], session=session
@@ -220,3 +224,35 @@ class MemberService(ServiceHelpers):
             return await self.member_storage.get_transaction_summary(
                 member, session=session
             )
+
+    async def update_member(
+        self,
+        member: Member,
+        fields: List[str] | None = None,
+        session: AsyncSession | None = None,
+    ) -> Member:
+        """Update a member.
+
+        Parameters
+        ----------
+        member: Member
+            The member
+        fields: List[str] | None, optional
+            If provided only the updated fields will be updated
+        session : AsyncSession | None, optional
+            An optional session, by default None
+
+        Returns
+        -------
+        Member
+            The updated member object
+        """
+        async with self._get_session(session) as session:
+            updated_member = await self.member_storage.update_member(
+                member, fields=fields, session=session
+            )
+
+            await session.commit()
+
+            log.info(f"Updated member {member.id} ({member.username})")
+            return updated_member

@@ -1,11 +1,14 @@
 """The data model for a record in the `members` table."""
 
+import datetime
 import logging
-from datetime import datetime, timezone
 from typing import TYPE_CHECKING, List, Optional
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ledger_bot.utils import resolve_timezone
 
 from .base import Base
 
@@ -28,11 +31,12 @@ class Member(Base):
     username: Mapped[str] = mapped_column(String, nullable=False)
     discord_id: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
     nickname: Mapped[Optional[str]] = mapped_column(String)
-    creation_date: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.now(timezone.utc)
+    creation_date: Mapped[datetime.datetime] = mapped_column(
+        DateTime, default=datetime.datetime.now(datetime.timezone.utc)
     )
     dietary_requirements: Mapped[str] = mapped_column(String, nullable=True)
     timezone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    lookup_enabled: Mapped[bool] = mapped_column(Integer, default=1)
     bot_id: Mapped[Optional[str]] = mapped_column(String)
 
     # Relationships
@@ -68,3 +72,7 @@ class Member(Base):
     def display_name(self) -> str:
         """Return the nickname if set, otherwise the username."""
         return self.nickname if self.nickname else self.username
+
+    @property
+    def resolve_timezone(self) -> ZoneInfo | datetime.timezone | None:
+        return resolve_timezone(self.timezone) if self.timezone else None

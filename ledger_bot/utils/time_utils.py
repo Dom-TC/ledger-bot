@@ -1,5 +1,6 @@
 """Time utilities."""
 
+import contextlib
 import logging
 import re
 from datetime import datetime, timedelta, timezone
@@ -20,21 +21,40 @@ COMMON_TZ_ALIASES = {
 }
 
 
-def resolve_timezone(tz: str) -> str | None:
+def resolve_timezone(tz: str) -> timezone | ZoneInfo | None:
     """Resolve common shortened timezones into valid IANA timezones."""
     log.debug(f"Resolving timezone: {tz}")
 
     tz = tz.strip()
+
+    # Check common aliases first
     if tz.upper() in COMMON_TZ_ALIASES:
-        return COMMON_TZ_ALIASES[tz.upper()]
-    try:
-        ZoneInfo(tz)
-        return tz
-    except ZoneInfoNotFoundError:
-        if bool(re.match(r"^(?:UTC|GMT)[+-]\d{1,2}$", tz.upper())):
-            return tz.upper()
-        else:
-            return None
+        try:
+            return ZoneInfo(COMMON_TZ_ALIASES[tz.upper()])
+        except ZoneInfoNotFoundError:
+            log.warning(f"Alias {tz} could not be resolved, defaulting to UTC")
+            return timezone.utc
+
+    # Try IANA timezone
+    with contextlib.suppress(ZoneInfoNotFoundError):
+        return ZoneInfo(tz)
+
+    # Try UTC/GMT offset
+    offset_match = re.fullmatch(
+        r"^(?:UTC|GMT)?([+-])(\d{1,2})(?::?(\d{2}))?$", tz.upper()
+    )
+
+    if offset_match:
+        sign, hours, minutes = offset_match.groups()
+        hours, minutes = int(hours), int(minutes or 0)
+        delta = timedelta(hours=hours, minutes=minutes)
+        if sign == "-":
+            delta = -delta
+        return timezone(delta)
+
+    # Could not resolve
+    log.warning(f"Invalid timezone: {tz}")
+    return None
 
 
 def build_datetime(date_str: str, time_str: str, tz_str: str) -> datetime:
@@ -58,38 +78,13 @@ def build_datetime(date_str: str, time_str: str, tz_str: str) -> datetime:
     except ValueError:
         dt = datetime.strptime(f"{clean_date} {clean_time}", "%d-%m-%y %H:%M")
 
-    # Normalise and parse timezone
-    tz_str = tz_str.strip().upper()
-    resolved_tz = resolve_timezone(tz_str)
+    # Resolve timezone
+    tz = resolve_timezone(tz_str)
+    if not tz:
+        log.info(f"Invalid timezone: {tz_str.strip()}, defaulting to UTC")
+        tz = timezone.utc
 
-    if resolved_tz:
-        tz_str = resolved_tz
-    else:
-        log.info(f"Invalid timezone: {tz_str.strip().upper()}, setting to UTC")
-        tz_str = "Etc/UTC"
-
-    # Handle explicit UTC offset timezones
-    offset_match = re.fullmatch(r"^(?:UTC|GMT)?([+-])(\d{1,2})(?::?(\d{2}))?$", tz_str)
-
-    # Prevent mypy error on differing type assignments in the if statement
-    tz: timezone | ZoneInfo
-
-    if offset_match:
-        sign, hours, minutes = offset_match.groups()
-        hours = int(hours)
-        minutes = int(minutes or 0)
-        delta = timedelta(hours=hours, minutes=minutes)
-        if sign == "-":
-            delta = -delta
-        tz = timezone(delta)
-    else:
-        # Fallback to IANA
-        try:
-            tz = ZoneInfo(tz_str)
-        except ZoneInfoNotFoundError:
-            raise ValueError(f"Invalid timezone: {tz_str!r}")
-
-    # --- Attach timezone ---
+    # Attach timezone
     return dt.replace(tzinfo=tz)
 
 
@@ -123,34 +118,9 @@ def build_relative_datetime(days: int, hours: int, tz_str: str | None) -> dateti
         # No timezone info provided, therefore leave in utc
         return offset_dt
 
-    tz_str = tz_str.strip().upper()
-    resolved_tz = resolve_timezone(tz_str)
-
-    if resolved_tz:
-        tz_str = resolved_tz
-    else:
-        log.info(f"Invalid timezone: {tz_str.strip().upper()}, setting to UTC")
-        tz_str = "Etc/UTC"
-
-    # Handle explicit UTC offset timezones
-
-    # Prevent mypy error on differing type assignments in the if statement
-    tz: timezone | ZoneInfo
-
-    offset_match = re.fullmatch(r"^(?:UTC|GMT)?([+-])(\d{1,2})(?::?(\d{2}))?$", tz_str)
-    if offset_match:
-        offset_sign, offset_hours, offset_mins = offset_match.groups()
-        offset_hours = int(offset_hours)
-        offset_mins = int(offset_mins or 0)
-        delta = timedelta(hours=offset_hours, minutes=offset_mins)
-        if offset_sign == "-":
-            delta = -delta
-        tz = timezone(delta)
-    else:
-        # Fallback to IANA
-        try:
-            tz = ZoneInfo(tz_str)
-        except ZoneInfoNotFoundError:
-            raise ValueError(f"Invalid timezone: {tz_str!r}")
+    tz = resolve_timezone(tz_str)
+    if not tz:
+        log.info(f"Invalid timezone: {tz_str.strip()}, defaulting to UTC")
+        tz = timezone.utc
 
     return offset_dt.astimezone(tz)
