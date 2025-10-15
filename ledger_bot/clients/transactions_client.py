@@ -1,13 +1,13 @@
 """A mixin for dealing with transactions."""
 
 import logging
-from typing import Any, Dict
 
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ledger_bot.commands_scheduled import cleanup
+from ledger_bot.config import Config
 from ledger_bot.errors import (
     TransactionApprovedError,
     TransactionCancelledError,
@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 class TransactionsClient(ExtendedClient):
     def __init__(
         self,
-        config: Dict[str, Any],
+        config: Config,
         scheduler: AsyncIOScheduler,
         service: Service,
         reminders: ReminderManager,
@@ -49,9 +49,9 @@ class TransactionsClient(ExtendedClient):
             name="Cleanup",
             kwargs={"client": self, "service": self.service},
             trigger="cron",
-            hour=config["run_cleanup_time"]["hour"],
-            minute=config["run_cleanup_time"]["minute"],
-            second=config["run_cleanup_time"]["second"],
+            hour=config.run_cleanup_time.hour,
+            minute=config.run_cleanup_time.minute,
+            second=config.run_cleanup_time.second,
             timezone="UTC",
         )
         super().__init__(
@@ -81,25 +81,22 @@ class TransactionsClient(ExtendedClient):
 
         # Check if valid reaction emoji
         if payload.emoji.name not in [
-            self.config["emojis"]["approval"],
-            self.config["emojis"]["cancel"],
-            self.config["emojis"]["paid"],
-            self.config["emojis"]["delivered"],
-            self.config["emojis"]["reminder"],
+            self.config.emojis.approval,
+            self.config.emojis.cancel,
+            self.config.emojis.paid,
+            self.config.emojis.delivered,
+            self.config.emojis.reminder,
         ]:
             return False
 
         # Check if in valid channel
-        if (
-            self.config["channels"].get("include")
-            and channel.name not in self.config["channels"]["include"]
-        ):
+        if channel.name not in self.config.channels.include:
             log.debug(
                 f"Ignoring {payload.emoji.name} from {reactor.username} on message {payload.message_id} in {channel.name} - Channel not included"
             )
             return False
         else:
-            if channel.name in self.config["channels"].get("exclude", []):
+            if channel.name in self.config.channels.exclude:
                 log.debug(
                     f"Ignoring {payload.emoji.name} from {reactor.username} on message {payload.message_id} in {channel.name} - Channel excluded"
                 )
@@ -124,7 +121,7 @@ class TransactionsClient(ExtendedClient):
         await add_reaction(
             client=self,
             message_id=payload.message_id,
-            reaction=self.config["emojis"]["thinking"],
+            reaction=self.config.emojis.thinking,
             channel_obj=channel,
         )
 
@@ -136,7 +133,7 @@ class TransactionsClient(ExtendedClient):
             await remove_reaction(
                 client=self,
                 message_id=payload.message_id,
-                reaction=self.config["emojis"]["thinking"],
+                reaction=self.config.emojis.thinking,
                 channel_obj=channel,
             )
             log.debug("No buyer found")
@@ -149,7 +146,7 @@ class TransactionsClient(ExtendedClient):
             await remove_reaction(
                 client=self,
                 message_id=payload.message_id,
-                reaction=self.config["emojis"]["thinking"],
+                reaction=self.config.emojis.thinking,
                 channel_obj=channel,
             )
             log.debug("No seller found")
@@ -163,7 +160,7 @@ class TransactionsClient(ExtendedClient):
             await remove_reaction(
                 client=self,
                 message_id=payload.message_id,
-                reaction=self.config["emojis"]["thinking"],
+                reaction=self.config.emojis.thinking,
             )
             return False
 
@@ -185,7 +182,7 @@ class TransactionsClient(ExtendedClient):
             f"Processing {payload.emoji.name} from {reactor.username} on message {payload.message_id}"
         )
 
-        if payload.emoji.name == self.config["emojis"]["approval"]:
+        if payload.emoji.name == self.config.emojis.approval:
             # Approval
             log.info(
                 f"Processing approval reaction from {reactor.username} on message {payload.message_id}"
@@ -205,7 +202,7 @@ class TransactionsClient(ExtendedClient):
                 await remove_reaction(
                     client=self,
                     message_id=payload.message_id,
-                    reaction=self.config["emojis"]["thinking"],
+                    reaction=self.config.emojis.thinking,
                     channel_obj=channel,
                 )
                 return False
@@ -226,7 +223,7 @@ class TransactionsClient(ExtendedClient):
                 config=self.config,
             )
 
-        elif payload.emoji.name == self.config["emojis"]["paid"]:
+        elif payload.emoji.name == self.config.emojis.paid:
             # Paid
             log.info(
                 f"Processing payment reaction from {reactor.username} on message {payload.message_id}"
@@ -242,7 +239,7 @@ class TransactionsClient(ExtendedClient):
                 await remove_reaction(
                     client=self,
                     message_id=payload.message_id,
-                    reaction=self.config["emojis"]["thinking"],
+                    reaction=self.config.emojis.thinking,
                     channel_obj=channel,
                 )
                 return False
@@ -263,7 +260,7 @@ class TransactionsClient(ExtendedClient):
                 config=self.config,
             )
 
-        elif payload.emoji.name == self.config["emojis"]["delivered"]:
+        elif payload.emoji.name == self.config.emojis.delivered:
             # Delivered
             log.info(
                 f"Processing delivered reaction from {reactor.username} on message {payload.message_id}"
@@ -279,7 +276,7 @@ class TransactionsClient(ExtendedClient):
                 await remove_reaction(
                     client=self,
                     message_id=payload.message_id,
-                    reaction=self.config["emojis"]["thinking"],
+                    reaction=self.config.emojis.thinking,
                     channel_obj=channel,
                 )
                 return False
@@ -300,7 +297,7 @@ class TransactionsClient(ExtendedClient):
                 config=self.config,
             )
 
-        elif payload.emoji.name == self.config["emojis"]["cancel"]:
+        elif payload.emoji.name == self.config.emojis.cancel:
             # Cancelled
             log.info(
                 f"Processing cancel reaction from {reactor.username} on message {payload.message_id}"
@@ -316,7 +313,7 @@ class TransactionsClient(ExtendedClient):
                 await remove_reaction(
                     client=self,
                     message_id=payload.message_id,
-                    reaction=self.config["emojis"]["thinking"],
+                    reaction=self.config.emojis.thinking,
                     channel_obj=channel,
                 )
                 return False
@@ -337,7 +334,7 @@ class TransactionsClient(ExtendedClient):
                 config=self.config,
             )
 
-        elif payload.emoji.name == self.config["emojis"]["reminder"]:
+        elif payload.emoji.name == self.config.emojis.reminder:
             # Watch
             log.info(
                 f"Processing reminder reaction from {reactor.username} on message {payload.message_id}"
@@ -349,7 +346,7 @@ class TransactionsClient(ExtendedClient):
                 await remove_reaction(
                     client=self,
                     message_id=payload.message_id,
-                    reaction=self.config["emojis"]["thinking"],
+                    reaction=self.config.emojis.thinking,
                     channel_obj=channel,
                 )
                 return False
@@ -374,7 +371,7 @@ class TransactionsClient(ExtendedClient):
         await remove_reaction(
             client=self,
             message_id=payload.message_id,
-            reaction=self.config["emojis"]["thinking"],
+            reaction=self.config.emojis.thinking,
             channel_obj=channel,
         )
 

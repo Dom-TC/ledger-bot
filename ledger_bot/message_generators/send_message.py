@@ -1,10 +1,10 @@
 """Helper function to send a message, removing all previous messages."""
 
 import logging
-from typing import Any, Dict
 
 import discord
 
+from ledger_bot.config import Config
 from ledger_bot.errors import AirTableError
 from ledger_bot.models import Transaction
 from ledger_bot.services import Service
@@ -18,7 +18,7 @@ async def send_message(
     target_transaction: Transaction,
     previous_message_id: int | None,
     service: Service,
-    config: Dict[str, Any],
+    config: Config,
 ) -> None:
     """Helper to send messages after updating transactions."""
     log.info("Attempting to send message")
@@ -35,7 +35,7 @@ async def send_message(
     except AirTableError as error:
         log.error(f"An error occured storing the content in AirTable: {error}")
 
-    if config["delete_previous_bot_messages"] and previous_message_id is not None:
+    if config.delete_previous_bot_messages and previous_message_id is not None:
         log.info("delete_previous_bot_messages is true")
         log.info(f"Removing bot_message {previous_message_id}")
         old_message = await channel.fetch_message(previous_message_id)

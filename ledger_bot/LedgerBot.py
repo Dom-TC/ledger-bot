@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from .clients import ExtendedClient, ReactionRolesClient, TransactionsClient
 from .commands_dm import is_dm, process_dm
+from .config import Config
 from .process_message import process_message
 from .reminder_manager import ReminderManager
 from .services import Service
@@ -19,7 +20,7 @@ log = logging.getLogger(__name__)
 class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
     def __init__(
         self,
-        config: Dict[str, Any],
+        config: Config,
         service: Service,
         scheduler: AsyncIOScheduler,
         reminders: ReminderManager,
@@ -32,10 +33,10 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
         self.session_factory = session_factory
 
         # We need a guild object for various uses but can't get the full guild object until the bot is connected and on_ready is called, so use this as a tempory object.
-        self.guild = discord.Object(id=self.config["guild"])
+        self.guild = discord.Object(id=self.config.guild)
 
-        log.info(f"Set guild: {self.config['guild']}")
-        log.info(f"Watching channels: {self.config['channels']}")
+        log.info(f"Set guild: {self.config.guild}")
+        log.info(f"Watching channels: {self.config.channels}")
 
         intents = discord.Intents(
             messages=True,
@@ -63,12 +64,12 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
         await self.change_presence(
             activity=discord.Activity(
                 type=discord.ActivityType.watching,
-                name=self.config["watching_status"],
+                name=self.config.watching_status,
             )
         )
 
         # Properly set the guild object
-        self.guild = self.get_guild(self.config["guild"])
+        self.guild = self.get_guild(self.config.guild)
 
         log.info("Building slash commands")
         await self.tree.sync(guild=self.guild)
@@ -90,13 +91,10 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
 
         channel_name = message.channel.name
 
-        if (
-            self.config["channels"].get("include")
-            and channel_name not in self.config["channels"]["include"]
-        ):
+        if channel_name not in self.config.channels.include:
             return
         else:
-            if channel_name in self.config["channels"].get("exclude", []):
+            if channel_name in self.config.channels.exclude:
                 return
 
         # Process messages

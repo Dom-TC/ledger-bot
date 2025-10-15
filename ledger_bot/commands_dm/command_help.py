@@ -17,7 +17,7 @@ async def command_help(
     client: "LedgerBot", message: discord.Message, dm_channel: discord.DMChannel
 ) -> None:
     """DM command - help."""
-    has_dev_commands = message.author.id in client.config["maintainer_ids"]
+    has_dev_commands = message.author.id in client.config.maintainer_ids
     has_admin_commands = await client.is_admin_or_maintainer(message.author.id)
     response = generate_help_message(
         client.config,

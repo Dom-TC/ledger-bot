@@ -57,7 +57,7 @@ async def process_dm(client: "LedgerBot", message: Message) -> None:
 
     elif (
         message_content.startswith("!dev")
-        and message.author.id in client.config["maintainer_ids"]
+        and message.author.id in client.config.maintainer_ids
     ):
         log.info("Recognised command: !dev")
         await command_dev(client=client, message=message, dm_channel=dm_channel)

@@ -31,24 +31,21 @@ async def command_new_split(
     else:
         channel_name = "DM"
 
-    if (
-        client.config["channels"].get("include")
-        and channel_name not in client.config["channels"]["include"]
-    ):
+    if channel_name not in client.config.channels.include:
         log.info(
             f"Ignoring slash command from {interaction.user.name} in {channel_name}  - Channel not in include list"
         )
         await interaction.response.send_message(
-            content=f"{client.config['name']} is not available in this channel.",
+            content=f"{client.config.name} is not available in this channel.",
             ephemeral=True,
         )
         return
-    elif channel_name in client.config["channels"].get("exclude", []):
+    elif channel_name in client.config.channels.exclude:
         log.info(
             f"Ignoring slash command from {interaction.user.name} in {channel_name}  - Channel in exclude list"
         )
         await interaction.response.send_message(
-            content=f"{client.config['name']} is not available in this channel.",
+            content=f"{client.config.name} is not available in this channel.",
             ephemeral=True,
         )
         return
@@ -58,12 +55,12 @@ async def command_new_split(
         return
 
     # If user isn't a maintainer, they shouldn't be able to sell to either ledger-bot.
-    if interaction.user.id not in client.config["maintainer_ids"]:
+    if interaction.user.id not in client.config.maintainer_ids:
         for buyer in buyers:
             if buyer.id == client.user.id:
                 log.info(f"Rejecting sale to ledger-bot from {interaction.user.name}")
                 await interaction.response.send_message(
-                    content=f"You can't sell a wine to {client.config['name']}!",
+                    content=f"You can't sell a wine to {client.config.name}!",
                     ephemeral=True,
                 )
                 return

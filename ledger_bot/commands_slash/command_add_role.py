@@ -72,7 +72,7 @@ async def command_add_role(
         reaction_bytecode=emoji.encode("unicode-escape").decode("ASCII"),
         role_id=role.id,
         role_name=role.name,
-        bot_id=client.config["name"],
+        bot_id=client.config.name,
     )
 
     stored_record = await client.service.reaction_role.save_reaction_role(reaction_role)

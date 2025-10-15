@@ -20,7 +20,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from .commands_slash import setup_slash
-from .config import parse
+from .config import Config
 from .database import setup_database
 from .errors import SignalHaltError
 from .LedgerBot import LedgerBot
@@ -46,10 +46,10 @@ from .storage import (
 log = logging.getLogger(__name__)
 
 
-async def _run_bot(client: LedgerBot, config: Dict[str, Any]) -> None:
+async def _run_bot(client: LedgerBot, config: Config) -> None:
     """Run ledger-bot."""
     async with client:
-        await client.start(config["authentication"]["discord"])
+        await client.start(config.authentication.discord)
 
 
 def _stop_bot(signal_enum: Signals, loop: AbstractEventLoop) -> None:
@@ -62,17 +62,7 @@ def _stop_bot(signal_enum: Signals, loop: AbstractEventLoop) -> None:
 def start_bot() -> None:
     """Start ledger-bot."""
     # Get configs
-    try:
-        config_path = os.getenv("BOT_CONFIG", "config.json")
-        log.debug(f"Config path: {config_path}")
-        config_to_parse = {}
-        if os.path.isfile(config_path):
-            with open(config_path) as config_file:
-                config_to_parse = json.load(config_file)
-        config = parse(config_to_parse)
-    except (OSError, ValueError) as err:
-        log.error(f"Config file invalid: {err}")
-        exit(1)
+    config = Config.load()
 
     # Setup databse
     db_session_factory = setup_database(config=config)
@@ -91,22 +81,22 @@ def start_bot() -> None:
     log.info("Setting up services")
     service = Service(
         member=MemberService(
-            storage.member, config["name"], session_factory=db_session_factory
+            storage.member, config.name, session_factory=db_session_factory
         ),
         transaction=TransactionService(
-            storage.transaction, config["name"], session_factory=db_session_factory
+            storage.transaction, config.name, session_factory=db_session_factory
         ),
         bot_message=BotMessageService(
-            storage.bot_message, config["name"], session_factory=db_session_factory
+            storage.bot_message, config.name, session_factory=db_session_factory
         ),
         reminder=ReminderService(
-            storage.reminder, config["name"], session_factory=db_session_factory
+            storage.reminder, config.name, session_factory=db_session_factory
         ),
         reaction_role=ReactionRoleService(
-            storage.reaction_role, config["name"], session_factory=db_session_factory
+            storage.reaction_role, config.name, session_factory=db_session_factory
         ),
         stats=StatsService(
-            storage.transaction, config["name"], session_factory=db_session_factory
+            storage.transaction, config.name, session_factory=db_session_factory
         ),
     )
 

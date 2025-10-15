@@ -23,17 +23,17 @@ async def command_help(
     else:
         channel_name = "DM"
 
-    if channel_name in client.config["channels"].get("exclude", []):
+    if channel_name in client.config.channels.exclude:
         log.info(
             f"Ignoring slash command from {interaction.user.name} in {channel_name}  - Channel in exclude list"
         )
         await interaction.response.send_message(
-            content=f"{client.config['name']} is not available in this channel.",
+            content=f"{client.config.name} is not available in this channel.",
             ephemeral=True,
         )
         return
 
-    has_dev_commands = interaction.user.id in client.config["maintainer_ids"]
+    has_dev_commands = interaction.user.id in client.config.maintainer_ids
     has_admin_commands = await client.is_admin_or_maintainer(interaction.user.id)
     response = generate_help_message(
         client.config,

@@ -3,8 +3,9 @@
 # flake8: noqa
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Optional
 
+from ledger_bot.config import Config
 from ledger_bot.models import Transaction
 
 if TYPE_CHECKING:
@@ -16,7 +17,7 @@ log = logging.getLogger(__name__)
 async def generate_transaction_status_message(
     transaction: Transaction,
     client: "TransactionsClient",
-    config: Dict[str, Any],
+    config: Config,
     is_update: Optional[bool] = False,
 ) -> str:
     """
@@ -72,53 +73,55 @@ async def generate_transaction_status_message(
     price_decleration = f"Price: £{'{:.2f}'.format(transaction.price)}"
 
     if transaction.sale_approved:
-        approved_decleration = f"Approved: {config['emojis']['status_confirmed']}"
+        approved_decleration = f"Approved: {config.emojis.status_confirmed}"
     else:
-        approved_decleration = f"Approved: {config['emojis']['status_unconfirmed']} {buyer.mention} please approve this sale by reacting with {config['emojis']['approval']}"
+        approved_decleration = f"Approved: {config.emojis.status_unconfirmed} {buyer.mention} please approve this sale by reacting with {config.emojis.approval}"
 
     if transaction.buyer_paid and transaction.seller_paid:
         # Both confirmed paid
-        paid_decleration = f"Paid:           {config['emojis']['status_confirmed']}"
+        paid_decleration = f"Paid:           {config.emojis.status_confirmed}"
     elif transaction.buyer_paid:
         # Buyer confirmed paid
-        paid_decleration = f"Paid:           {config['emojis']['status_part_confirmed']} {seller.mention} please confirm this transaction has been paid by reacting with {config['emojis']['paid']}"
+        paid_decleration = f"Paid:           {config.emojis.status_part_confirmed} {seller.mention} please confirm this transaction has been paid by reacting with {config.emojis.paid}"
     elif transaction.seller_paid:
         # Seller confirmed paid
-        paid_decleration = f"Paid:           {config['emojis']['status_part_confirmed']} {buyer.mention} please confirm this transaction has been paid by reacting with {config['emojis']['paid']}"
+        paid_decleration = f"Paid:           {config.emojis.status_part_confirmed} {buyer.mention} please confirm this transaction has been paid by reacting with {config.emojis.paid}"
     elif transaction.sale_approved is False:
-        paid_decleration = f"Paid:           {config['emojis']['status_unconfirmed']}"
+        paid_decleration = f"Paid:           {config.emojis.status_unconfirmed}"
     else:
-        paid_decleration = f"Paid:           {config['emojis']['status_unconfirmed']} to mark this as paid, please react with {config['emojis']['paid']}"
+        paid_decleration = f"Paid:           {config.emojis.status_unconfirmed} to mark this as paid, please react with {config.emojis.paid}"
 
     if transaction.buyer_delivered and transaction.seller_delivered:
         # Both confirmed delivered
-        delivered_decleration = f"Delivered: {config['emojis']['status_confirmed']}"
+        delivered_decleration = f"Delivered: {config.emojis.status_confirmed}"
     elif transaction.buyer_delivered:
         # Buyer confirmed delivered
-        delivered_decleration = f"Delivered: {config['emojis']['status_part_confirmed']} {seller.mention} please confirm this transaction has been delivered by reacting with {config['emojis']['delivered']}"
+        delivered_decleration = f"Delivered: {config.emojis.status_part_confirmed} {seller.mention} please confirm this transaction has been delivered by reacting with {config.emojis.delivered}"
     elif transaction.seller_delivered:
         # Seller confirmed delivered
-        delivered_decleration = f"Delivered: {config['emojis']['status_part_confirmed']} {buyer.mention} please confirm this transaction has been delivered by reacting with {config['emojis']['delivered']}"
+        delivered_decleration = f"Delivered: {config.emojis.status_part_confirmed} {buyer.mention} please confirm this transaction has been delivered by reacting with {config.emojis.delivered}"
     elif transaction.sale_approved is False:
-        delivered_decleration = f"Delivered: {config['emojis']['status_unconfirmed']}"
+        delivered_decleration = f"Delivered: {config.emojis.status_unconfirmed}"
     else:
-        delivered_decleration = f"Delivered: {config['emojis']['status_unconfirmed']} to mark this as delivered, please react with {config['emojis']['delivered']}"
+        delivered_decleration = f"Delivered: {config.emojis.status_unconfirmed} to mark this as delivered, please react with {config.emojis.delivered}"
 
     # Always display as cancelled regardless of other conditions
     if transaction.cancelled:
-        approved_decleration = f"Approved: {config['emojis']['status_cancelled']}"
-        paid_decleration = f"Paid:           {config['emojis']['status_cancelled']}"
-        delivered_decleration = f"Delivered: {config['emojis']['status_cancelled']}"
+        approved_decleration = f"Approved: {config.emojis.status_cancelled}"
+        paid_decleration = f"Paid:           {config.emojis.status_cancelled}"
+        delivered_decleration = f"Delivered: {config.emojis.status_cancelled}"
 
     log.debug(f"approved: {transaction.sale_approved}")
     log.debug(f"cancelled: {transaction.cancelled}")
     if not transaction.sale_approved and not transaction.cancelled:
-        cancel_message = f"*To cancel this transaction, please react with {config['emojis']['cancel']}*\n"
+        cancel_message = (
+            f"*To cancel this transaction, please react with {config.emojis.cancel}*\n"
+        )
     else:
         cancel_message = ""
 
     if not (is_complete or transaction.cancelled):
-        reminder_message = f"*To set a reminder for this transaction, please react with {config['emojis']['reminder']} and follow the DMed instructions.*\n"
+        reminder_message = f"*To set a reminder for this transaction, please react with {config.emojis.reminder} and follow the DMed instructions.*\n"
     else:
         reminder_message = ""
 

@@ -57,7 +57,7 @@ async def _process_shutdown_authcode(
 
     if received_auth_code is None:
         response = (
-            f"To shutdown {client.config["name"]}, please use the following command:\n"
+            f"To shutdown {client.config.name}, please use the following command:\n"
         )
         response += f"`!dev shutdown {auth_code}`\n"
         response += f"The code expires <t:{expiry}:R>\n"
@@ -66,7 +66,7 @@ async def _process_shutdown_authcode(
         response += "\n"
         response += "This cannot be undone.\n"
         response += (
-            f"The only way to restart {client.config["name"]} is via a deployment.\n"
+            f"The only way to restart {client.config.name} is via a deployment.\n"
         )
         response += "⚠️⚠️⚠️"
         response += "\n"
@@ -78,7 +78,7 @@ async def _process_shutdown_authcode(
 
         shutdown_time = datetime.datetime.now(
             datetime.timezone.utc
-        ) + datetime.timedelta(minutes=client.config["shutdown_delay"])
+        ) + datetime.timedelta(minutes=client.config.shutdown_delay)
         shutdown_ts = int(shutdown_time.timestamp())
 
         client.scheduler.add_job(
@@ -104,7 +104,7 @@ async def _process_shutdown_authcode(
         response = "Invalid code. Please try again.\n"
         response += "\n"
         response += (
-            f"To shutdown {client.config["name"]}, please use the following command:\n"
+            f"To shutdown {client.config.name}, please use the following command:\n"
         )
         response += f"`!dev shutdown {auth_code}`\n"
         response += f"The code expires <t:{expiry}:R>\n"
@@ -113,7 +113,7 @@ async def _process_shutdown_authcode(
         response += "\n"
         response += "This cannot be undone.\n"
         response += (
-            f"The only way to restart {client.config["name"]} is via a deployment.\n"
+            f"The only way to restart {client.config.name} is via a deployment.\n"
         )
         response += "⚠️⚠️⚠️"
         response += "\n"
@@ -189,29 +189,31 @@ async def command_dev(
 
     if request.startswith("welcome_back"):
         log.info("Sending welcome back message")
-        channel = await client.get_or_fetch_channel(
-            client.config["shutdown_post_channel"]
-        )
-        if channel is not None and isinstance(channel, discord.TextChannel):
-            msg = f"<@{client.user.id if client.user else None}> has been restarted.  Full service has resumed.\n"
-            msg += f"-# Version: {client.version}"
 
-            if bot_id := client.config["id"]:
-                msg = f"{msg} ({bot_id})"
-
-            msg += "\n"
-            msg += f"-# Latency: {(client.latency * 1000):.3f}ms"
-
-            await channel.send(msg)
-
-            response = (
-                f"Successfully posted welcome back message in {channel.jump_url}."
+        if client.config.shutdown_post_channel is not None:
+            channel = await client.get_or_fetch_channel(
+                client.config.shutdown_post_channel
             )
+            if channel is not None and isinstance(channel, discord.TextChannel):
+                msg = f"<@{client.user.id if client.user else None}> has been restarted.  Full service has resumed.\n"
+                msg += f"-# Version: {client.version}"
 
-        else:
-            log.warning(
-                '`client.config["shutdown_post_channel"]` did not return an id for a valid discord.TextChannel'
-            )
-            response = "Failed to post welcome back message"
+                if bot_id := client.config.bot_id:
+                    msg = f"{msg} ({bot_id})"
 
-        await dm_channel.send(response)
+                msg += "\n"
+                msg += f"-# Latency: {(client.latency * 1000):.3f}ms"
+
+                await channel.send(msg)
+
+                response = (
+                    f"Successfully posted welcome back message in {channel.jump_url}."
+                )
+
+            else:
+                log.warning(
+                    "`client.config.shutdown_post_channel` did not return an id for a valid discord.TextChannel"
+                )
+                response = "Failed to post welcome back message"
+
+            await dm_channel.send(response)

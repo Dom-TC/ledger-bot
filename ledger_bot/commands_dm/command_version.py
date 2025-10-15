@@ -17,7 +17,7 @@ async def command_version(
     """DM command - version."""
     response = f"Version: {client.version}"
 
-    if bot_id := client.config["id"]:
+    if bot_id := client.config.bot_id:
         response = f"{response} ({bot_id})"
 
     await dm_channel.send(response)

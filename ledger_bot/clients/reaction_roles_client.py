@@ -1,13 +1,13 @@
 """A mixin for dealing with reaction roles."""
 
 import logging
-from typing import Any, Dict
 
 import arrow
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from ledger_bot.config import Config
 from ledger_bot.services import Service
 
 from .extended_client import ExtendedClient
@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 class ReactionRolesClient(ExtendedClient):
     def __init__(
         self,
-        config: Dict[str, Any],
+        config: Config,
         scheduler: AsyncIOScheduler,
         service: Service,
         session_factory: async_sessionmaker[AsyncSession],
@@ -32,9 +32,9 @@ class ReactionRolesClient(ExtendedClient):
             self.refresh_reaction_role_caches,
             name="Refresh reaction-role watched messages",
             trigger="cron",
-            hour=config["reaction_role_refresh_time"]["hour"],
-            minute=config["reaction_role_refresh_time"]["minute"],
-            second=config["reaction_role_refresh_time"]["second"],
+            hour=config.reaction_role_refresh_time.hour,
+            minute=config.reaction_role_refresh_time.minute,
+            second=config.reaction_role_refresh_time.second,
             coalesce=True,
             next_run_time=initial_refresh_time,
             misfire_grace_time=10,

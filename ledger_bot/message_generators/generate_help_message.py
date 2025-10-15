@@ -1,7 +1,9 @@
 """Generate help message text."""
 
 import logging
-from typing import Any, Dict, List
+from typing import List
+
+from ledger_bot.config import Config
 
 from .split_message import split_message
 
@@ -9,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 def generate_help_message(
-    config: Dict[str, Any],
+    config: Config,
     has_dev_commands: bool = False,
     has_admin_commands: bool = False,
 ) -> List[str]:
@@ -39,31 +41,31 @@ def generate_help_message(
     sections = {
         "Reactions": [
             {
-                "reaction": config["emojis"]["approval"],
+                "reaction": config.emojis.approval,
                 "description": "Approve a transaction.",
                 "requires_dev": False,
                 "requires_admin": False,
             },
             {
-                "reaction": config["emojis"]["cancel"],
+                "reaction": config.emojis.cancel,
                 "description": "Cancel a transaction.",
                 "requires_dev": False,
                 "requires_admin": False,
             },
             {
-                "reaction": config["emojis"]["paid"],
+                "reaction": config.emojis.paid,
                 "description": "Mark a transaction as paid.",
                 "requires_dev": False,
                 "requires_admin": False,
             },
             {
-                "reaction": config["emojis"]["delivered"],
+                "reaction": config.emojis.delivered,
                 "description": "Mark a transaction as delivered.",
                 "requires_dev": False,
                 "requires_admin": False,
             },
             {
-                "reaction": config["emojis"]["reminder"],
+                "reaction": config.emojis.reminder,
                 "description": "Set a reminder for a transaction.",
                 "requires_dev": False,
                 "requires_admin": False,
@@ -152,7 +154,7 @@ def generate_help_message(
             {
                 "command": "/stats",
                 "args": [],
-                "description": f"Returns stats about {config['name']}.",
+                "description": f"Returns stats about {config.name}.",
                 "requires_dev": False,
                 "requires_admin": False,
             },
@@ -182,7 +184,7 @@ def generate_help_message(
             {
                 "command": "!version",
                 "args": [],
-                "description": f"Returns the current version of {config['name']}.",
+                "description": f"Returns the current version of {config.name}.",
                 "requires_dev": False,
                 "requires_admin": False,
             },
@@ -210,7 +212,7 @@ def generate_help_message(
             {
                 "command": "!dev clean",
                 "args": [],
-                "description": f"Cleans completed transactions older than {config['cleanup_delay_hours']}.",
+                "description": f"Cleans completed transactions older than {config.cleanup_delay_hours}.",
                 "requires_dev": True,
                 "requires_admin": False,
             },
@@ -231,7 +233,7 @@ def generate_help_message(
             {
                 "command": "!stats",
                 "args": [],
-                "description": f"Returns stats about {config['name']}.",
+                "description": f"Returns stats about {config.name}.",
                 "requires_dev": False,
                 "requires_admin": False,
             },
@@ -269,22 +271,20 @@ def generate_help_message(
     }
 
     # Create comma seperated list, with "and" before final element
-    if len(config["maintainer_ids"]) > 1:
+    if len(config.maintainer_ids) > 1:
         maintainers = (
             "<@"
-            + ">, <@".join(
-                str(maintainer) for maintainer in list(config["maintainer_ids"])[:-1]
-            )
+            + ">, <@".join(str(maintainer) for maintainer in config.maintainer_ids[:-1])
             + ">, and <@"
-            + str(list(config["maintainer_ids"])[-1])
+            + str(config.maintainer_ids[-1])
             + ">"
         )
     else:
-        maintainers = f"<@{str(config['maintainer_ids'][0])}>"
+        maintainers = f"<@{str(config.maintainer_ids[0])}>"
 
     content = []
-    prefix = f"{config['name']} allows you to track in-progress sales to other users.\nCreate a new transaction with `/new_sale`. To update a transactions status, react to the message from {config['name']}."
-    suffix = f"{config['name']} was built by {maintainers} and is hosted by <https://snailedit.dev/>."
+    prefix = f"{config.name} allows you to track in-progress sales to other users.\nCreate a new transaction with `/new_sale`. To update a transactions status, react to the message from {config.name}."
+    suffix = f"{config.name} was built by {maintainers} and is hosted by <https://snailedit.dev/>."
 
     content.append(prefix)
 

@@ -4,13 +4,15 @@ import logging
 import os
 from shutil import which
 from subprocess import CalledProcessError, check_output
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 
 import discord
 from discord import app_commands
 from discord.abc import GuildChannel, PrivateChannel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+from ledger_bot.config import Config
 
 log = logging.getLogger(__name__)
 
@@ -22,7 +24,7 @@ class ExtendedClient(discord.Client):
 
     session_factory: async_sessionmaker[AsyncSession]
 
-    config: Dict[str, Any]
+    config: Config
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
@@ -66,8 +68,8 @@ class ExtendedClient(discord.Client):
             member = self.guild.get_member(user_id)
 
             if member is not None:
-                return (member.get_role(self.config["admin_role"]) is not None) or (
-                    member.id in self.config["maintainer_ids"]
+                return (member.get_role(self.config.admin_role) is not None) or (
+                    member.id in self.config.maintainer_ids
                 )
             else:
                 return False
@@ -78,11 +80,11 @@ class ExtendedClient(discord.Client):
             return False
 
     async def get_version_number(self):
-        git_version = os.getenv("BOT_VERSION", self.config["emojis"]["unknown_version"])
+        git_version = os.getenv("BOT_VERSION", self.config.emojis.unknown_version)
 
         git_path = which("git")
         if git_path is None:
-            response = self.config["emojis"]["unknown_version"]
+            response = self.config.emojis.unknown_version
             log.error("Can't find git path.")
         else:
             try:

@@ -9,6 +9,7 @@ import discord
 from apscheduler import events
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from .config import Config
 from .message_generators import generate_reminder_status_message
 from .models import Reminder, Transaction
 from .services import Service
@@ -24,7 +25,7 @@ class ReminderManager:
 
     def __init__(
         self,
-        config: Dict[str, Any],
+        config: Config,
         scheduler: AsyncIOScheduler,
         service: Service,
     ):
@@ -39,9 +40,9 @@ class ReminderManager:
             self.refresh_reminders,
             name="Refresh Reminders",
             trigger="cron",
-            hour=config["reminder_refresh_time"]["hour"],
-            minute=config["reminder_refresh_time"]["minute"],
-            second=config["reminder_refresh_time"]["second"],
+            hour=config.reminder_refresh_time.hour,
+            minute=config.reminder_refresh_time.minute,
+            second=config.reminder_refresh_time.second,
             coalesce=True,
             next_run_time=initial_refresh_time,
         )

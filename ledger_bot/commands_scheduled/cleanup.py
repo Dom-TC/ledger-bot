@@ -30,7 +30,7 @@ async def cleanup(client: "LedgerBot", service: Service) -> None:
 
     try:
         transactions = await service.transaction.get_completed_transaction(
-            client.config["cleanup_delay_hours"]
+            client.config.cleanup_delay_hours
         )
 
         if transactions is None:
@@ -75,7 +75,7 @@ async def cleanup(client: "LedgerBot", service: Service) -> None:
                             log.error(f"An error occured deleting the message: {error}")
 
                 if (
-                    client.config["cleanup_removes_transaction_records"]
+                    client.config.cleanup_removes_transaction_records
                     and transaction.id is not None
                 ):
                     log.info(f"Deleting transaction record: {transaction}")

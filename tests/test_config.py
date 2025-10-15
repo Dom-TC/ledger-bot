@@ -96,7 +96,7 @@ def test_parse_with_provided_input(default_config, mock_os_getenv):
 
     parsed_config = config.parse(provided_config)
 
-    assert parsed_config["name"] == provided_config["name"]
+    assert parsed_config.name == provided_config.name
     assert (
         parsed_config["channels"]["include"] == provided_config["channels"]["include"]
     )
@@ -125,7 +125,7 @@ def test_parse_config_with_env_var_override(monkeypatch):
     monkeypatch.setenv("BOT_AIRTABLE_BASE", "env_airtable_base")
 
     parsed_config = config.parse({})
-    assert parsed_config["id"] == "env_bot_id"
+    assert parsed_config.bot_id == "env_bot_id"
     assert parsed_config["authentication"]["discord"] == "env_discord_token"
     assert parsed_config["authentication"]["airtable_key"] == "env_airtable_key"
     assert parsed_config["authentication"]["airtable_base"] == "env_airtable_base"

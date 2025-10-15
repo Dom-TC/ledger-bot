@@ -22,10 +22,15 @@ async def shutdown(client: "LedgerBot", dm_channel: DMChannel) -> None:
     client : LedgerBot
         The client
     """
-    log.warning(f"Shutting down {client.config["name"]}...")
+    log.warning(f"Shutting down {client.config.name}...")
 
     log.debug("Posting shutdown message")
-    channel = await client.get_or_fetch_channel(client.config["shutdown_post_channel"])
+
+    if client.config.shutdown_post_channel is not None:
+        channel = await client.get_or_fetch_channel(client.config.shutdown_post_channel)
+    else:
+        channel = None
+
     if channel is not None and isinstance(channel, TextChannel):
         await channel.send(
             f"<@{client.user.id if client.user else None}> is shutting down for scheduled maintanence.  Goodnight. 👋"

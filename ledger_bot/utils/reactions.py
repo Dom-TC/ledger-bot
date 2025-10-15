@@ -46,7 +46,7 @@ async def _add_reaction_with_channel(
         log.info("Message not found")
     except discord.errors.Forbidden:
         log.info(
-            f"Skipping channel {channel.id} - {client.config["name"]} doesn't have access."
+            f"Skipping channel {channel.id} - {client.config.name} doesn't have access."
         )
 
     return False
