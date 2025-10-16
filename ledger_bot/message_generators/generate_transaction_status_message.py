@@ -5,7 +5,7 @@
 import logging
 from typing import TYPE_CHECKING, Optional
 
-from ledger_bot.config import Config
+from ledger_bot.core import Config
 from ledger_bot.models import Transaction
 
 if TYPE_CHECKING:

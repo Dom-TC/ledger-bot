@@ -9,7 +9,7 @@ import discord
 from apscheduler import events
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from .config import Config
+from .core import Config
 from .message_generators import generate_reminder_status_message
 from .models import Reminder, Transaction
 from .services import Service

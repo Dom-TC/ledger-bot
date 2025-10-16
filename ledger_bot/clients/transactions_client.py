@@ -7,7 +7,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ledger_bot.commands_scheduled import cleanup
-from ledger_bot.config import Config
+from ledger_bot.core import Config
 from ledger_bot.errors import (
     TransactionApprovedError,
     TransactionCancelledError,

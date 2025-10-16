@@ -5,7 +5,7 @@ from typing import Any, Dict
 
 import discord
 
-from ledger_bot.config import Config
+from ledger_bot.core import Config
 
 log = logging.getLogger(__name__)
 

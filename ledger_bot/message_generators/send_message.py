@@ -4,7 +4,7 @@ import logging
 
 import discord
 
-from ledger_bot.config import Config
+from ledger_bot.core import Config
 from ledger_bot.errors import AirTableError
 from ledger_bot.models import Transaction
 from ledger_bot.services import Service

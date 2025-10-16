@@ -117,7 +117,7 @@ class Config:
         cfg = cls()
 
         # Load from file (YAML/JSON)
-        file_path = Path(path or getenv("BOT_CONFIG", "config.json"))
+        file_path = Path(path if path else getenv("BOT_CONFIG", "config.json"))
         file_data: Dict[str, Any] = {}
         if file_path.is_file():
             log.info(f"Loading config from {file_path}")

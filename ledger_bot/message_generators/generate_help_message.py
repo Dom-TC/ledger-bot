@@ -3,7 +3,7 @@
 import logging
 from typing import List
 
-from ledger_bot.config import Config
+from ledger_bot.core import Config
 
 from .split_message import split_message
 

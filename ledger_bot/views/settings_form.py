@@ -16,6 +16,8 @@ log = logging.getLogger(__name__)
 
 
 class LookupEnabledButton(discord.ui.Button):
+    requestor: Member
+
     def _label(self):
         return "Disable Lookup" if self.requestor.lookup_enabled else "Enable Lookup"
 
@@ -27,6 +29,7 @@ class LookupEnabledButton(discord.ui.Button):
         )
 
     async def callback(self, interaction: discord.Interaction):
+
         self.requestor.lookup_enabled = not self.requestor.lookup_enabled
 
         self.requestor = await self.client.service.member.update_member(

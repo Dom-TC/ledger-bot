@@ -20,7 +20,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from .commands_slash import setup_slash
-from .config import Config
+from .core import Config
 from .database import setup_database
 from .errors import SignalHaltError
 from .LedgerBot import LedgerBot

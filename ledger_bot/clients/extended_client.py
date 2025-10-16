@@ -12,7 +12,7 @@ from discord.abc import GuildChannel, PrivateChannel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from ledger_bot.config import Config
+from ledger_bot.core import Config
 
 log = logging.getLogger(__name__)
 

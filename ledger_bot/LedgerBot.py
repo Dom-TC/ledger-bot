@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from .clients import ExtendedClient, ReactionRolesClient, TransactionsClient
 from .commands_dm import is_dm, process_dm
-from .config import Config
+from .core import Config
 from .process_message import process_message
 from .reminder_manager import ReminderManager
 from .services import Service
