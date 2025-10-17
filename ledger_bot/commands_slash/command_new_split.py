@@ -6,6 +6,7 @@ from typing import Any, List
 
 import discord
 
+from ledger_bot.core import register_help_command
 from ledger_bot.LedgerBot import LedgerBot
 from ledger_bot.message_generators import (
     generate_transaction_status_message,
@@ -16,6 +17,43 @@ from ledger_bot.models import Transaction
 log = logging.getLogger(__name__)
 
 
+@register_help_command(
+    command="new_split",
+    args=[
+        "wine_name",
+        "price",
+        "buyer_1",
+        "buyer_2",
+        "buyer_3",
+        "buyer_4",
+        "buyer_5",
+        "buyer_6",
+    ],
+    description="Creates a new six bottle split.",
+)
+@register_help_command(
+    command="new_split_3",
+    args=[
+        "wine_name",
+        "price",
+        "buyer_1",
+        "buyer_2",
+        "buyer_3",
+    ],
+    description="Creates a new three bottle split.",
+)
+@register_help_command(
+    command="new_split_12",
+    args=[
+        "wine_name",
+        "price",
+        "buyer_1",
+        "...",
+        "buyer_11",
+        "buyer_12",
+    ],
+    description="Creates a new twelve bottle split.",
+)
 async def command_new_split(
     client: "LedgerBot",
     interaction: discord.Interaction[Any],

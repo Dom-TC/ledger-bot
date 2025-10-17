@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 import discord
 
+from ledger_bot.core import register_help_command
 from ledger_bot.views import CreateSettingsButtons
 
 if TYPE_CHECKING:
@@ -13,6 +14,10 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
+@register_help_command(
+    command="settings",
+    description="Adjust your settings, including disabling lookup commands and setting your timezone.",
+)
 async def command_settings(
     client: "LedgerBot",
     interaction: discord.Interaction[Any],

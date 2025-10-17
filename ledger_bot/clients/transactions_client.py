@@ -7,7 +7,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ledger_bot.commands_scheduled import cleanup
-from ledger_bot.core import Config
+from ledger_bot.core import Config, register_help_reaction
 from ledger_bot.errors import (
     TransactionApprovedError,
     TransactionCancelledError,
@@ -164,207 +164,59 @@ class TransactionsClient(ExtendedClient):
             )
             return False
 
-        return await self._process_transaction_reaction(
-            payload=payload,
-            reactor=reactor,
-            target_transaction=target_transaction,
-            buyer=buyer,
-            seller=seller,
-            channel=channel,
-        )
-
-    async def _process_transaction_reaction(
-        self, payload, reactor, target_transaction, buyer, seller, channel
-    ) -> bool:
-
         # Process reaction
         log.info(
             f"Processing {payload.emoji.name} from {reactor.username} on message {payload.message_id}"
         )
 
         if payload.emoji.name == self.config.emojis.approval:
-            # Approval
-            log.info(
-                f"Processing approval reaction from {reactor.username} on message {payload.message_id}"
-            )
-
-            try:
-                processed_transaction = (
-                    await self.service.transaction.approve_transaction(
-                        transaction=target_transaction, reactor=reactor
-                    )
-                )
-            except (
-                TransactionCancelledError,
-                TransactionInvalidBuyerError,
-                TransactionInvalidSellerError,
-            ):
-                await remove_reaction(
-                    client=self,
-                    message_id=payload.message_id,
-                    reaction=self.config.emojis.thinking,
-                    channel_obj=channel,
-                )
-                return False
-
-            response_contents = await generate_transaction_status_message(
-                transaction=processed_transaction,
-                client=self,
-                config=self.config,
-                is_update=True,
-            )
-
-            await send_message(
-                response_contents=response_contents,
+            await self.process_reaction_approval(
+                reactor=reactor,
+                payload=payload,
+                target_transaction=target_transaction,
+                buyer=buyer,
+                seller=seller,
                 channel=channel,
-                target_transaction=processed_transaction,
-                previous_message_id=payload.message_id,
-                service=self.service,
-                config=self.config,
             )
 
         elif payload.emoji.name == self.config.emojis.paid:
-            # Paid
-            log.info(
-                f"Processing payment reaction from {reactor.username} on message {payload.message_id}"
-            )
-
-            try:
-                processed_transaction = (
-                    await self.service.transaction.mark_transaction_paid(
-                        transaction=target_transaction, reactor=reactor
-                    )
-                )
-            except TransactionCancelledError:
-                await remove_reaction(
-                    client=self,
-                    message_id=payload.message_id,
-                    reaction=self.config.emojis.thinking,
-                    channel_obj=channel,
-                )
-                return False
-
-            response_contents = await generate_transaction_status_message(
-                transaction=processed_transaction,
-                client=self,
-                config=self.config,
-                is_update=True,
-            )
-
-            await send_message(
-                response_contents=response_contents,
+            await self.process_reaction_paid(
+                reactor=reactor,
+                payload=payload,
+                target_transaction=target_transaction,
+                buyer=buyer,
+                seller=seller,
                 channel=channel,
-                target_transaction=processed_transaction,
-                previous_message_id=payload.message_id,
-                service=self.service,
-                config=self.config,
             )
 
         elif payload.emoji.name == self.config.emojis.delivered:
-            # Delivered
-            log.info(
-                f"Processing delivered reaction from {reactor.username} on message {payload.message_id}"
-            )
-
-            try:
-                processed_transaction = (
-                    await self.service.transaction.mark_transaction_delivered(
-                        transaction=target_transaction, reactor=reactor
-                    )
-                )
-            except TransactionCancelledError:
-                await remove_reaction(
-                    client=self,
-                    message_id=payload.message_id,
-                    reaction=self.config.emojis.thinking,
-                    channel_obj=channel,
-                )
-                return False
-
-            response_contents = await generate_transaction_status_message(
-                transaction=processed_transaction,
-                client=self,
-                config=self.config,
-                is_update=True,
-            )
-
-            await send_message(
-                response_contents=response_contents,
+            await self.process_reaction_delivered(
+                reactor=reactor,
+                payload=payload,
+                target_transaction=target_transaction,
+                buyer=buyer,
+                seller=seller,
                 channel=channel,
-                target_transaction=processed_transaction,
-                previous_message_id=payload.message_id,
-                service=self.service,
-                config=self.config,
             )
 
         elif payload.emoji.name == self.config.emojis.cancel:
-            # Cancelled
-            log.info(
-                f"Processing cancel reaction from {reactor.username} on message {payload.message_id}"
-            )
-
-            try:
-                processed_transaction = (
-                    await self.service.transaction.cancel_transaction(
-                        transaction=target_transaction, reactor=reactor
-                    )
-                )
-            except TransactionApprovedError:
-                await remove_reaction(
-                    client=self,
-                    message_id=payload.message_id,
-                    reaction=self.config.emojis.thinking,
-                    channel_obj=channel,
-                )
-                return False
-
-            response_contents = await generate_transaction_status_message(
-                transaction=processed_transaction,
-                client=self,
-                config=self.config,
-                is_update=True,
-            )
-
-            await send_message(
-                response_contents=response_contents,
+            await self.process_reaction_cancelled(
+                reactor=reactor,
+                payload=payload,
+                target_transaction=target_transaction,
+                buyer=buyer,
+                seller=seller,
                 channel=channel,
-                target_transaction=processed_transaction,
-                previous_message_id=payload.message_id,
-                service=self.service,
-                config=self.config,
             )
 
         elif payload.emoji.name == self.config.emojis.reminder:
-            # Watch
-            log.info(
-                f"Processing reminder reaction from {reactor.username} on message {payload.message_id}"
-            )
-
-            if not isinstance(self.guild, discord.Guild):
-                # This is only to fix typing errors. As soon as the client is running, self.guild will be a discord.Guild object
-                log.error(f"guild is invalid: {self.guild} / {type(self.guild)}")
-                await remove_reaction(
-                    client=self,
-                    message_id=payload.message_id,
-                    reaction=self.config.emojis.thinking,
-                    channel_obj=channel,
-                )
-                return False
-
-            reactor_user = await self.get_or_fetch_member(
-                reactor.discord_id, guild=self.guild
-            )
-            seller_user = await self.get_or_fetch_user(seller.discord_id)
-            buyer_user = await self.get_or_fetch_user(buyer.discord_id)
-            await reactor_user.send(
-                view=CreateReminderButton(
-                    service=self.service,
-                    transaction=target_transaction,
-                    user=reactor_user,
-                    buyer_user=buyer_user,
-                    seller_user=seller_user,
-                    reminders=self.reminders,
-                ),
+            await self.process_reaction_reminder(
+                reactor=reactor,
+                payload=payload,
+                target_transaction=target_transaction,
+                buyer=buyer,
+                seller=seller,
+                channel=channel,
             )
 
         # Remove our thinking reaction
@@ -376,6 +228,225 @@ class TransactionsClient(ExtendedClient):
         )
 
         log.info(f"Finished processing reaction {payload.emoji} from {reactor}")
+        return True
+
+    @register_help_reaction(
+        reaction_name="approval",
+        description="Approve a transaction.",
+    )
+    async def process_reaction_approval(
+        self, payload, reactor, target_transaction, buyer, seller, channel
+    ):
+        # Approval
+        log.info(
+            f"Processing approval reaction from {reactor.username} on message {payload.message_id}"
+        )
+
+        try:
+            processed_transaction = await self.service.transaction.approve_transaction(
+                transaction=target_transaction, reactor=reactor
+            )
+        except (
+            TransactionCancelledError,
+            TransactionInvalidBuyerError,
+            TransactionInvalidSellerError,
+        ):
+            await remove_reaction(
+                client=self,
+                message_id=payload.message_id,
+                reaction=self.config.emojis.thinking,
+                channel_obj=channel,
+            )
+            return False
+
+        response_contents = await generate_transaction_status_message(
+            transaction=processed_transaction,
+            client=self,
+            config=self.config,
+            is_update=True,
+        )
+
+        await send_message(
+            response_contents=response_contents,
+            channel=channel,
+            target_transaction=processed_transaction,
+            previous_message_id=payload.message_id,
+            service=self.service,
+            config=self.config,
+        )
+
+        return True
+
+    @register_help_reaction(
+        reaction_name="paid",
+        description="Mark a transaction as paid.",
+    )
+    async def process_reaction_paid(
+        self, payload, reactor, target_transaction, buyer, seller, channel
+    ):
+        # Paid
+        log.info(
+            f"Processing payment reaction from {reactor.username} on message {payload.message_id}"
+        )
+
+        try:
+            processed_transaction = (
+                await self.service.transaction.mark_transaction_paid(
+                    transaction=target_transaction, reactor=reactor
+                )
+            )
+        except TransactionCancelledError:
+            await remove_reaction(
+                client=self,
+                message_id=payload.message_id,
+                reaction=self.config.emojis.thinking,
+                channel_obj=channel,
+            )
+            return False
+
+        response_contents = await generate_transaction_status_message(
+            transaction=processed_transaction,
+            client=self,
+            config=self.config,
+            is_update=True,
+        )
+
+        await send_message(
+            response_contents=response_contents,
+            channel=channel,
+            target_transaction=processed_transaction,
+            previous_message_id=payload.message_id,
+            service=self.service,
+            config=self.config,
+        )
+
+        return True
+
+    @register_help_reaction(
+        reaction_name="delivered",
+        description="Mark a transaction as delivered.",
+    )
+    async def process_reaction_delivered(
+        self, payload, reactor, target_transaction, buyer, seller, channel
+    ):
+        # Delivered
+        log.info(
+            f"Processing delivered reaction from {reactor.username} on message {payload.message_id}"
+        )
+
+        try:
+            processed_transaction = (
+                await self.service.transaction.mark_transaction_delivered(
+                    transaction=target_transaction, reactor=reactor
+                )
+            )
+        except TransactionCancelledError:
+            await remove_reaction(
+                client=self,
+                message_id=payload.message_id,
+                reaction=self.config.emojis.thinking,
+                channel_obj=channel,
+            )
+            return False
+
+        response_contents = await generate_transaction_status_message(
+            transaction=processed_transaction,
+            client=self,
+            config=self.config,
+            is_update=True,
+        )
+
+        await send_message(
+            response_contents=response_contents,
+            channel=channel,
+            target_transaction=processed_transaction,
+            previous_message_id=payload.message_id,
+            service=self.service,
+            config=self.config,
+        )
+
+    @register_help_reaction(
+        reaction_name="cancel",
+        description="Mark a transaction as cancelled.",
+    )
+    async def process_reaction_cancelled(
+        self, payload, reactor, target_transaction, buyer, seller, channel
+    ):
+        # Cancelled
+        log.info(
+            f"Processing cancel reaction from {reactor.username} on message {payload.message_id}"
+        )
+
+        try:
+            processed_transaction = await self.service.transaction.cancel_transaction(
+                transaction=target_transaction, reactor=reactor
+            )
+        except TransactionApprovedError:
+            await remove_reaction(
+                client=self,
+                message_id=payload.message_id,
+                reaction=self.config.emojis.thinking,
+                channel_obj=channel,
+            )
+            return False
+
+        response_contents = await generate_transaction_status_message(
+            transaction=processed_transaction,
+            client=self,
+            config=self.config,
+            is_update=True,
+        )
+
+        await send_message(
+            response_contents=response_contents,
+            channel=channel,
+            target_transaction=processed_transaction,
+            previous_message_id=payload.message_id,
+            service=self.service,
+            config=self.config,
+        )
+
+        return True
+
+    @register_help_reaction(
+        reaction_name="reminder",
+        description="Set a reminder for a transaction.",
+    )
+    async def process_reaction_reminder(
+        self, payload, reactor, target_transaction, buyer, seller, channel
+    ):
+        # Watch
+        log.info(
+            f"Processing reminder reaction from {reactor.username} on message {payload.message_id}"
+        )
+
+        if not isinstance(self.guild, discord.Guild):
+            # This is only to fix typing errors. As soon as the client is running, self.guild will be a discord.Guild object
+            log.error(f"guild is invalid: {self.guild} / {type(self.guild)}")
+            await remove_reaction(
+                client=self,
+                message_id=payload.message_id,
+                reaction=self.config.emojis.thinking,
+                channel_obj=channel,
+            )
+            return False
+
+        reactor_user = await self.get_or_fetch_member(
+            reactor.discord_id, guild=self.guild
+        )
+        seller_user = await self.get_or_fetch_user(seller.discord_id)
+        buyer_user = await self.get_or_fetch_user(buyer.discord_id)
+        await reactor_user.send(
+            view=CreateReminderButton(
+                service=self.service,
+                transaction=target_transaction,
+                user=reactor_user,
+                buyer_user=buyer_user,
+                seller_user=seller_user,
+                reminders=self.reminders,
+            ),
+        )
+
         return True
 
     async def refresh_transaction(

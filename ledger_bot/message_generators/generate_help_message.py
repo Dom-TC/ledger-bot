@@ -3,7 +3,7 @@
 import logging
 from typing import List
 
-from ledger_bot.core import Config
+from ledger_bot.core import Config, HelpManager
 
 from .split_message import split_message
 
@@ -34,241 +34,7 @@ def generate_help_message(
     """
     log.info("Generating help message...")
 
-    # The sections of the message
-    # Outer array is list of sections, each containing a list of commands or reactions
-    # Each command is a dict, containing "command", "args", "description", "requires_dev", "requires_admin"
-    # Each reaction is a dict, containing "reaction", "description", "requires_dev", "requires_admin"
-    sections = {
-        "Reactions": [
-            {
-                "reaction": config.emojis.approval,
-                "description": "Approve a transaction.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "reaction": config.emojis.cancel,
-                "description": "Cancel a transaction.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "reaction": config.emojis.paid,
-                "description": "Mark a transaction as paid.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "reaction": config.emojis.delivered,
-                "description": "Mark a transaction as delivered.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "reaction": config.emojis.reminder,
-                "description": "Set a reminder for a transaction.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-        ],
-        "Channel Commands": [
-            {
-                "command": "/new_sale",
-                "args": ["wine_name", "buyer", "price"],
-                "description": "Creates a new sale transaction.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "command": "/new_split",
-                "args": [
-                    "wine_name",
-                    "price",
-                    "buyer_1",
-                    "buyer_2",
-                    "buyer_3",
-                    "buyer_4",
-                    "buyer_5",
-                    "buyer_6",
-                ],
-                "description": "Creates a new six bottle split.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "command": "/new_split_3",
-                "args": [
-                    "wine_name",
-                    "price",
-                    "buyer_1",
-                    "buyer_2",
-                    "buyer_3",
-                ],
-                "description": "Creates a new three bottle split.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "command": "/new_split_12",
-                "args": [
-                    "wine_name",
-                    "price",
-                    "buyer_1",
-                    "buyer_2",
-                    "...",
-                    "buyer_11",
-                    "buyer_12",
-                ],
-                "description": "Creates a new twelve bottle split.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "command": "/hello",
-                "args": [],
-                "description": "Says hello.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "command": "/help",
-                "args": [],
-                "description": "Returns this message.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "command": "/ping",
-                "args": [],
-                "description": "Returns a Pong.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "command": "/list",
-                "args": [],
-                "description": "Returns a list of your transactions",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "command": "/stats",
-                "args": [],
-                "description": f"Returns stats about {config.name}.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "command": "/add_role",
-                "args": ["role", "emoji", "message_id"],
-                "description": "Add a new role reaction. Emoji is the reaction users will user to add the role, message_id is the id of the message they will react against.",
-                "requires_dev": False,
-                "requires_admin": True,
-            },
-            {
-                "command": "/lookup",
-                "args": ["user"],
-                "description": "Lookup another users transactions.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "command": "/settings",
-                "args": [],
-                "description": "Adjust your settings, including disabling lookup commands and setting your timezone.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-        ],
-        "DM Commands": [
-            {
-                "command": "!version",
-                "args": [],
-                "description": f"Returns the current version of {config.name}.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "command": "!dev add_reaction",
-                "args": ["message_id", "reaction"],
-                "description": "Applies the specified reaction to the given message.",
-                "requires_dev": True,
-                "requires_admin": False,
-            },
-            {
-                "command": "!help",
-                "args": [],
-                "description": "Returns this message.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "command": "!dev get_jobs",
-                "args": [],
-                "description": "Returns a list of the currently scheduled jobs.",
-                "requires_dev": True,
-                "requires_admin": False,
-            },
-            {
-                "command": "!dev clean",
-                "args": [],
-                "description": f"Cleans completed transactions older than {config.cleanup_delay_hours}.",
-                "requires_dev": True,
-                "requires_admin": False,
-            },
-            {
-                "command": "!list",
-                "args": [],
-                "description": "Returns a list of your transactions.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "command": "!dev refresh_reminders",
-                "args": [],
-                "description": "Refreshes the scheduled reminders.",
-                "requires_dev": True,
-                "requires_admin": False,
-            },
-            {
-                "command": "!stats",
-                "args": [],
-                "description": f"Returns stats about {config.name}.",
-                "requires_dev": False,
-                "requires_admin": False,
-            },
-            {
-                "command": "!dev refresh_message",
-                "args": ["transaction_row_id", "optional: channel_id"],
-                "description": "Deletes all existing messages for a given transaction, and posts a new status update.",
-                "requires_dev": True,
-                "requires_admin": False,
-            },
-            {
-                "command": "!dev shutdown",
-                "args": [
-                    "confirmation_token",
-                ],
-                "description": "Shutdown ledger_bot, requires a confirmation token that will be displayed when first run.",
-                "requires_dev": True,
-                "requires_admin": False,
-            },
-            {
-                "command": "!dev cancel_shutdown",
-                "args": [],
-                "description": "Cancels the scheduled shutdown.",
-                "requires_dev": True,
-                "requires_admin": False,
-            },
-            {
-                "command": "!dev welcome_back",
-                "args": [],
-                "description": "Posts a message saying ledger_bot is running again.",
-                "requires_dev": True,
-                "requires_admin": False,
-            },
-        ],
-    }
+    help_manager = HelpManager(config=config)
 
     # Create comma seperated list, with "and" before final element
     if len(config.maintainer_ids) > 1:
@@ -282,49 +48,77 @@ def generate_help_message(
     else:
         maintainers = f"<@{str(config.maintainer_ids[0])}>"
 
-    content = []
     prefix = f"{config.name} allows you to track in-progress sales to other users.\nCreate a new transaction with `/new_sale`. To update a transactions status, react to the message from {config.name}."
     suffix = f"{config.name} was built by {maintainers} and is hosted by <https://snailedit.dev/>."
 
-    content.append(prefix)
+    reactions = help_manager.get_reactions()
 
-    for section in sections:
-        body = f"\n**{section}**\n"
+    reaction_body = "\n**Reactions**\n"
 
-        # Only checking first element.  Probably not totally safe but works as long as we don't mix list types.
-        if "command" in sections[section][0]:
-            # Is list of commands
+    for reaction_name in reactions:
+        reaction = reactions[reaction_name]
 
-            # Sort by "command" key
-            sections[section].sort(key=lambda d: d["command"])
+        if reaction.reaction is None:
+            log.error(
+                f"Skipping reaction: {reaction.reaction_name}, reaction.reaction is None"
+            )
+            break
 
-            commands = sections[section]
+        if reaction.requires_dev and not has_dev_commands:
+            log.debug(f"Skipping dev reaction: {reaction.reaction}")
+            break
 
-            for command in commands:
-                if command["requires_dev"] and not has_dev_commands:
-                    log.info(f"Skipping dev command: {command['command']}")
-                elif command["requires_admin"] and not has_admin_commands:
-                    log.info(f"Skipping admin command: {command['command']}")
-                else:
-                    body += f"`{command['command']}"
+        if reaction.requires_admin and not has_admin_commands:
+            log.debug(f"Skipping admin reaction: {reaction.reaction}")
+            break
 
-                    for arg in command["args"]:
-                        body += f" <{arg}>"
+        reaction_body += f"{reaction.reaction}: {reaction.description}\n"
 
-                    body += f"`: {command['description']}\n"
-        elif "reaction" in sections[section][0]:
-            # Is list of reactions
+    slash_commands = help_manager.get_slash_commands()
 
-            reactions = sections[section]
-            for reaction in reactions:
-                if reaction["requires_dev"] and not has_dev_commands:
-                    log.info(f"Skipping dev reaction: {reaction['reaction']}")
-                else:
-                    body += f"{reaction['reaction']}: {reaction['description']}\n"
+    slash_body = "\n**Channel Commands**\n"
 
-        content.append(body)
+    for slash_name in slash_commands:
+        slash_command = slash_commands[slash_name]
 
-    content.append(suffix)
+        if slash_command.requires_dev and not has_dev_commands:
+            log.debug(f"Skipping dev slash command: {slash_command.command}")
+            break
+
+        if slash_command.requires_admin and not has_admin_commands:
+            log.debug(f"Skipping admin slash command: {slash_command.command}")
+            break
+
+        slash_body += f"`{slash_command.command}"
+
+        for arg in slash_command.args:
+            slash_body += f" <{arg}>"
+
+        slash_body += f"`: {slash_command.description}\n"
+
+    dm_commands = help_manager.get_dm_commands()
+
+    dm_body = "\n**DM Commands**\n"
+
+    for dm_name in dm_commands:
+        dm_command = dm_commands[dm_name]
+
+        if dm_command.requires_dev and not has_dev_commands:
+            log.debug(f"Skipping dev dm command: {dm_command.command}")
+            break
+
+        if dm_command.requires_admin and not has_admin_commands:
+            log.debug(f"Skipping admin dm command: {dm_command.command}")
+            break
+
+        dm_body += f"`{dm_command.command}"
+
+        for arg in dm_command.args:
+            dm_body += f" <{arg}>"
+
+        dm_body += f"`: {dm_command.description}\n"
+
+    content = [prefix, reaction_body, slash_body, dm_body, suffix]
 
     message = split_message(content)
 

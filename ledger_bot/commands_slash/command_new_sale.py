@@ -6,6 +6,7 @@ from typing import Any
 
 import discord
 
+from ledger_bot.core import register_help_command
 from ledger_bot.errors import AirTableError
 from ledger_bot.LedgerBot import LedgerBot
 from ledger_bot.message_generators import generate_transaction_status_message
@@ -14,6 +15,11 @@ from ledger_bot.models import Transaction
 log = logging.getLogger(__name__)
 
 
+@register_help_command(
+    command="new_sale",
+    args=["wine_name", "buyer", "price"],
+    description="Creates a new sale transaction.",
+)
 async def command_new_sale(
     client: "LedgerBot",
     interaction: discord.Interaction[Any],

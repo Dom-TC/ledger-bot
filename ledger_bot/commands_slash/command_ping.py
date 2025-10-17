@@ -5,11 +5,13 @@ from typing import Any
 
 import discord
 
+from ledger_bot.core import register_help_command
 from ledger_bot.LedgerBot import LedgerBot
 
 log = logging.getLogger(__name__)
 
 
+@register_help_command(command="ping", description="Returns a Pong")
 async def command_ping(
     client: "LedgerBot",
     interaction: discord.Interaction[Any],

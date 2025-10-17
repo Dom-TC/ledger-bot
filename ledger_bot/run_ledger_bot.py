@@ -5,16 +5,13 @@ Ledger_bot is a Discord bot that allows users to track sales.
 """
 
 import asyncio
-import json
 import logging
-import os
 from asyncio.events import AbstractEventLoop
 from contextlib import suppress
 from datetime import timezone, tzinfo
 from functools import partial
 from signal import SIGINT, SIGTERM, Signals
 from sys import platform
-from typing import Any, Dict
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler

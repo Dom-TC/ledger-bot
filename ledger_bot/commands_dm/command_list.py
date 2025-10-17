@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 import discord
 
+from ledger_bot.core import register_help_command
 from ledger_bot.errors import AirTableError
 from ledger_bot.message_generators import generate_list_message
 
@@ -14,6 +15,9 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
+@register_help_command(
+    command="list", description="Returns a list of your transactions.", scope="dm"
+)
 async def command_list(
     client: "LedgerBot", message: discord.Message, dm_channel: discord.DMChannel
 ) -> None:

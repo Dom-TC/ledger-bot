@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 import discord
 
+from ledger_bot.core import register_help_command
 from ledger_bot.models import ReactionRole
 from ledger_bot.utils import add_reaction, is_valid_emoji
 
@@ -14,6 +15,12 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
+@register_help_command(
+    command="add_role",
+    args=["role", "emoji", "message_id"],
+    description="Add a new role reaction. Emoji is the reaction users will user to add the role, message_id is the id of the message they will react against.",
+    requires_admin=True,
+)
 async def command_add_role(
     client: "ReactionRolesClient",
     interaction: discord.Interaction[Any],

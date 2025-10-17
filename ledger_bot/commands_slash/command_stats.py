@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 import discord
 
+from ledger_bot.core import register_help_command
 from ledger_bot.message_generators import generate_stats_message
 
 if TYPE_CHECKING:
@@ -13,6 +14,9 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
+@register_help_command(
+    command="stats", description="Returns stats about {config.name}."
+)
 async def command_stats(
     client: "LedgerBot",
     interaction: discord.Interaction[Any],

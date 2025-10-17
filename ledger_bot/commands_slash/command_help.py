@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 import discord
 
+from ledger_bot.core import register_help_command
 from ledger_bot.message_generators import generate_help_message
 
 if TYPE_CHECKING:
@@ -13,6 +14,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
+@register_help_command(command="help", description="Returns this message.")
 async def command_help(
     client: "LedgerBot",
     interaction: discord.Interaction[Any],

@@ -10,6 +10,7 @@ import discord
 from apscheduler.job import Job
 
 from ledger_bot.commands_scheduled import cleanup, shutdown
+from ledger_bot.core import register_help_command
 from ledger_bot.utils import add_reaction
 
 if TYPE_CHECKING:
@@ -121,6 +122,57 @@ async def _process_shutdown_authcode(
         return response
 
 
+@register_help_command(
+    command="dev add_reaction",
+    args=["message_id", "reaction"],
+    description="Applies the specified reaction to the given message.",
+    requires_dev=True,
+    scope="dm",
+)
+@register_help_command(
+    command="dev get_jobs",
+    description="Returns a list of the currently scheduled jobs.",
+    requires_dev=True,
+    scope="dm",
+)
+@register_help_command(
+    command="dev clean",
+    description="Cleans completed transactions older than {config.cleanup_delay_hours}.",
+    requires_dev=True,
+    scope="dm",
+)
+@register_help_command(
+    command="dev refresh_reminders",
+    description="Refreshes the scheduled reminders.",
+    requires_dev=True,
+    scope="dm",
+)
+@register_help_command(
+    command="dev refresh_message",
+    args=["transaction_row_id", "optional: channel_id"],
+    description="Deletes all existing messages for a given transaction, and posts a new status update.",
+    requires_dev=True,
+    scope="dm",
+)
+@register_help_command(
+    command="dev shutdown",
+    args=["optional: confirmation_token"],
+    description="Shutdown {config.name}, requires a confirmation token that will be displayed when first run.",
+    requires_dev=True,
+    scope="dm",
+)
+@register_help_command(
+    command="dev cancel_shutdown",
+    description="Cancels the scheduled shutdown.",
+    requires_dev=True,
+    scope="dm",
+)
+@register_help_command(
+    command="dev welcome_back",
+    description="Posts a message saying ledger_bot is running again.",
+    requires_dev=True,
+    scope="dm",
+)
 async def command_dev(
     client: "LedgerBot", message: discord.Message, dm_channel: discord.DMChannel
 ) -> None:

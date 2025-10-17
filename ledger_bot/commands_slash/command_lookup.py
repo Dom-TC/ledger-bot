@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 import discord
 
+from ledger_bot.core import register_help_command
 from ledger_bot.errors import AirTableError
 
 if TYPE_CHECKING:
@@ -13,6 +14,9 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
+@register_help_command(
+    command="lookup", args=["user"], description="Lookup another users transactions."
+)
 async def command_lookup(
     client: "ReactionRolesClient",
     interaction: discord.Interaction[Any],
