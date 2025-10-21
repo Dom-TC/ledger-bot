@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 
 from .bot_message_service import BotMessageService
+from .currency_service import CurrencyService
 from .member_service import MemberService
 from .reaction_role_service import ReactionRoleService
 from .reminder_service import ReminderService
@@ -18,3 +19,4 @@ class Service:
     reminder: ReminderService
     transaction: TransactionService
     stats: StatsService
+    currency: CurrencyService

@@ -70,7 +70,9 @@ async def generate_transaction_status_message(
     user_decleration = (
         f"**{seller.mention} sold {transaction.wine} to {buyer.mention}**"
     )
-    price_decleration = f"Price: £{'{:.2f}'.format(transaction.price)}"
+    price_decleration = (
+        f"Price: {transaction.currency.symbol}{'{:.2f}'.format(transaction.price)}"
+    )
 
     if transaction.sale_approved:
         approved_decleration = f"Approved: {config.emojis.status_confirmed}"

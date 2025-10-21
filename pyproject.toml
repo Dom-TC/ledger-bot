@@ -23,6 +23,8 @@ alembic = "^1.16.4"
 greenlet = "^3.2.4"
 aiosqlite = "^0.21.0"
 typer = "^0.19.2"
+currency-symbols = "^2.0.4"
+requests = "^2.32.5"
 
 
 [tool.poetry.group.dev.dependencies]

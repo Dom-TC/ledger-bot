@@ -79,6 +79,11 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
         if not self.scheduler.running:
             log.warning("The scheduler is not running")
 
+        # Ensure we have a few expected currencies in the database
+        await self.service.currency.get_or_add_currency("GBP")
+        await self.service.currency.get_or_add_currency("USD")
+        await self.service.currency.get_or_add_currency("EUR")
+
     async def on_message(self, message: discord.Message) -> None:
         # Process DMs
         if is_dm(message):

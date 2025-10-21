@@ -3,9 +3,10 @@
 import logging
 from typing import List, Optional, Tuple
 
-from sqlalchemy import func, or_
+from sqlalchemy import or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import ColumnElement
 
 from ledger_bot.errors import InvalidRoleError
@@ -205,12 +206,21 @@ class TransactionStorage(TransactionStorageABC):
         if not include_cancelled:
             filters.append(Transaction.cancelled.is_(False))
 
-        query = select(
-            func.coalesce(func.sum(Transaction.price), 0),
-            func.coalesce(func.avg(Transaction.price), 0),
-        ).where(*filters)
+        # Load all relevant transactions with currencies
+        result = await session.execute(
+            select(Transaction)
+            .where(*filters)
+            .options(joinedload(Transaction.currency))
+        )
+        transactions = result.scalars().all()
 
-        result = await session.execute(query)
-        total_price, avg_price = result.one()
+        # Calculate GBP-equivalent prices
+        gbp_prices = [t.gbp_price for t in transactions]
 
-        return total_price, avg_price
+        if not gbp_prices:
+            return 0.0, 0.0
+
+        total = sum(gbp_prices)
+        avg = total / len(gbp_prices)
+
+        return total, avg

@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 @register_help_command(
     command="new_sale",
-    args=["wine_name", "buyer", "price"],
+    args=["wine_name", "buyer", "price", "optional: currency_code, default: GBP"],
     description="Creates a new sale transaction.",
 )
 async def command_new_sale(
@@ -26,6 +26,7 @@ async def command_new_sale(
     wine_name: str,
     buyer: discord.Member,
     price: float,
+    currency_code: str = "GBP",
 ) -> None:
     """Add transaction to Airtable."""
     if isinstance(interaction.channel, discord.channel.TextChannel):
@@ -98,6 +99,11 @@ async def command_new_sale(
             buyer, session=session
         )
 
+        log.info(f"Getting / adding currency: {currency_code}")
+        currency_record = await client.service.currency.get_or_add_currency(
+            currency=currency_code, session=session
+        )
+
         # Build Transaction object from provided data
         transaction = Transaction(
             seller_id=seller_record.id,
@@ -111,6 +117,7 @@ async def command_new_sale(
             seller_paid=False,
             cancelled=False,
             creation_date=datetime.datetime.now(datetime.timezone.utc),
+            currency_code=currency_record.code,
         )
 
         # Format price to 2dp

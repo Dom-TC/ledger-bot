@@ -24,6 +24,7 @@ from .LedgerBot import LedgerBot
 from .reminder_manager import ReminderManager
 from .services import (
     BotMessageService,
+    CurrencyService,
     MemberService,
     ReactionRoleService,
     ReminderService,
@@ -33,6 +34,7 @@ from .services import (
 )
 from .storage import (
     BotMessageStorage,
+    CurrencyStorage,
     MemberStorage,
     ReactionRoleStorage,
     ReminderStorage,
@@ -72,6 +74,7 @@ def start_bot() -> None:
         bot_message=BotMessageStorage(),
         reminder=ReminderStorage(),
         reaction_role=ReactionRoleStorage(),
+        currency=CurrencyStorage(),
     )
 
     # Create services
@@ -94,6 +97,12 @@ def start_bot() -> None:
         ),
         stats=StatsService(
             storage.transaction, config.name, session_factory=db_session_factory
+        ),
+        currency=CurrencyService(
+            currency_storage=storage.currency,
+            config=config,
+            bot_id=config.name,
+            session_factory=db_session_factory,
         ),
     )
 

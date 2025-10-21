@@ -6,6 +6,7 @@ module to process configs, defaults defined in the function, overwritten by prov
 import json
 import logging
 from dataclasses import dataclass, field, fields, is_dataclass
+from datetime import timedelta
 from os import getenv
 from pathlib import Path
 from typing import Any, Dict, List, get_args, get_origin
@@ -18,6 +19,7 @@ class AuthenticationConfig:
     discord: str = ""
     airtable_key: str = ""
     airtable_base: str = ""
+    exchangerate_api: str = ""
 
     def __repr__(self):
         fields = ", ".join(f"{f}='****'" for f in self.__dataclass_fields__)
@@ -46,24 +48,10 @@ class EmojiConfig:
 
 
 @dataclass
-class RunCleanupTimeConfig:
-    hour: str = "1"
-    minute: str = "0"
-    second: str = "0"
-
-
-@dataclass
-class ReminderRefreshTimeConfig:
-    hour: str = "*/5"
-    minute: str = "0"
-    second: str = "0"
-
-
-@dataclass
-class ReactionRoleRefreshTimeConfig:
-    hour: str = "*"
-    minute: str = "*/30"
-    second: str = "0"
+class JobSchedule:
+    hour: str | int = "*"
+    minute: str | int = 0
+    second: str | int = 0
 
 
 @dataclass
@@ -96,13 +84,17 @@ class Config:
     authentication: AuthenticationConfig = field(default_factory=AuthenticationConfig)
     channels: ChannelsConfig = field(default_factory=ChannelsConfig)
     emojis: EmojiConfig = field(default_factory=EmojiConfig)
-    run_cleanup_time: RunCleanupTimeConfig = field(default_factory=RunCleanupTimeConfig)
-    reminder_refresh_time: ReminderRefreshTimeConfig = field(
-        default_factory=ReminderRefreshTimeConfig
+    run_cleanup_time: JobSchedule = field(
+        default_factory=lambda: JobSchedule(hour=1, minute=0, second=0)
     )
-    reaction_role_refresh_time: ReactionRoleRefreshTimeConfig = field(
-        default_factory=ReactionRoleRefreshTimeConfig
+    reminder_refresh_time: JobSchedule = field(
+        default_factory=lambda: JobSchedule(hour="*/5", minute=0, second=0)
     )
+    reaction_role_refresh_time: JobSchedule = field(
+        default_factory=lambda: JobSchedule(hour="*", minute="*/30", second=0)
+    )
+    base_currency: str = "GBP"
+    currency_rate_update_delta: timedelta = timedelta(days=1)
 
     @classmethod
     def load(cls, path: str | None = None) -> "Config":
@@ -143,6 +135,9 @@ class Config:
         if token := getenv("BOT_AIRTABLE_BASE"):
             cfg.authentication.airtable_base = token
 
+        if token := getenv("EXCHANGERATE_API"):
+            cfg.authentication.exchangerate_api = token
+
         if token := getenv("DATABASE_URL"):
             cfg.database_path = Path(token)
 
@@ -160,29 +155,35 @@ class Config:
         for key, value in data.items():
             if hasattr(obj, key):
                 current = getattr(obj, key)
-                if is_dataclass(current) and isinstance(value, dict):
-                    self._apply_dict(current, value)
+                field_type = next((f.type for f in fields(obj) if f.name == key), None)
+
+                if field_type is timedelta:
+                    setattr(obj, key, timedelta(**value))
+
+                elif field_type is JobSchedule:
+                    setattr(obj, key, JobSchedule(**value))
+
                 else:
-                    field_type = next(
-                        (f.type for f in fields(obj) if f.name == key), None
-                    )
-                    if field_type is Path:
-                        setattr(obj, key, Path(value))
-                    elif field_type is int:
-                        setattr(obj, key, int(value))
-                    elif field_type is bool:
-                        if isinstance(value, str):
-                            setattr(
-                                obj, key, value.lower() in ("true", "1", "yes", "y")
-                            )
-                        else:
-                            setattr(obj, key, bool(value))
-                    elif get_origin(field_type) in (list, List):
-                        args = get_args(type(current))
-                        if args:
-                            item_type = args[0]
-                            setattr(obj, key, [item_type(v) for v in value])
-                        else:
-                            setattr(obj, key, list(value))
+                    if is_dataclass(current) and isinstance(value, dict):
+                        self._apply_dict(current, value)
                     else:
-                        setattr(obj, key, value)
+                        if field_type is Path:
+                            setattr(obj, key, Path(value))
+                        elif field_type is int:
+                            setattr(obj, key, int(value))
+                        elif field_type is bool:
+                            if isinstance(value, str):
+                                setattr(
+                                    obj, key, value.lower() in ("true", "1", "yes", "y")
+                                )
+                            else:
+                                setattr(obj, key, bool(value))
+                        elif get_origin(field_type) in (list, List):
+                            args = get_args(type(current))
+                            if args:
+                                item_type = args[0]
+                                setattr(obj, key, [item_type(v) for v in value])
+                            else:
+                                setattr(obj, key, list(value))
+                        else:
+                            setattr(obj, key, value)

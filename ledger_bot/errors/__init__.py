@@ -15,6 +15,10 @@ from .service_errors import (
 )
 from .signal_halt_error import SignalHaltError
 from .storage_errors import (
+    CurrencyAlreadyExistsError,
+    CurrencyCreationError,
+    CurrencyQueryError,
+    CurrencyStorageError,
     MemberAlreadyExistsError,
     MemberCreationError,
     MemberQueryError,
@@ -38,4 +42,8 @@ __all__ = [
     "BotMessageInvalidTransactionError",
     "StatsServiceError",
     "InvalidRoleError",
+    "CurrencyStorageError",
+    "CurrencyAlreadyExistsError",
+    "CurrencyCreationError",
+    "CurrencyQueryError",
 ]

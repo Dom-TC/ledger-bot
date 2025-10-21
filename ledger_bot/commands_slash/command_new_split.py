@@ -28,6 +28,7 @@ log = logging.getLogger(__name__)
         "buyer_4",
         "buyer_5",
         "buyer_6",
+        "optional: currency_code, default: GBP",
     ],
     description="Creates a new six bottle split.",
 )
@@ -39,6 +40,7 @@ log = logging.getLogger(__name__)
         "buyer_1",
         "buyer_2",
         "buyer_3",
+        "optional: currency_code, default: GBP",
     ],
     description="Creates a new three bottle split.",
 )
@@ -51,6 +53,7 @@ log = logging.getLogger(__name__)
         "...",
         "buyer_11",
         "buyer_12",
+        "optional: currency_code, default: GBP",
     ],
     description="Creates a new twelve bottle split.",
 )
@@ -60,6 +63,7 @@ async def command_new_split(
     wine_name: str,
     buyers: List[discord.Member],
     price: float,
+    currency_code: str = "GBP",
 ) -> None:
     """Add transaction to Airtable."""
     log.debug(f"Processing command {interaction.command}")
@@ -136,8 +140,14 @@ async def command_new_split(
             seller_record = await client.service.member.get_or_add_member(
                 interaction.user
             )
+
             log.info(f"Getting / adding buyer: {buyer}")
             buyer_record = await client.service.member.get_or_add_member(buyer)
+
+            log.info(f"Getting / adding currency: {currency_code}")
+            currency_record = await client.service.currency.get_or_add_currency(
+                currency=currency_code, session=session
+            )
 
             # Build Transaction object from provided data
             transaction = Transaction(
@@ -152,6 +162,7 @@ async def command_new_split(
                 seller_paid=False,
                 cancelled=False,
                 creation_date=datetime.datetime.now(datetime.timezone.utc),
+                currency_code=currency_record,
             )
 
             # Format price to 2dp

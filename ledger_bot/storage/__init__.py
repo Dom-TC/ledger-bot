@@ -2,6 +2,7 @@
 
 from . import (
     bot_message_storage,
+    currency_storage,
     member_storage,
     reaction_role_storage,
     reminder_storage,
@@ -15,3 +16,4 @@ MemberStorage = member_storage.MemberStorage
 ReminderStorage = reminder_storage.ReminderStorage
 TransactionStorage = transaction_storage.TransactionStorage
 ReactionRoleStorage = reaction_role_storage.ReactionRoleStorage
+CurrencyStorage = currency_storage.CurrencyStorage

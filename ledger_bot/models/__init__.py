@@ -2,6 +2,7 @@
 
 from . import (
     bot_message,
+    currency,
     event,
     event_member,
     event_wine,
@@ -31,3 +32,5 @@ ServerStats = stats.ServerStats
 TransactionStats = stats.TransactionStats
 
 MemberTransactionSummary = member_transaction_summary.MemberTransactionSummary
+
+Currency = currency.Currency

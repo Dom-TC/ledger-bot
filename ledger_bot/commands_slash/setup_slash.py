@@ -65,12 +65,14 @@ def setup_slash(  # noqa C901
         wine_name="The wine you're selling.",
         buyer="The name of the user you're selling to.",
         price="The price of the wine",
+        currency_code="The currency to be used, default: GBP",
     )
     async def new_sale(
         interaction: discord.Interaction[Any],
         wine_name: str,
         buyer: discord.Member,
         price: float,
+        currency_code: str = "GBP",
     ) -> None:
         await command_new_sale(
             client=client,
@@ -78,6 +80,7 @@ def setup_slash(  # noqa C901
             wine_name=wine_name,
             buyer=buyer,
             price=price,
+            currency_code=currency_code,
         )
 
     @client.tree.command(
@@ -94,6 +97,7 @@ def setup_slash(  # noqa C901
         buyer_4="The name of the the fourth person you're selling to.",
         buyer_5="The name of the the fifth person you're selling to.",
         buyer_6="The name of the the sixth person you're selling to.",
+        currency_code="The currency to be used, default: GBP",
     )
     async def new_split(
         interaction: discord.Interaction[Any],
@@ -105,6 +109,7 @@ def setup_slash(  # noqa C901
         buyer_4: discord.Member,
         buyer_5: discord.Member,
         buyer_6: discord.Member,
+        currency_code: str = "GBP",
     ) -> None:
         log.info(f"Recognised command: /new_split from {interaction.user.name}")
         buyers = [buyer_1, buyer_2, buyer_3, buyer_4, buyer_5, buyer_6]
@@ -114,6 +119,7 @@ def setup_slash(  # noqa C901
             wine_name=wine_name,
             buyers=buyers,
             price=price,
+            currency_code=currency_code,
         )
 
     @client.tree.command(
@@ -127,6 +133,7 @@ def setup_slash(  # noqa C901
         buyer_1="The name of the the first person you're selling to.",
         buyer_2="The name of the the second person you're selling to.",
         buyer_3="The name of the the third person you're selling to.",
+        currency_code="The currency to be used, default: GBP",
     )
     async def new_split_3(
         interaction: discord.Interaction[Any],
@@ -135,6 +142,7 @@ def setup_slash(  # noqa C901
         buyer_1: discord.Member,
         buyer_2: discord.Member,
         buyer_3: discord.Member,
+        currency_code: str = "GBP",
     ) -> None:
         log.info(f"Recognised command: /new_split_3 from {interaction.user.name}")
         buyers = [buyer_1, buyer_2, buyer_3]
@@ -144,6 +152,7 @@ def setup_slash(  # noqa C901
             wine_name=wine_name,
             buyers=buyers,
             price=price,
+            currency_code=currency_code,
         )
 
     @client.tree.command(
@@ -166,6 +175,7 @@ def setup_slash(  # noqa C901
         buyer_10="The name of the the tenth person you're selling to.",
         buyer_11="The name of the the eleventh person you're selling to.",
         buyer_12="The name of the the twelfth person you're selling to.",
+        currency_code="The currency to be used, default: GBP",
     )
     async def new_split_12(
         interaction: discord.Interaction[Any],
@@ -183,6 +193,7 @@ def setup_slash(  # noqa C901
         buyer_10: discord.Member,
         buyer_11: discord.Member,
         buyer_12: discord.Member,
+        currency_code: str = "GBP",
     ) -> None:
         log.info(f"Recognised command: /new_split_12 from {interaction.user.name}")
         buyers = [
@@ -205,6 +216,7 @@ def setup_slash(  # noqa C901
             wine_name=wine_name,
             buyers=buyers,
             price=price,
+            currency_code=currency_code,
         )
 
     @client.tree.command(

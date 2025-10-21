@@ -109,6 +109,7 @@ async def _build_transaction_lists(
         transaction_lists[section][sub_section].append(
             {
                 "wine_name": transaction.wine,
+                "symbol": transaction.currency.symbol,
                 "price": "{:.2f}".format(transaction.price),
                 "other_party": other_party,
                 "last_message_link": last_message_link,
@@ -170,7 +171,7 @@ async def generate_list_message(
                 )
 
                 for item in transaction_lists["buying"][category]:
-                    purchases_content += f"- \"{item['wine_name']}\" from <@{item['other_party']}> for £{item['price']} {item['last_message_link']}\n"
+                    purchases_content += f"- \"{item['wine_name']}\" from <@{item['other_party']}> for {item['symbol']}{item['price']} {item['last_message_link']}\n"
                     purchase_count += 1
 
         for category in transaction_lists["selling"]:
@@ -186,7 +187,7 @@ async def generate_list_message(
                 )
 
                 for item in transaction_lists["selling"][category]:
-                    sales_content += f"- \"{item['wine_name']}\" to <@{item['other_party']}> for £{item['price']} {item['last_message_link']}\n"
+                    sales_content += f"- \"{item['wine_name']}\" to <@{item['other_party']}> for {item['symbol']}{item['price']} {item['last_message_link']}\n"
                     sale_count += 1
 
         intro = ""

@@ -18,6 +18,7 @@ from .base import Base
 
 if TYPE_CHECKING:
     from .bot_message import BotMessage
+    from .currency import Currency
     from .member import Member
     from .reminder import Reminder
 
@@ -53,6 +54,9 @@ class Transaction(Base):
     delivered_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     cancelled_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     bot_id: Mapped[str] = mapped_column(String)
+    currency_code: Mapped[str] = mapped_column(
+        String, ForeignKey("currencies.code"), default="GBP"
+    )
 
     # Relationships
     seller: Mapped["Member"] = relationship(
@@ -73,3 +77,20 @@ class Transaction(Base):
         foreign_keys="Reminder.transaction_id",
         cascade="all, delete-orphan",
     )
+    currency: Mapped["Currency"] = relationship(
+        "Currency", foreign_keys=[currency_code], lazy="joined"
+    )
+
+    @property
+    def gbp_price(self) -> float:
+        """Return the price converted into GBP."""
+        if self.currency_code == "GBP":
+            price = self.price
+
+        else:
+            if self.currency.rate:
+                price = self.price * self.currency.rate
+            else:
+                price = self.price
+
+        return price
