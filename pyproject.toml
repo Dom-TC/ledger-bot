@@ -1,11 +1,16 @@
-[tool.poetry]
+[project]
 name = "ledger-bot"
-version = "0.1.0"
 description = "A Discord bot for tracking sales"
-authors = ["Dom Chester <dom.chester@me.com>"]
-license = "MIT"
+authors = [
+  {name = "Dom Chester", email = "dom.chester@me.com"}
+]
 readme = "README.md"
+license = "MIT"
+dynamic = ["version", "dependencies", "requires-python"]
+
+[tool.poetry]
 packages = [{include = "ledger_bot"}]
+version = "0.1.0"
 
 [tool.poetry.dependencies]
 python = "^3.11"
