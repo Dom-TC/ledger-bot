@@ -23,39 +23,13 @@ log = logging.getLogger(__name__)
         "wine_name",
         "price",
         "buyer_1",
-        "buyer_2",
-        "buyer_3",
-        "buyer_4",
-        "buyer_5",
-        "buyer_6",
-        "optional: currency_code, default: GBP",
-    ],
-    description="Creates a new six bottle split.",
-)
-@register_help_command(
-    command="new_split_3",
-    args=[
-        "wine_name",
-        "price",
-        "buyer_1",
-        "buyer_2",
-        "buyer_3",
-        "optional: currency_code, default: GBP",
-    ],
-    description="Creates a new three bottle split.",
-)
-@register_help_command(
-    command="new_split_12",
-    args=[
-        "wine_name",
-        "price",
-        "buyer_1",
+        "optional: buyer_2",
         "...",
-        "buyer_11",
-        "buyer_12",
+        "optional: buyer_11",
+        "optional: buyer_12",
         "optional: currency_code, default: GBP",
     ],
-    description="Creates a new twelve bottle split.",
+    description="Creates a new split of up to 12 bottles.",
 )
 async def command_new_split(
     client: "LedgerBot",
@@ -162,7 +136,7 @@ async def command_new_split(
                 seller_paid=False,
                 cancelled=False,
                 creation_date=datetime.datetime.now(datetime.timezone.utc),
-                currency_code=currency_record,
+                currency_code=currency_record.code,
             )
 
             # Format price to 2dp

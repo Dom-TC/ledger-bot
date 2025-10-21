@@ -1,6 +1,7 @@
 """Our base SQLAlchemy class."""
 
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, inspect
+from sqlalchemy.exc import NoInspectionAvailable
 from sqlalchemy.orm import DeclarativeBase
 
 convention = {
@@ -17,7 +18,13 @@ class Base(DeclarativeBase):
     pass
 
     def __repr__(self):
-        fields = ", ".join(
-            f"{c.name}={getattr(self, c.name)!r}" for c in self.__table__.columns
-        )
-        return f"<{self.__class__.__name__}({fields})>"
+        try:
+            state = inspect(self)
+        except NoInspectionAvailable:
+            return f"<{self.__class__.__name__}(uninspectable)>"
+
+        attrs = []
+        for c in state.mapper.column_attrs:
+            value = state.dict.get(c.key, "<deferred>")
+            attrs.append(f"{c.key}={value!r}")
+        return f"<{self.__class__.__name__}({', '.join(attrs)})>"

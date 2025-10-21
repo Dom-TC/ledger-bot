@@ -93,8 +93,6 @@ class CurrencyService(ServiceHelpers):
                 datetime.now(timezone.utc) - self.config.currency_rate_update_delta
             )
 
-            log.debug(f"last_updated: {last_updated}")
-            log.debug(f"renewal_cutoff: {renewal_cutoff}")
             if last_updated < renewal_cutoff or currency_record.rate is None:
                 currency_record = await self.update_rate(currency=currency_record)
 
