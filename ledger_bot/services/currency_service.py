@@ -2,11 +2,10 @@
 
 import logging
 from datetime import datetime, timezone
-from decimal import Decimal
 from typing import List
 
 import requests
-from currency_symbols import CurrencySymbols
+from currency_symbols import CurrencySymbols  # type: ignore
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ledger_bot.core import Config
