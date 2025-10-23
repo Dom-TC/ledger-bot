@@ -24,6 +24,9 @@ jobs:
           poetry lock
           poetry install --with dev
 
+      - name: Run pytest
+        run: poetry run pytest tests/
+
       - name: Run flake8
         run: poetry run flake8 ledger_bot
 

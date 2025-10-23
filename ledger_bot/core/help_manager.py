@@ -6,8 +6,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List
 
-from ledger_bot.utils import debug
-
 from .config import Config
 
 log = logging.getLogger(__name__)
