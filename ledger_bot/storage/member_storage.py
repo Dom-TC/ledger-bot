@@ -145,9 +145,9 @@ class MemberStorage(MemberStorageABC):
         row = result.one()
 
         return MemberTransactionSummary(
-            sales_count=row.sales,
-            purchases_count=row.purchases,
-            completed_count=row.complete,
-            cancelled_count=row.cancelled,
-            open_count=row.open,
+            sales_count=int(row.sales or 0),
+            purchases_count=int(row.purchases or 0),
+            completed_count=int(row.complete or 0),
+            cancelled_count=int(row.cancelled or 0),
+            open_count=int(row.open or 0),
         )
