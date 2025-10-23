@@ -225,3 +225,4 @@ REACTIONROLE
 2. Consolidate dm and slash commands?
 3. Implement events system
 4. Add schedule to automatically delete events channels. Post one month after event date giving two weeks notice. Let user react or comment to stop. If no response, delete in a further two weeks
+5. Split command: option to create a split channel and automatically add members
