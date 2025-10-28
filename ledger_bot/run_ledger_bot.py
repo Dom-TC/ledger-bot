@@ -5,35 +5,50 @@ Ledger_bot is a Discord bot that allows users to track sales.
 """
 
 import asyncio
-import json
 import logging
-import logging.config
-import os
 from asyncio.events import AbstractEventLoop
+from contextlib import suppress
+from datetime import timezone, tzinfo
 from functools import partial
 from signal import SIGINT, SIGTERM, Signals
 from sys import platform
-from typing import Any, Dict
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from .config import parse
+from .commands_slash import setup_slash
+from .core import Config
+from .database import setup_database
 from .errors import SignalHaltError
 from .LedgerBot import LedgerBot
 from .reminder_manager import ReminderManager
-from .slash_commands import setup_slash
-from .storage import AirtableStorage, ReactionRolesStorage
-
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-from datetime import timezone, tzinfo
+from .services import (
+    BotMessageService,
+    CurrencyService,
+    MemberService,
+    ReactionRoleService,
+    ReminderService,
+    Service,
+    StatsService,
+    TransactionService,
+)
+from .storage import (
+    BotMessageStorage,
+    CurrencyStorage,
+    MemberStorage,
+    ReactionRoleStorage,
+    ReminderStorage,
+    Storage,
+    TransactionStorage,
+)
 
 log = logging.getLogger(__name__)
 
 
-async def _run_bot(client: LedgerBot, config: Dict[str, Any]) -> None:
+async def _run_bot(client: LedgerBot, config: Config) -> None:
     """Run ledger-bot."""
     async with client:
-        await client.start(config["authentication"]["discord"])
+        await client.start(config.authentication.discord)
 
 
 def _stop_bot(signal_enum: Signals, loop: AbstractEventLoop) -> None:
@@ -46,29 +61,46 @@ def _stop_bot(signal_enum: Signals, loop: AbstractEventLoop) -> None:
 def start_bot() -> None:
     """Start ledger-bot."""
     # Get configs
-    try:
-        config_path = os.getenv("BOT_CONFIG", "config.json")
-        log.debug(f"Config path: {config_path}")
-        config_to_parse = {}
-        if os.path.isfile(config_path):
-            with open(config_path) as config_file:
-                config_to_parse = json.load(config_file)
-        config = parse(config_to_parse)
-    except (OSError, ValueError) as err:
-        log.error(f"Config file invalid: {err}")
-        exit(1)
+    config = Config.load()
+
+    # Setup databse
+    db_session_factory = setup_database(config=config)
 
     # Create storage
-    transaction_storage = AirtableStorage(
-        config["authentication"]["airtable_base"],
-        config["authentication"]["airtable_key"],
-        config["id"],
+    log.info("Setting up storage")
+    storage = Storage(
+        member=MemberStorage(),
+        transaction=TransactionStorage(),
+        bot_message=BotMessageStorage(),
+        reminder=ReminderStorage(),
+        reaction_role=ReactionRoleStorage(),
+        currency=CurrencyStorage(),
     )
 
-    reaction_roles_storage = ReactionRolesStorage(
-        config["authentication"]["airtable_base"],
-        config["authentication"]["airtable_key"],
-        config["id"],
+    # Create services
+    log.info("Setting up services")
+    service = Service(
+        member=MemberService(
+            storage.member, config, session_factory=db_session_factory
+        ),
+        transaction=TransactionService(
+            storage.transaction, config, session_factory=db_session_factory
+        ),
+        bot_message=BotMessageService(
+            storage.bot_message, config, session_factory=db_session_factory
+        ),
+        reminder=ReminderService(
+            storage.reminder, config, session_factory=db_session_factory
+        ),
+        reaction_role=ReactionRoleService(
+            storage.reaction_role, config, session_factory=db_session_factory
+        ),
+        stats=StatsService(
+            storage.transaction, config, session_factory=db_session_factory
+        ),
+        currency=CurrencyService(
+            storage.currency, config, session_factory=db_session_factory
+        ),
     )
 
     # Create scheduler
@@ -81,16 +113,16 @@ def start_bot() -> None:
 
     # Create reminder_manager
     reminder_manager = ReminderManager(
-        config=config, scheduler=scheduler, storage=transaction_storage
+        config=config, scheduler=scheduler, service=service
     )
 
     # Create client
     client = LedgerBot(
         config=config,
-        transaction_storage=transaction_storage,
-        reaction_roles_storage=reaction_roles_storage,
+        service=service,
         scheduler=scheduler,
         reminders=reminder_manager,
+        session_factory=db_session_factory,
     )
 
     # Pass client back into reminder manager.
@@ -99,9 +131,6 @@ def start_bot() -> None:
     # Build slash commands
     setup_slash(
         client=client,
-        config=config,
-        transaction_storage=transaction_storage,
-        reaction_roles_storage=reaction_roles_storage,
     )
 
     # Run bot
@@ -115,9 +144,5 @@ def start_bot() -> None:
         if platform != "win32" and platform != "cygwin":
             loop.add_signal_handler(signal_enum, exit_func)
 
-    try:
+    with suppress(SignalHaltError):
         loop.run_until_complete(_run_bot(client=client, config=config))
-    except SignalHaltError:
-        pass
-    else:
-        raise

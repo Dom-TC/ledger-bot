@@ -1,81 +1,55 @@
-"""The data model for a record in the `bot_messages` table."""
+"""The data model for a record in the `reminderrs` table."""
 
+import enum
 import logging
-from dataclasses import dataclass
-from datetime import datetime
-from typing import Any, Dict, List
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Optional
 
-from .member import Member
-from .transaction import Transaction
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from .base import Base
+
+if TYPE_CHECKING:
+    from .member import Member
+    from .transaction import Transaction
 
 log = logging.getLogger(__name__)
 
 
-@dataclass
-class Reminder:
-    date: datetime
-    member_id: str | Member
-    transaction_id: str | Transaction
-    record_id: str | None = None
-    row_id: str | None = None
-    status: str | None = None
-    bot_id: str | None = None
+class ReminderStatus(enum.Enum):
+    APPROVED = "approved"
+    CANCELLED = "cancelled"
+    DELIVERED = "delivered"
+    PAID = "paid"
+    COMPLETED = "completed"
 
-    @classmethod
-    def from_airtable(cls, data: Dict[str, Any]) -> "Reminder":
-        fields = data["fields"]
-        return cls(
-            record_id=data["id"],
-            row_id=fields.get("row_id"),
-            date=datetime.strptime(fields.get("date"), "%Y-%m-%dT%H:%M:%S.%f%z"),
-            member_id=fields.get("member_id")[0],
-            transaction_id=fields.get("transaction_id")[0],
-            status=fields.get("status"),
-            bot_id=fields.get("bot_id"),
-        )
 
-    def to_airtable(self, fields: List[str] | None = None) -> Dict[str, Any]:
-        fields = (
-            fields
-            if fields
-            else [
-                "date",
-                "member_id",
-                "transaction_id",
-                "status",
-                "row_id",
-                "bot_id",
-            ]
-        )
+class Reminder(Base):
+    __tablename__ = "reminders"
 
-        data: Dict[str, str | List[str]] = {}
-        if "date" in fields:
-            data["date"] = self.date.isoformat()
+    id: Mapped[int] = mapped_column(  # noqa: A003
+        Integer, primary_key=True, autoincrement=True
+    )
+    member_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("members.id"), nullable=False
+    )
+    transaction_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("transactions.id"), nullable=False
+    )
+    category: Mapped[Optional[ReminderStatus]] = mapped_column(
+        Enum(ReminderStatus), nullable=True
+    )
+    reminder_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    creation_date: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.now(timezone.utc)
+    )
+    bot_id: Mapped[Optional[str]] = mapped_column(String)
 
-        if "member_id" in fields:
-            data["member_id"] = [
-                str(self.member_id.record_id)
-                if isinstance(self.member_id, Member)
-                else self.member_id
-            ]
-
-        if "transaction_id" in fields:
-            data["transaction_id"] = [
-                str(self.transaction_id.record_id)
-                if isinstance(self.transaction_id, Transaction)
-                else self.transaction_id
-            ]
-
-        if "row_id" in fields and self.row_id is not None:
-            data["row_id"] = self.row_id
-
-        if "status" in fields and self.status is not None:
-            data["status"] = self.status
-
-        if "bot_id" in fields and self.bot_id is not None:
-            data["bot_id"] = self.bot_id
-
-        return {
-            "id": self.record_id,
-            "fields": data,
-        }
+    # Relationships
+    transaction: Mapped["Transaction"] = relationship(
+        "Transaction", foreign_keys=[transaction_id], back_populates="reminders"
+    )
+    member: Mapped["Member"] = relationship(
+        "Member", foreign_keys=[member_id], back_populates="reminders"
+    )

@@ -5,12 +5,14 @@ from typing import Any, Dict
 
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from .clients import ExtendedClient, ReactionRolesClient, TransactionsClient
-from .process_dm import is_dm, process_dm
+from .commands_dm import is_dm, process_dm
+from .core import Config
 from .process_message import process_message
 from .reminder_manager import ReminderManager
-from .storage import AirtableStorage, ReactionRolesStorage
+from .services import Service
 
 log = logging.getLogger(__name__)
 
@@ -18,23 +20,23 @@ log = logging.getLogger(__name__)
 class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
     def __init__(
         self,
-        config: Dict[str, Any],
-        transaction_storage: AirtableStorage,
-        reaction_roles_storage: ReactionRolesStorage,
+        config: Config,
+        service: Service,
         scheduler: AsyncIOScheduler,
         reminders: ReminderManager,
+        session_factory: async_sessionmaker[AsyncSession],
     ) -> None:
         self.config = config
-        self.transaction_storage = transaction_storage
-        self.reaction_roles_storage = reaction_roles_storage
+        self.service = service
         self.scheduler = scheduler
         self.reminders = reminders
+        self.session_factory = session_factory
 
         # We need a guild object for various uses but can't get the full guild object until the bot is connected and on_ready is called, so use this as a tempory object.
-        self.guild = discord.Object(id=self.config["guild"])
+        self.guild = discord.Object(id=self.config.guild)
 
-        log.info(f"Set guild: {self.config['guild']}")
-        log.info(f"Watching channels: {self.config['channels']}")
+        log.info(f"Set guild: {self.config.guild}")
+        log.info(f"Watching channels: {self.config.channels}")
 
         intents = discord.Intents(
             messages=True,
@@ -48,23 +50,26 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
             intents=intents,
             config=self.config,
             scheduler=self.scheduler,
-            reaction_roles_storage=self.reaction_roles_storage,
-            transaction_storage=self.transaction_storage,
+            service=self.service,
             reminders=self.reminders,
+            session_factory=self.session_factory,
         )
 
     async def on_ready(self) -> None:
         log.info(f"We have logged in as {self.user}")
 
+        self.version = await self.get_version_number()
+        log.info(f"Current version number: {self.version}")
+
         await self.change_presence(
             activity=discord.Activity(
                 type=discord.ActivityType.watching,
-                name=self.config["watching_status"],
+                name=self.config.watching_status,
             )
         )
 
         # Properly set the guild object
-        self.guild = self.get_guild(self.config["guild"])
+        self.guild = self.get_guild(self.config.guild)
 
         log.info("Building slash commands")
         await self.tree.sync(guild=self.guild)
@@ -73,6 +78,11 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
 
         if not self.scheduler.running:
             log.warning("The scheduler is not running")
+
+        # Ensure we have a few expected currencies in the database
+        await self.service.currency.get_or_add_currency("GBP")
+        await self.service.currency.get_or_add_currency("USD")
+        await self.service.currency.get_or_add_currency("EUR")
 
     async def on_message(self, message: discord.Message) -> None:
         # Process DMs
@@ -86,13 +96,10 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
 
         channel_name = message.channel.name
 
-        if (
-            self.config["channels"].get("include")
-            and channel_name not in self.config["channels"]["include"]
-        ):
+        if channel_name not in self.config.channels.include:
             return
         else:
-            if channel_name in self.config["channels"].get("exclude", []):
+            if channel_name in self.config.channels.exclude:
                 return
 
         # Process messages
@@ -130,7 +137,7 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
         if handled_role_reaction:
             return
 
-        log.info(f"Failed to match any commands on {payload.emoji}")
+        log.debug(f"Failed to match any commands on {payload.emoji}")
 
     async def on_raw_reaction_remove(
         self, payload: discord.RawReactionActionEvent

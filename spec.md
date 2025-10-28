@@ -85,3 +85,144 @@ Price: <price>
   - If message ID and reaction are valid, assign the user the appropriate role
 - Add Role
   - Admin only command
+
+## Schema
+
+MEMBERS:
+
+- id iNT AUTOINCREMENT
+- discord_id INT UNIQUE
+- username TEXT
+- nickname TEXT
+
+EVENTS
+
+- id INT AUTOINCREMENT
+- event_name TEXT
+- event_description TEXT
+- event_date TEXT (ISO 8601)
+- event_location TEXT
+- event_host FK members.id
+- max_guests INT
+- deposit_value INT
+- creation_date TEXT (ISO 8601)
+- channel_id INT
+- bot_id TEXT
+
+EVENT_MEMBERS
+
+- id INT AUTOINCREMENT
+- event_id FK events.id
+- member_id FK members.id
+- guests INT
+- has_paid INT (bool)
+- status TEXT (enum - host, confirmed, waitlist, cancelled)
+- joined_date TEXT (ISO 8601)
+- paid_date TEXT (ISO 8601)
+- bot_ID TEXT
+
+EVENT_WINES
+
+- id INT AUTOINCREMENT
+- event_id FK events.id
+- member_id FK members.id
+- wine TEXT
+- category TEXT (enum - sparkling, white, red, sweet, other)
+- date_added TEXT (ISO 8601)
+- bot_ID TEXT
+
+## Services
+
+MEMBER
+
+- get_or_add_member - Either get an existing member record or add the member to the database and return the record
+- find_member_by_discord_id - Find a member by their discord id
+- list_all_members - List all members
+- delete_member - Delete the specified member
+- set_dietry_requirement - Set the diatry requirement data
+
+TRANSACTION
+
+- get_transaction - Get a transaction by it's record id
+- get_users_transaction - Get all transactions for a specific user
+- get_completed_transaction
+- save_transaction - If id is none, add new transaction, else update existing one
+- list_all_transactions - List all transactions
+- delete_transaction - Delete the specified transaction
+- approve_transaction
+- cancel_transaction
+- mark_transaction_delivered
+- mark_transaction_paid
+- refresh_transaction
+
+BOT_MESSAGE
+
+- add_bot_message
+- find_bot_message_by_message_id
+- delete_bot_message
+- refresh_bot_message - Remove old bot messages and store new one
+
+REMINDERS
+
+- get_reminder
+- save_reminder - If id is none, add new reminder, else update existing one
+- list_all_reminders
+- delete_reminder
+
+REACTION_ROLE
+
+- get_reaction_role_by_role_id
+- get_reaction_role_by_reaction
+- add_reaction_role
+- delete_reaction_role
+- list_watched_message_ids
+
+## Storage
+
+MEMBER
+
+- get_membe
+- add_membe
+- list_members
+- delete_member
+- update_member
+
+TRANSACTION
+
+- get_transaction
+- add_transaction
+- list_transactions
+- delete_transaction
+- update_transaction
+
+BOT_MESSAGE
+
+- get_bot_message
+- add_bot_message
+- list_bot_messages
+- delete_bot_message
+
+REMINDERS
+
+- get_reminder
+- add_reminder
+- list_reminders
+- delete_reminder
+- update_reminder
+
+REACTIONROLE
+
+- get_reaction_role
+- add_reaction_role
+- list_reeaction_roles
+- delete_reaction_role
+- update_reaction_role
+- list_watched_message_ids
+
+## TODO
+
+1. Move to single `MessageGenerators` class? At least switch to just passing in Transaction object. Ensure all messages are split by length. Include /lookup output
+2. Consolidate dm and slash commands?
+3. Implement events system
+4. Add schedule to automatically delete events channels. Post one month after event date giving two weeks notice. Let user react or comment to stop. If no response, delete in a further two weeks
+5. Split command: option to create a split channel and automatically add members
