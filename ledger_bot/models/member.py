@@ -5,19 +5,21 @@ import logging
 from typing import TYPE_CHECKING, List, Optional
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import DateTime, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import DateTime, Integer, String, and_
+from sqlalchemy.orm import Mapped, foreign, mapped_column, relationship
 
 from ledger_bot.utils import resolve_timezone
 
 from .base import Base
+from .event import Event
+from .event_member import EventMember
+from .event_wine import EventWine
 
 if TYPE_CHECKING:
-    from .event import Event
-    from .event_member import EventMember
-    from .event_wine import EventWine
     from .reminder import Reminder
     from .transaction import Transaction
+
+from .event_member import MemberStatus
 
 log = logging.getLogger(__name__)
 
@@ -40,15 +42,6 @@ class Member(Base):
     bot_id: Mapped[Optional[str]] = mapped_column(String)
 
     # Relationships
-    attending_events: Mapped[List["EventMember"]] = relationship(
-        back_populates="member", cascade="all, delete-orphan"
-    )
-    wines_brought_to_events: Mapped[List["EventWine"]] = relationship(
-        back_populates="member", cascade="all, delete-orphan"
-    )
-    hosted_events: Mapped[List["Event"]] = relationship(
-        back_populates="host", foreign_keys="Event.host_id"
-    )
     selling_transactions: Mapped[List["Transaction"]] = relationship(
         "Transaction",
         back_populates="seller",
@@ -61,11 +54,34 @@ class Member(Base):
         foreign_keys="Transaction.buyer_id",
         cascade="all, delete-orphan",
     )
+
     reminders: Mapped[List["Reminder"]] = relationship(
         "Reminder",
         back_populates="member",
         foreign_keys="Reminder.member_id",
         cascade="all, delete-orphan",
+    )
+
+    attending_events: Mapped[List["EventMember"]] = relationship(
+        back_populates="member", cascade="all, delete-orphan"
+    )
+    hosted_events: Mapped[List["Event"]] = relationship(
+        "Event",
+        secondary="event_members",
+        primaryjoin=lambda: and_(
+            Member.id == foreign(EventMember.member_id),
+            foreign(EventMember.status) == MemberStatus.HOST,
+        ),
+        secondaryjoin=lambda: foreign(EventMember.event_id) == foreign(Event.id),
+        viewonly=True,
+    )
+    wines_brought_to_events: Mapped[List["EventWine"]] = relationship(
+        "EventWine",
+        secondary="event_members",
+        primaryjoin=lambda: Member.id == foreign(EventMember.member_id),
+        secondaryjoin=lambda: foreign(EventMember.id)
+        == foreign(EventWine.event_member_id),
+        viewonly=True,
     )
 
     @property

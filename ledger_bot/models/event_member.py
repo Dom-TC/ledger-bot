@@ -2,7 +2,7 @@
 
 import enum
 from datetime import datetime, timezone
-from typing import Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import (
     DateTime,
@@ -15,8 +15,11 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
-from .event import Event
-from .member import Member
+
+if TYPE_CHECKING:
+    from .event import Event
+    from .event_wine import EventWine
+    from .member import Member
 
 
 class MemberStatus(enum.Enum):
@@ -49,5 +52,12 @@ class EventMember(Base):
     bot_id: Mapped[Optional[str]] = mapped_column(String)
 
     # Relationships
-    event: Mapped["Event"] = relationship("Event", back_populates="members")
-    member: Mapped["Member"] = relationship("Member", back_populates="attending_events")
+    event: Mapped["Event"] = relationship(
+        "Event", back_populates="members", lazy="joined"
+    )
+    member: Mapped["Member"] = relationship(
+        "Member", back_populates="attending_events", lazy="joined"
+    )
+    wines: Mapped[List["EventWine"]] = relationship(
+        "EventWine", back_populates="event_member", cascade="all, delete-orphan"
+    )

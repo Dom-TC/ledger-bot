@@ -70,6 +70,7 @@ mypy = "mypy ledger_bot"
 db_revision = "alembic revision --autogenerate"
 db_upgrade = "alembic upgrade head"
 migrate_airtable = "python scripts/migrate_from_airtable_csv.py"
+reset_db = "rm data/ledger_bot.sql && poetry run task db_upgrade && poetry run task migrate_airtable"
 
 [tool.isort]
 profile = "black"
