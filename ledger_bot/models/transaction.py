@@ -32,6 +32,7 @@ class Transaction(Base):
     id: Mapped[int] = mapped_column(  # noqa: A003
         Integer, primary_key=True, autoincrement=True
     )
+    display_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     wine: Mapped[str] = mapped_column(String, nullable=False)
     price: Mapped[float] = mapped_column(Float, nullable=False)
     seller_id: Mapped[int] = mapped_column(

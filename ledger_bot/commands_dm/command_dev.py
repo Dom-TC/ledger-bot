@@ -210,11 +210,11 @@ async def command_dev(
         await client.reminders.refresh_reminders()
 
     elif request.startswith("refresh_message"):
-        record_id = int(request.split(" ")[1])
+        display_id = int(request.split(" ")[1])
         channel_id = int(request.split(" ")[2]) if len(request.split(" ")) > 2 else None
-        await dm_channel.send(f"Refreshing transaction: {record_id}")
+        await dm_channel.send(f"Refreshing transaction: {display_id}")
         response = await client.refresh_transaction(
-            record_id=record_id, channel_id=channel_id
+            display_id=display_id, channel_id=channel_id
         )
         await dm_channel.send(response)
 

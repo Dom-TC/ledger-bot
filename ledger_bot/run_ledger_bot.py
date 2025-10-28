@@ -81,28 +81,25 @@ def start_bot() -> None:
     log.info("Setting up services")
     service = Service(
         member=MemberService(
-            storage.member, config.name, session_factory=db_session_factory
+            storage.member, config, session_factory=db_session_factory
         ),
         transaction=TransactionService(
-            storage.transaction, config.name, session_factory=db_session_factory
+            storage.transaction, config, session_factory=db_session_factory
         ),
         bot_message=BotMessageService(
-            storage.bot_message, config.name, session_factory=db_session_factory
+            storage.bot_message, config, session_factory=db_session_factory
         ),
         reminder=ReminderService(
-            storage.reminder, config.name, session_factory=db_session_factory
+            storage.reminder, config, session_factory=db_session_factory
         ),
         reaction_role=ReactionRoleService(
-            storage.reaction_role, config.name, session_factory=db_session_factory
+            storage.reaction_role, config, session_factory=db_session_factory
         ),
         stats=StatsService(
-            storage.transaction, config.name, session_factory=db_session_factory
+            storage.transaction, config, session_factory=db_session_factory
         ),
         currency=CurrencyService(
-            currency_storage=storage.currency,
-            config=config,
-            bot_id=config.name,
-            session_factory=db_session_factory,
+            storage.currency, config, session_factory=db_session_factory
         ),
     )
 

@@ -7,6 +7,7 @@ from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
 
+from ledger_bot.core import Config
 from ledger_bot.errors import InvalidRoleError
 from ledger_bot.models import Member, ServerStats, Stats, Transaction, TransactionStats
 from ledger_bot.storage import TransactionStorage
@@ -20,11 +21,11 @@ class StatsService(ServiceHelpers):
     def __init__(
         self,
         transaction_storage: TransactionStorage,
-        bot_id: str,
+        config: Config,
         session_factory: async_sessionmaker[AsyncSession],
     ):
         self.transaction_storage = transaction_storage
-        self.bot_id = bot_id
+        self.config = config
 
         super().__init__(session_factory)
 

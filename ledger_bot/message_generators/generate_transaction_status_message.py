@@ -128,7 +128,7 @@ async def generate_transaction_status_message(
         reminder_message = ""
 
     if transaction.id:
-        footer_message = f"-# Transaction ID: {str(transaction.id)}"
+        footer_message = f"-# Transaction ID: {str(transaction.display_id)}"
     else:
         footer_message = ""
 

@@ -9,6 +9,7 @@ from discord import Member as DiscordMember
 from discord import User as DiscordUser
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from ledger_bot.core import Config
 from ledger_bot.models import Member, MemberTransactionSummary
 from ledger_bot.storage import MemberStorage
 from ledger_bot.utils import is_valid_timezone, resolve_timezone
@@ -22,11 +23,11 @@ class MemberService(ServiceHelpers):
     def __init__(
         self,
         member_storage: MemberStorage,
-        bot_id: str,
+        config: Config,
         session_factory: async_sessionmaker[AsyncSession],
     ):
         self.member_storage = member_storage
-        self.bot_id = bot_id
+        self.config = config
 
         super().__init__(session_factory)
 
@@ -91,7 +92,7 @@ class MemberService(ServiceHelpers):
                         if type(discord_member) is DiscordMember
                         else None
                     ),
-                    bot_id=self.bot_id,
+                    bot_id=self.config.bot_id,
                 )
 
                 member_record = await self.member_storage.add_member(

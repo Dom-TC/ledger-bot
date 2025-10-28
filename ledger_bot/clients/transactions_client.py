@@ -450,23 +450,24 @@ class TransactionsClient(ExtendedClient):
         return True
 
     async def refresh_transaction(
-        self, record_id: int, channel_id: int | None
+        self, display_id: int, channel_id: int | None
     ) -> str | None:
         """Removes all existing messages for a given transaction, and creates a new message with the current status."""
-        log.info(f"Refreshing transaction: {record_id}")
+        log.info(f"Refreshing transaction: {display_id}")
 
         # Get transaction record
-        transaction = await self.service.transaction.get_transaction(
-            record_id=record_id
+        transaction = await self.service.transaction.get_transaction_by_display_id(
+            display_id=display_id
         )
 
         if transaction is None:
-            log.info(f"No transaction found with row_id {record_id}")
+            log.info(f"No transaction found with display_id {display_id}")
             return "No transaction found."
 
         log.debug(f"Transaction: {transaction}")
 
         # Get all existing bot_messages
+        # bot_messages = await self.service.bot_message.get_bot_messages_by_transaction_id(transaction_id=transaction.id)
         bot_messages = transaction.bot_messages
 
         # We overwrite this with the channel from the bot_message, if it's provided

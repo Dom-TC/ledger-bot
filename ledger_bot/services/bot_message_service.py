@@ -8,6 +8,7 @@ from discord import Message
 from discord.interactions import InteractionMessage
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from ledger_bot.core import Config
 from ledger_bot.errors import BotMessageInvalidTransactionError
 from ledger_bot.models import BotMessage, Transaction
 from ledger_bot.storage import BotMessageStorage
@@ -21,11 +22,11 @@ class BotMessageService(ServiceHelpers):
     def __init__(
         self,
         bot_message_storage: BotMessageStorage,
-        bot_id: str,
+        config: Config,
         session_factory: async_sessionmaker[AsyncSession],
     ):
         self.bot_message_storage = bot_message_storage
-        self.bot_id = bot_id
+        self.config = config
 
         super().__init__(session_factory)
 
@@ -94,7 +95,7 @@ class BotMessageService(ServiceHelpers):
             guild_id=message.guild.id if message.guild else "",
             transaction_id=transaction.id,
             creation_date=datetime.now(timezone.utc),
-            bot_id=self.bot_id,
+            bot_id=self.config.bot_id,
         )
 
         log.debug(f"Storing bot_message: {bot_message}")

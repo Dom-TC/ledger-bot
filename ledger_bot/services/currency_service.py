@@ -21,13 +21,11 @@ class CurrencyService(ServiceHelpers):
     def __init__(
         self,
         currency_storage: CurrencyStorage,
-        bot_id: str,
-        session_factory: async_sessionmaker[AsyncSession],
         config: Config,
+        session_factory: async_sessionmaker[AsyncSession],
     ):
         self.currency_storage = currency_storage
         self.config = config
-        self.bot_id = bot_id
 
         super().__init__(session_factory)
 
@@ -75,7 +73,7 @@ class CurrencyService(ServiceHelpers):
                     code=currency_code,
                     symbol=CurrencySymbols.get_symbol(currency_code),
                     last_updated=datetime.now(timezone.utc),
-                    bot_id=self.bot_id,
+                    bot_id=self.config.bot_id,
                 )
 
                 currency_record = await self.currency_storage.add_currency(

@@ -95,6 +95,7 @@ class Config:
     )
     base_currency: str = "GBP"
     currency_rate_update_delta: timedelta = timedelta(days=1)
+    id_offset: int = 0
 
     @classmethod
     def load(cls, path: str | None = None) -> "Config":

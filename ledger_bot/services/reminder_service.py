@@ -5,6 +5,7 @@ from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from ledger_bot.core import Config
 from ledger_bot.models import Reminder
 from ledger_bot.storage import ReminderStorage
 
@@ -17,11 +18,11 @@ class ReminderService(ServiceHelpers):
     def __init__(
         self,
         reminder_storagee: ReminderStorage,
-        bot_id: str,
+        config: Config,
         session_factory: async_sessionmaker[AsyncSession],
     ):
         self.reminder_storagee = reminder_storagee
-        self.bot_id = bot_id
+        self.config = config
 
         super().__init__(session_factory)
 
@@ -78,7 +79,7 @@ class ReminderService(ServiceHelpers):
             log.debug(f"reminder: {reminder}")
 
             log.info(f"Saving reminder for member with id{reminder.member_id}")
-            reminder.bot_id = self.bot_id
+            reminder.bot_id = self.config.bot_id
 
             if reminder.id:
                 log.info(f"Reminder already has id {reminder.id}. Updating...")

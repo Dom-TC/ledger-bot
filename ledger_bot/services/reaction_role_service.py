@@ -8,6 +8,7 @@ from cachetools import LRUCache
 from sqlalchemy import and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from ledger_bot.core import Config
 from ledger_bot.models import ReactionRole
 from ledger_bot.storage import ReactionRoleStorage
 
@@ -23,12 +24,12 @@ class ReactionRoleService(ServiceHelpers):
     def __init__(
         self,
         reaction_role_storage: ReactionRoleStorage,
-        bot_id: str,
+        config: Config,
         session_factory: async_sessionmaker[AsyncSession],
     ):
         self.reaction_role_storage = reaction_role_storage
         self.watched_message_ids: set[int] = set()
-        self.bot_id = bot_id
+        self.config = config
 
         super().__init__(session_factory)
 
@@ -159,7 +160,7 @@ class ReactionRoleService(ServiceHelpers):
         log.info(
             f"Saving reaction {reaction_role.reaction_name} for role {reaction_role.role_name}"
         )
-        reaction_role.bot_id = self.bot_id
+        reaction_role.bot_id = self.config.bot_id
 
         async with self._get_session(session) as session:
             if reaction_role.id:

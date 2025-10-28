@@ -8,6 +8,7 @@ from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
 
+from ledger_bot.core import Config
 from ledger_bot.errors import (
     TransactionApprovedError,
     TransactionCancelledError,
@@ -28,11 +29,11 @@ class TransactionService(ServiceHelpers):
     def __init__(
         self,
         transaction_storage: TransactionStorage,
-        bot_id: str,
+        config: Config,
         session_factory: async_sessionmaker[AsyncSession],
     ):
         self.transaction_storage = transaction_storage
-        self.bot_id = bot_id
+        self.config = config
 
         super().__init__(session_factory)
 
@@ -147,7 +148,7 @@ class TransactionService(ServiceHelpers):
         """
         log.debug(transaction)
         log.info(f"Saving transaction for {transaction.wine}")
-        transaction.bot_id = self.bot_id
+        transaction.bot_id = self.config.bot_id
 
         async with self._get_session(session) as session:
             if transaction.id:
@@ -166,6 +167,14 @@ class TransactionService(ServiceHelpers):
                 transaction = await self.transaction_storage.add_transaction(
                     transaction=transaction, session=session
                 )
+
+                transaction.display_id = transaction.id + self.config.id_offset
+                transaction = await self.transaction_storage.update_transaction(
+                    transaction=transaction,
+                    fields=["display_id"],
+                    session=session,
+                )
+                log.debug(f"Set display_id to {transaction.display_id}")
 
             await session.commit()
             await session.refresh(transaction)
@@ -585,3 +594,40 @@ class TransactionService(ServiceHelpers):
                 bot_message.transaction_id, session=session
             )
             return transaction
+
+    async def get_transaction_by_display_id(
+        self,
+        display_id: int,
+        session: AsyncSession | None = None,
+    ) -> Transaction | None:
+        """
+        Find the Transaction associated with a given display_id.
+
+        Parameters
+        ----------
+        display_id : int
+            The display_id of the transaction
+        session : AsyncSession | None, optional
+            An optional session, by default None
+
+        Returns
+        -------
+        Optional[Transaction]
+            The associated transaction, or None if not found
+        """
+        # Get the BotMessage
+        async with self._get_session(session) as session:
+            transaction = await self.transaction_storage.list_transactions(
+                Transaction.display_id == display_id,
+                limit=1,
+                session=session,
+                options=[
+                    selectinload(Transaction.buyer),
+                    selectinload(Transaction.seller),
+                    selectinload(Transaction.bot_messages),
+                ],
+            )
+
+            if not transaction:
+                return None
+            return transaction[0]

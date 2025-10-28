@@ -251,10 +251,7 @@ def migrate_members(csv_folder: str):
 
 
 class MigrationTransaction(Transaction):
-    def __init__(
-        self, airtable_id: int, seller_discord_id: int, buyer_discord_id: int, **kwargs
-    ):
-        self.airtable_id = airtable_id
+    def __init__(self, seller_discord_id: int, buyer_discord_id: int, **kwargs):
         self.seller_discord_id = seller_discord_id
         self.buyer_discord_id = buyer_discord_id
         super().__init__(**kwargs)
@@ -266,6 +263,7 @@ def load_transaction(csv_path: Path) -> Generator[MigrationTransaction]:
         reader = csv.DictReader(f)
         for row in reader:
             yield MigrationTransaction(
+                display_id=int(row["row_id"]),
                 seller_id=member_old_to_new_ids[int(row["seller_id"])],
                 buyer_id=member_old_to_new_ids[int(row["buyer_id"])],
                 wine=row["wine"].strip(),
@@ -304,7 +302,6 @@ def load_transaction(csv_path: Path) -> Generator[MigrationTransaction]:
                     else None
                 ),
                 bot_id=row["bot_id"].strip() or "MigrationBot",
-                airtable_id=int(row["row_id"]),
                 seller_discord_id=int(row["seller_discord_id"]),
                 buyer_discord_id=int(row["buyer_discord_id"]),
             )
@@ -344,7 +341,7 @@ def migrate_transactions(csv_folder: str):
             )
 
             if db_row:
-                transaction_old_to_new_ids[transaction.airtable_id] = db_row.id
+                transaction_old_to_new_ids[transaction.display_id] = db_row.id
 
         row_count = _i + 1
         min_sample_size = ceil(row_count * 0.3) if ceil(row_count * 0.3) > 3 else 3
@@ -358,7 +355,7 @@ def migrate_transactions(csv_folder: str):
             match: MigrationTransaction | None = (
                 session.query(MigrationTransaction)
                 .filter_by(
-                    id=transaction_old_to_new_ids[sample.airtable_id],
+                    id=transaction_old_to_new_ids[sample.display_id],
                     seller_id=sample.seller_id,
                     buyer_id=sample.buyer_id,
                     wine=sample.wine,
@@ -403,6 +400,12 @@ def migrate_transactions(csv_folder: str):
                 raise ValueError("Sample validation failed. Aborting migration.")
 
         log.info(f"Added {row_count} transactions, validated {len(samples)}")
+
+        old_id, new_id = next(reversed(transaction_old_to_new_ids.items()))
+
+        id_offset = old_id - new_id
+
+        log.info(f"id_offset should be: {id_offset}")
 
 
 # ------------------------------------
