@@ -54,6 +54,7 @@ aioresponses = "^0.7.6"
 pytest-mock = "^3.12.0"
 types-requests = "^2.32.4.20250913"
 freezegun = "^1.5.5"
+pytest-randomly = "^4.0.1"
 
 [build-system]
 requires = ["poetry-core"]
