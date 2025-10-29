@@ -3,6 +3,7 @@
 from . import (
     bot_message_service,
     currency_service,
+    event_region_service,
     member_service,
     reaction_role_service,
     reminder_service,
@@ -20,3 +21,5 @@ ReminderService = reminder_service.ReminderService
 ReactionRoleService = reaction_role_service.ReactionRoleService
 StatsService = stats_service.StatsService
 CurrencyService = currency_service.CurrencyService
+
+EventRegionService = event_region_service.EventRegionService

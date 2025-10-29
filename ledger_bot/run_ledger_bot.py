@@ -25,6 +25,7 @@ from .reminder_manager import ReminderManager
 from .services import (
     BotMessageService,
     CurrencyService,
+    EventRegionService,
     MemberService,
     ReactionRoleService,
     ReminderService,
@@ -35,6 +36,7 @@ from .services import (
 from .storage import (
     BotMessageStorage,
     CurrencyStorage,
+    EventRegionStorage,
     MemberStorage,
     ReactionRoleStorage,
     ReminderStorage,
@@ -75,6 +77,7 @@ def start_bot() -> None:
         reminder=ReminderStorage(),
         reaction_role=ReactionRoleStorage(),
         currency=CurrencyStorage(),
+        event_region=EventRegionStorage(),
     )
 
     # Create services
@@ -100,6 +103,9 @@ def start_bot() -> None:
         ),
         currency=CurrencyService(
             storage.currency, config, session_factory=db_session_factory
+        ),
+        event_region=EventRegionService(
+            storage.event_region, config, session_factory=db_session_factory
         ),
     )
 

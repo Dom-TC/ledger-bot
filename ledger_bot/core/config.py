@@ -27,9 +27,18 @@ class AuthenticationConfig:
 
 
 @dataclass
+class EventRegionConfig:
+    region_name: str = ""
+    new_event_category: int = 0
+    event_post_channel: int = 0
+
+
+@dataclass
 class ChannelsConfig:
     include: List = field(default_factory=list)
     exclude: List = field(default_factory=list)
+    event_regions: List[EventRegionConfig] = field(default_factory=list)
+    shutdown_post_channel: int | None = None
 
 
 @dataclass
@@ -67,7 +76,6 @@ class Config:
     cleanup_removes_transaction_records: bool = False
     admin_role: int = 1184878800408948847
     database_path: Path = Path("data/ledger_bot.sql")
-    shutdown_post_channel: int | None = None
     shutdown_delay: int = (
         5  # Time in minutes to wait after receiving a shutdown command
     )
@@ -164,6 +172,9 @@ class Config:
                 elif field_type is JobSchedule:
                     setattr(obj, key, JobSchedule(**value))
 
+                elif field_type is EventRegionConfig:
+                    setattr(obj, key, EventRegionConfig(**value))
+
                 else:
                     if is_dataclass(current) and isinstance(value, dict):
                         self._apply_dict(current, value)
@@ -180,10 +191,25 @@ class Config:
                             else:
                                 setattr(obj, key, bool(value))
                         elif get_origin(field_type) in (list, List):
-                            args = get_args(type(current))
+                            args = get_args(field_type)
                             if args:
                                 item_type = args[0]
-                                setattr(obj, key, [item_type(v) for v in value])
+                                if is_dataclass(item_type):
+                                    # For dataclass items, unpack dict values
+                                    setattr(
+                                        obj,
+                                        key,
+                                        [
+                                            (
+                                                item_type(**v)
+                                                if isinstance(v, dict)
+                                                else item_type(v)
+                                            )
+                                            for v in value
+                                        ],
+                                    )
+                                else:
+                                    setattr(obj, key, [item_type(v) for v in value])
                             else:
                                 setattr(obj, key, list(value))
                         else:

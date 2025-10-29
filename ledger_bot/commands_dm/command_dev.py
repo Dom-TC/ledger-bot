@@ -242,9 +242,9 @@ async def command_dev(
     if request.startswith("welcome_back"):
         log.info("Sending welcome back message")
 
-        if client.config.shutdown_post_channel is not None:
+        if client.config.channels.shutdown_post_channel is not None:
             channel = await client.get_or_fetch_channel(
-                client.config.shutdown_post_channel
+                client.config.channels.shutdown_post_channel
             )
             if channel is not None and isinstance(channel, discord.TextChannel):
                 msg = f"<@{client.user.id if client.user else None}> has been restarted.  Full service has resumed.\n"

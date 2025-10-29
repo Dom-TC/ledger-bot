@@ -26,8 +26,10 @@ async def shutdown(client: "LedgerBot", dm_channel: DMChannel) -> None:
 
     log.debug("Posting shutdown message")
 
-    if client.config.shutdown_post_channel is not None:
-        channel = await client.get_or_fetch_channel(client.config.shutdown_post_channel)
+    if client.config.channels.shutdown_post_channel is not None:
+        channel = await client.get_or_fetch_channel(
+            client.config.channels.shutdown_post_channel
+        )
     else:
         channel = None
 

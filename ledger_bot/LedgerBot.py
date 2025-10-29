@@ -88,6 +88,9 @@ class LedgerBot(TransactionsClient, ReactionRolesClient, EventClient, ExtendedCl
         await self.service.currency.get_or_add_currency("USD")
         await self.service.currency.get_or_add_currency("EUR")
 
+        # Register regions
+        await self.register_regions()
+
     async def on_message(self, message: discord.Message) -> None:
         # Process DMs
         if is_dm(message):

@@ -5,6 +5,7 @@ from . import (
     currency,
     event,
     event_member,
+    event_region,
     event_wine,
     member,
     member_transaction_summary,
@@ -25,6 +26,7 @@ ReminderStatus = reminder.ReminderStatus
 Event = event.Event
 EventMember = event_member.EventMember
 EventWine = event_wine.EventWine
+EventRegion = event_region.EventRegion
 
 ReactionRole = reaction_role.ReactionRole
 

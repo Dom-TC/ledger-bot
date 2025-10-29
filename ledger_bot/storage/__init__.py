@@ -3,6 +3,7 @@
 from . import (
     bot_message_storage,
     currency_storage,
+    event_region_storage,
     member_storage,
     reaction_role_storage,
     reminder_storage,
@@ -17,3 +18,4 @@ ReminderStorage = reminder_storage.ReminderStorage
 TransactionStorage = transaction_storage.TransactionStorage
 ReactionRoleStorage = reaction_role_storage.ReactionRoleStorage
 CurrencyStorage = currency_storage.CurrencyStorage
+EventRegionStorage = event_region_storage.EventRegionStorage

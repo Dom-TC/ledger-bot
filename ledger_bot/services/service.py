@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from .bot_message_service import BotMessageService
 from .currency_service import CurrencyService
+from .event_region_service import EventRegionService
 from .member_service import MemberService
 from .reaction_role_service import ReactionRoleService
 from .reminder_service import ReminderService
@@ -20,3 +21,4 @@ class Service:
     transaction: TransactionService
     stats: StatsService
     currency: CurrencyService
+    event_region: EventRegionService

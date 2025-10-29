@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from .bot_message_storage import BotMessageStorage
 from .currency_storage import CurrencyStorage
+from .event_region_storage import EventRegionStorage
 from .member_storage import MemberStorage
 from .reaction_role_storage import ReactionRoleStorage
 from .reminder_storage import ReminderStorage
@@ -18,3 +19,4 @@ class Storage:
     reminder: ReminderStorage
     transaction: TransactionStorage
     currency: CurrencyStorage
+    event_region: EventRegionStorage
