@@ -22,12 +22,12 @@ log = logging.getLogger(__name__)
 async def command_new_event(
     client: "LedgerBot",
     interaction: discord.Interaction[Any],
-    wine_name: str,
-    buyer: discord.Member,
-    price: float,
-    currency_code: str = "GBP",
+    event_name: str,
+    region: int,
+    description: str | None = None,
+    location: str | None = None,
 ) -> None:
-    """Add transaction to Airtable."""
+    """Register a new event."""
     if isinstance(interaction.channel, discord.channel.TextChannel):
         channel_name = interaction.channel.name
     else:
@@ -56,23 +56,6 @@ async def command_new_event(
         log.critical("The client isn't connected")
         return
 
-    # If user isn't a maintainer, they shouldn't be able to sell to either ledger-bot, or themselves.
-    if interaction.user.id not in client.config.maintainer_ids:
-        if buyer.id == interaction.user.id:
-            log.info(f"Rejecting sale to self from {interaction.user.name}")
-            await interaction.response.send_message(
-                content="You can't sell a wine to yourself!", ephemeral=True
-            )
-            return
-
-        if buyer.id == client.user.id:
-            log.info(f"Rejecting sale to ledger-bot from {interaction.user.name}")
-            await interaction.response.send_message(
-                content=f"You can't sell a wine to {client.config.name}!",
-                ephemeral=True,
-            )
-            return
-
     # Discord Interactions need to be responded to in <3s or they time out.  We take longer, so defer the interaction.
     # We can't dynamically choose whether the response will be ephemeral or not, so this has to be after the above channel checks, or they can't be emphemeral.
     await interaction.response.defer()
@@ -88,46 +71,15 @@ async def command_new_event(
         return
 
     async with client.session_factory() as session:
-        log.info("Processing new sale...")
-        log.info(f"Getting / adding seller: {interaction.user}")
-        seller_record = await client.service.member.get_or_add_member(
-            interaction.user, session=session
-        )
-        log.info(f"Getting / adding buyer: {buyer}")
-        buyer_record = await client.service.member.get_or_add_member(
-            buyer, session=session
-        )
+        log.info("Processing new event...")
 
-        log.info(f"Getting / adding currency: {currency_code}")
-        currency_record = await client.service.currency.get_or_add_currency(
-            currency=currency_code, session=session
-        )
+        # Add event to database
 
-        # Build Transaction object from provided data
-        transaction = Transaction(
-            seller_id=seller_record.id,
-            buyer_id=buyer_record.id,
-            wine=wine_name,
-            price=price,
-            sale_approved=False,
-            buyer_delivered=False,
-            seller_delivered=False,
-            buyer_paid=False,
-            seller_paid=False,
-            cancelled=False,
-            creation_date=datetime.datetime.now(datetime.timezone.utc),
-            currency_code=currency_record.code,
-        )
+        # Create event channel
 
-        # Format price to 2dp
-        price = float("{:.2f}".format(price))
-        log.debug(f"{price=}, {type(price)}")
+        # Post event management post in channel
 
-        transaction_record = await client.service.transaction.save_transaction(
-            transaction=transaction, session=session
-        )
-
-        await session.refresh(transaction_record, attribute_names=["buyer", "seller"])
+        # Respond to user confirming event created, ask to manage it in channel.
 
     response_contents = await generate_transaction_status_message(
         transaction=transaction_record,

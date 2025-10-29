@@ -3,6 +3,9 @@
 import logging
 from typing import List
 
+from asyncache import cached
+from cachetools import LRUCache
+from discord.app_commands import Choice
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ledger_bot.core import Config
@@ -15,6 +18,8 @@ log = logging.getLogger(__name__)
 
 
 class EventRegionService(ServiceHelpers):
+    _list_all_regions_cache: LRUCache = LRUCache(maxsize=64)
+
     def __init__(
         self,
         event_region_storage: EventRegionStorage,
@@ -49,6 +54,7 @@ class EventRegionService(ServiceHelpers):
             )
             return reminder
 
+    @cached(_list_all_regions_cache)
     async def list_all_regions(
         self, session: AsyncSession | None = None
     ) -> List[EventRegion]:
@@ -74,6 +80,26 @@ class EventRegionService(ServiceHelpers):
             log.info(f"Found {len(region_list)} EventRegions")
 
             return region_list
+
+    async def get_region_choices(
+        self, session: AsyncSession | None = None
+    ) -> List[Choice[int]]:
+        """Get a list of Choices for all EventRegions.
+
+        This is used for discord.py app_commands.choices decorator.
+
+        Parameters
+        ----------
+        session : AsyncSession | None, optional
+            An optional session, by default None
+
+        Returns
+        -------
+        List[Choice[int]]
+            A list of Choice objects with name=region_name and value=id
+        """
+        regions = await self.list_all_regions(session=session)
+        return [Choice(name=region.region_name, value=region.id) for region in regions]
 
     async def add_region(
         self,
@@ -107,4 +133,5 @@ class EventRegionService(ServiceHelpers):
 
             if region.id:
                 log.debug(f"EventRegion saved with id {region.id}")
+                self._list_all_regions_cache.clear()
             return region

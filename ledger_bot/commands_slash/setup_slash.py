@@ -1,6 +1,8 @@
 """Register our slash commands with Discord."""
 
+import enum
 import logging
+from datetime import datetime
 from typing import Any
 
 import discord
@@ -13,6 +15,7 @@ from .command_hello import command_hello
 from .command_help import command_help
 from .command_list import command_list
 from .command_lookup import command_lookup
+from .command_new_event import command_new_event
 from .command_new_sale import command_new_sale
 from .command_new_split import command_new_split
 from .command_ping import command_ping
@@ -262,4 +265,44 @@ def setup_slash(  # noqa C901
         await command_settings(
             client=client,
             interaction=interaction,
+        )
+
+    async def region_autocomplete(
+        interaction: discord.Interaction[Any],
+        current: str,
+    ) -> list[app_commands.Choice[int]]:
+        """Autocomplete callback for region parameter."""
+        choices = await client.service.event_region.get_region_choices()
+        # Filter choices based on what the user has typed
+        if current:
+            return [
+                choice for choice in choices if current.lower() in choice.name.lower()
+            ]
+        return choices[:25]  # Discord limits to 25 choices
+
+    @client.tree.command(
+        guild=client.guild, name="new_event", description="Create a new event."
+    )
+    @app_commands.describe(
+        event_name="The name of the event.",
+        region="The region for the event.",
+        description="Description of the event",
+        location="The location of the event",
+    )
+    @app_commands.autocomplete(region=region_autocomplete)
+    async def new_event(
+        interaction: discord.Interaction[Any],
+        event_name: str,
+        region: int,
+        description: str | None = None,
+        location: str | None = None,
+    ) -> None:
+        log.info(f"Recognised command: /new_event from {interaction.user.name}")
+        await command_new_event(
+            client=client,
+            interaction=interaction,
+            event_name=event_name,
+            region=region,
+            description=description,
+            location=location,
         )
