@@ -1,6 +1,5 @@
 """Additional exceptions."""
 
-from .airtable_error import AirTableError
 from .service_errors import (
     BotMessageInvalidTransactionError,
     BotMessageServiceError,
@@ -26,7 +25,6 @@ from .storage_errors import (
 )
 
 __all__ = [
-    "AirTableError",
     "SignalHaltError",
     "MemberAlreadyExistsError",
     "MemberCreationError",

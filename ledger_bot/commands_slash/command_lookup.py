@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any
 import discord
 
 from ledger_bot.core import register_help_command
-from ledger_bot.errors import AirTableError
 
 if TYPE_CHECKING:
     from ledger_bot.clients import ReactionRolesClient
@@ -29,26 +28,16 @@ async def command_lookup(
     # Depending on the number of transactions a user has, we could take longer, so defer the interaction.
     await interaction.response.defer(ephemeral=True)
 
-    try:
-        async with client.session_factory() as session:
-            member = await client.service.member.get_or_add_member(
-                user, session=session
-            )
+    async with client.session_factory() as session:
+        member = await client.service.member.get_or_add_member(user, session=session)
 
-            await session.refresh(
-                member, attribute_names=["buying_transactions", "selling_transactions"]
-            )
-
-            transaction_summary = (
-                await client.service.member.get_member_transaction_summary(member)
-            )
-
-    except AirTableError as error:
-        log.error(f"There was an error processing the AirTable request: {error}")
-        await interaction.response.send_message(
-            "An unexpected error occured.", ephemeral=True
+        await session.refresh(
+            member, attribute_names=["buying_transactions", "selling_transactions"]
         )
-        return
+
+        transaction_summary = (
+            await client.service.member.get_member_transaction_summary(member)
+        )
 
     if member.lookup_enabled:
         if not (transaction_summary.purchases_count + transaction_summary.sales_count):

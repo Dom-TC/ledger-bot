@@ -5,7 +5,6 @@ import logging
 import discord
 
 from ledger_bot.core import Config
-from ledger_bot.errors import AirTableError
 from ledger_bot.models import Transaction
 from ledger_bot.services import Service
 
@@ -32,8 +31,6 @@ async def send_message(
         log.error(f"You don't have permission to send to that channel: {error}")
     except discord.HTTPException as error:
         log.error(f"An error occured sending the message: {error}")
-    except AirTableError as error:
-        log.error(f"An error occured storing the content in AirTable: {error}")
 
     if config.delete_previous_bot_messages and previous_message_id is not None:
         log.info("delete_previous_bot_messages is true")
@@ -58,5 +55,3 @@ async def send_message(
             log.error(f"The message has already been deleted: {error}")
         except discord.HTTPException as error:
             log.error(f"An error occured deleting the message: {error}")
-        except AirTableError as error:
-            log.error(f"An error occured deleting the record in AirTable: {error}")

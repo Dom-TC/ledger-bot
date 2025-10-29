@@ -1,7 +1,6 @@
 """The LedgerBot class is the actual implimentation of the Discord bot.  Extends discord.Client."""
 
 import logging
-from typing import Any, Dict
 
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler

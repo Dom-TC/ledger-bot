@@ -15,11 +15,11 @@ log = logging.getLogger(__name__)
 
 
 @register_help_command(
-    command="new_sale",
-    args=["wine_name", "buyer", "price", "optional: currency_code, default: GBP"],
-    description="Creates a new sale transaction.",
+    command="new_event",
+    args=["TBC"],
+    description="Creates a new event.",
 )
-async def command_new_sale(
+async def command_new_event(
     client: "LedgerBot",
     interaction: discord.Interaction[Any],
     wine_name: str,
