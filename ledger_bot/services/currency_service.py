@@ -119,9 +119,13 @@ class CurrencyService(ServiceHelpers):
                 f"Updating the rate for {currency.code}. Last updated {currency.last_updated}"
             )
 
-            url = f"https://v6.exchangerate-api.com/v6/{self.config.authentication.exchangerate_api}/pair/{self.config.base_currency}/{currency.code}"
-            response = requests.get(url, timeout=5)
-            payload: dict = response.json()
+            try:
+                url = f"https://v6.exchangerate-api.com/v6/{self.config.authentication.exchangerate_api}/pair/{self.config.base_currency}/{currency.code}"
+                response = requests.get(url, timeout=5)
+                payload: dict = response.json()
+            except TimeoutError:
+                log.error(f"Attempt to update rate for {currency.code} timed out.")
+                return currency
 
             if payload["result"] != "success":
                 log.error(
