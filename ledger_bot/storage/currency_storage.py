@@ -15,13 +15,11 @@ from ledger_bot.errors import (
 )
 from ledger_bot.models import Currency
 
-from .abstracts import CurrencyStorageABC
-
 log = logging.getLogger(__name__)
 
 
-class CurrencyStorage(CurrencyStorageABC):
-    """SQLite implementation of CurrencyStorageABC."""
+class CurrencyStorage:
+    """SQLite implementation for CurrencyStorage."""
 
     async def get_currency(
         self, currency_code: str, session: AsyncSession
