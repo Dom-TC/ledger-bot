@@ -3,46 +3,42 @@
 module to process configs, defaults defined in the function, overwritten by provided data, and again by environment vars.
 """
 
-import json
 import logging
-from dataclasses import dataclass, field, fields, is_dataclass
 from datetime import timedelta
 from os import getenv
 from pathlib import Path
-from typing import Any, Dict, List, get_args, get_origin
+from typing import List
+
+from pydantic import BaseModel, Field
 
 log = logging.getLogger(__name__)
 
 
-@dataclass
-class AuthenticationConfig:
+class AuthenticationConfig(BaseModel):
     discord: str = ""
     airtable_key: str = ""
     airtable_base: str = ""
     exchangerate_api: str = ""
 
     def __repr__(self):
-        fields = ", ".join(f"{f}='****'" for f in self.__dataclass_fields__)
+        fields = ", ".join(f"{f}='****'" for f in self.model_fields)
         return f"<{self.__class__.__name__}({fields})>"
 
 
-@dataclass
-class EventRegionConfig:
+class EventRegionConfig(BaseModel):
     region_name: str = ""
     new_event_category: int = 0
     event_post_channel: int = 0
 
 
-@dataclass
-class ChannelsConfig:
-    include: List = field(default_factory=list)
-    exclude: List = field(default_factory=list)
-    event_regions: List[EventRegionConfig] = field(default_factory=list)
+class ChannelsConfig(BaseModel):
+    include: List = Field(default_factory=list)
+    exclude: List = Field(default_factory=list)
+    event_regions: List[EventRegionConfig] = Field(default_factory=list)
     shutdown_post_channel: int | None = None
 
 
-@dataclass
-class EmojiConfig:
+class EmojiConfig(BaseModel):
     approval: str = "👍"
     cancel: str = "👎"
     paid: str = "💸"
@@ -56,15 +52,13 @@ class EmojiConfig:
     status_cancelled: str = "❌"
 
 
-@dataclass
-class JobSchedule:
+class JobSchedule(BaseModel):
     hour: str | int = "*"
     minute: str | int = 0
     second: str | int = 0
 
 
-@dataclass
-class Config:
+class Config(BaseModel):
     bot_id: str = "Bot"
     name: str = "Ledger-Bot"
     guild: int = 0
@@ -79,7 +73,7 @@ class Config:
     shutdown_delay: int = (
         5  # Time in minutes to wait after receiving a shutdown command
     )
-    maintainer_ids: List[int] = field(
+    maintainer_ids: List[int] = Field(
         default_factory=lambda: [
             760972696284299294,  # Dom_TC
             699641132497371162,  # .henry_1
@@ -89,16 +83,16 @@ class Config:
         ]
     )
 
-    authentication: AuthenticationConfig = field(default_factory=AuthenticationConfig)
-    channels: ChannelsConfig = field(default_factory=ChannelsConfig)
-    emojis: EmojiConfig = field(default_factory=EmojiConfig)
-    run_cleanup_time: JobSchedule = field(
+    authentication: AuthenticationConfig = Field(default_factory=AuthenticationConfig)
+    channels: ChannelsConfig = Field(default_factory=ChannelsConfig)
+    emojis: EmojiConfig = Field(default_factory=EmojiConfig)
+    run_cleanup_time: JobSchedule = Field(
         default_factory=lambda: JobSchedule(hour=1, minute=0, second=0)
     )
-    reminder_refresh_time: JobSchedule = field(
+    reminder_refresh_time: JobSchedule = Field(
         default_factory=lambda: JobSchedule(hour="*/5", minute=0, second=0)
     )
-    reaction_role_refresh_time: JobSchedule = field(
+    reaction_role_refresh_time: JobSchedule = Field(
         default_factory=lambda: JobSchedule(hour="*", minute="*/30", second=0)
     )
     base_currency: str = "GBP"
@@ -114,25 +108,21 @@ class Config:
         2. Config file (JSON)
         3. Defaults
         """
-        # Start with defaults
-        cfg = cls()
-
-        # Load from file (YAML/JSON)
+        # Load from file (JSON)
         file_path = Path(path if path else getenv("BOT_CONFIG", "config.json"))
-        file_data: Dict[str, Any] = {}
+
         if file_path.is_file():
             log.info(f"Loading config from {file_path}")
             try:
                 with open(file_path) as f:
-                    file_data = json.load(f) or {}
+                    cfg = cls.model_validate_json(f.read())
             except (OSError, ValueError) as e:
                 log.critical(f"Failed to parse config file {file_path}: {e}")
                 exit(1)
         else:
             log.warning(f"Can't load config from {file_path}")
-
-        # Apply file config
-        cfg._apply_dict(cfg, file_data)
+            # Start with defaults
+            cfg = cls()
 
         # Apply environment overrides
         if token := getenv("BOT_DISCORD_TOKEN"):
@@ -159,58 +149,3 @@ class Config:
         log.debug(cfg)
 
         return cfg
-
-    def _apply_dict(self, obj, data):
-        for key, value in data.items():
-            if hasattr(obj, key):
-                current = getattr(obj, key)
-                field_type = next((f.type for f in fields(obj) if f.name == key), None)
-
-                if field_type is timedelta:
-                    setattr(obj, key, timedelta(**value))
-
-                elif field_type is JobSchedule:
-                    setattr(obj, key, JobSchedule(**value))
-
-                elif field_type is EventRegionConfig:
-                    setattr(obj, key, EventRegionConfig(**value))
-
-                else:
-                    if is_dataclass(current) and isinstance(value, dict):
-                        self._apply_dict(current, value)
-                    else:
-                        if field_type is Path:
-                            setattr(obj, key, Path(value))
-                        elif field_type is int:
-                            setattr(obj, key, int(value))
-                        elif field_type is bool:
-                            if isinstance(value, str):
-                                setattr(
-                                    obj, key, value.lower() in ("true", "1", "yes", "y")
-                                )
-                            else:
-                                setattr(obj, key, bool(value))
-                        elif get_origin(field_type) in (list, List):
-                            args = get_args(field_type)
-                            if args:
-                                item_type = args[0]
-                                if is_dataclass(item_type):
-                                    # For dataclass items, unpack dict values
-                                    setattr(
-                                        obj,
-                                        key,
-                                        [
-                                            (
-                                                item_type(**v)
-                                                if isinstance(v, dict)
-                                                else item_type(v)
-                                            )
-                                            for v in value
-                                        ],
-                                    )
-                                else:
-                                    setattr(obj, key, [item_type(v) for v in value])
-                            else:
-                                setattr(obj, key, list(value))
-                        else:
-                            setattr(obj, key, value)
