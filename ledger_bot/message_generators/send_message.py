@@ -24,7 +24,7 @@ async def send_message(
     log.info("Attempting to send message")
     try:
         sent_message = await channel.send(response_contents)
-        await service.bot_message.save_bot_message(
+        await service.bot_message.save_transaction_bot_message(
             message=sent_message, transaction=target_transaction
         )
 

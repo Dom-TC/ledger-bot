@@ -589,6 +589,12 @@ class TransactionService(ServiceHelpers):
             if not bot_message:
                 return None
 
+            if not bot_message.transaction_id:
+                log.info(
+                    f"BotMessage isn't for a transaction: {bot_message.id} is {bot_message.message_type}"
+                )
+                return None
+
             # Get the Transaction linked to this BotMessage
             transaction = await self.get_transaction(
                 bot_message.transaction_id, session=session

@@ -142,7 +142,7 @@ async def command_new_sale(
         # We have to call a different command to get the message we just posted
         bot_message = await interaction.original_response()
 
-        await client.service.bot_message.save_bot_message(
+        await client.service.bot_message.save_transaction_bot_message(
             message=bot_message, transaction=transaction_record
         )
 

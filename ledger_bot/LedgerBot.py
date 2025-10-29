@@ -7,7 +7,12 @@ import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from .clients import ExtendedClient, ReactionRolesClient, TransactionsClient
+from .clients import (
+    EventClient,
+    ExtendedClient,
+    ReactionRolesClient,
+    TransactionsClient,
+)
 from .commands_dm import is_dm, process_dm
 from .core import Config
 from .process_message import process_message
@@ -17,7 +22,7 @@ from .services import Service
 log = logging.getLogger(__name__)
 
 
-class LedgerBot(TransactionsClient, ReactionRolesClient, ExtendedClient):
+class LedgerBot(TransactionsClient, ReactionRolesClient, EventClient, ExtendedClient):
     def __init__(
         self,
         config: Config,

@@ -18,6 +18,7 @@ Member = member.Member
 
 Transaction = transaction.Transaction
 BotMessage = bot_message.BotMessage
+MessageType = bot_message.MessageType
 Reminder = reminder.Reminder
 ReminderStatus = reminder.ReminderStatus
 

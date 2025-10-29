@@ -10,6 +10,9 @@ from .base import Base
 from .event_member import EventMember, MemberStatus
 from .event_wine import EventWine
 
+if TYPE_CHECKING:
+    from .bot_message import BotMessage
+
 
 class Event(Base):
     __tablename__ = "events"
@@ -68,4 +71,12 @@ class Event(Base):
 
     wines: Mapped[List["EventWine"]] = relationship(
         back_populates="event", cascade="all, delete-orphan", lazy="joined"
+    )
+
+    bot_messages: Mapped[List["BotMessage"]] = relationship(
+        "BotMessage",
+        back_populates="event",
+        foreign_keys="BotMessage.event_id",
+        primaryjoin="and_(Event.id == BotMessage.event_id, BotMessage.message_type == 'event')",
+        cascade="all, delete-orphan",
     )

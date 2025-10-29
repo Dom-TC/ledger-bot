@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ledger_bot.core import Config
 from ledger_bot.errors import BotMessageInvalidTransactionError
-from ledger_bot.models import BotMessage, Transaction
+from ledger_bot.models import BotMessage, MessageType, Transaction
 from ledger_bot.storage import BotMessageStorage
 
 from .service_helpers import ServiceHelpers
@@ -54,7 +54,7 @@ class BotMessageService(ServiceHelpers):
             )
             return bot_message
 
-    async def save_bot_message(
+    async def save_transaction_bot_message(
         self,
         message: Message | InteractionMessage,
         transaction: Transaction,
@@ -93,7 +93,9 @@ class BotMessageService(ServiceHelpers):
             message_id=message.id,
             channel_id=message.channel.id,
             guild_id=message.guild.id if message.guild else "",
+            message_type=MessageType.TRANSACTION,
             transaction_id=transaction.id,
+            event_id=None,
             creation_date=datetime.now(timezone.utc),
             bot_id=self.config.bot_id,
         )

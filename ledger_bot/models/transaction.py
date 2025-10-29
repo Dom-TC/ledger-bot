@@ -11,6 +11,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    and_,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -70,6 +71,7 @@ class Transaction(Base):
         "BotMessage",
         back_populates="transaction",
         foreign_keys="BotMessage.transaction_id",
+        primaryjoin="and_(Transaction.id == BotMessage.transaction_id, BotMessage.message_type == 'transaction')",
         cascade="all, delete-orphan",
     )
     reminders: Mapped[List["Reminder"]] = relationship(

@@ -16,7 +16,14 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from ledger_bot.models import BotMessage, Member, ReactionRole, Reminder, Transaction
+from ledger_bot.models import (
+    BotMessage,
+    Member,
+    MessageType,
+    ReactionRole,
+    Reminder,
+    Transaction,
+)
 
 # Load environment variables from .env
 load_dotenv()
@@ -438,9 +445,11 @@ def load_bot_message(csv_path: Path) -> Generator[MigrationBotMessage]:
                 message_id=int(row["bot_message_id"]),
                 channel_id=int(row["channel_id"]),
                 guild_id=int(row["guild_id"]),
+                message_type=MessageType.TRANSACTION,
                 transaction_id=transaction_old_to_new_ids.get(
                     int(row["transaction_id"]), 999
                 ),
+                event_id=None,
                 creation_date=(
                     datetime.strptime(
                         row["message_creation_date"].strip(), "%Y-%m-%d %H:%M"
@@ -471,6 +480,7 @@ def migrate_bot_messages(csv_folder: str):
                     message_id=bot_message.message_id,
                     channel_id=bot_message.channel_id,
                     guild_id=bot_message.guild_id,
+                    message_type=MessageType.TRANSACTION,
                     transaction_id=bot_message.transaction_id,
                     creation_date=bot_message.creation_date,
                     bot_id=bot_message.bot_id,
@@ -507,7 +517,7 @@ def migrate_bot_messages(csv_folder: str):
 
             has_valid_relations = True
 
-            if match:
+            if match and match.transaction:
                 if match.transaction.wine != sample.wine:
                     has_valid_relations = False
 
