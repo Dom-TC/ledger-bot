@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from .member import Member
 
 
-class MemberStatus(enum.Enum):
+class EventMemberStatus(enum.Enum):
     HOST = "host"
     CONFIRMED = "confirmed"
     WAITLIST = "waitlist"
@@ -42,8 +42,8 @@ class EventMember(Base):
     member_id: Mapped[int] = mapped_column(ForeignKey("members.id"), nullable=False)
     guests: Mapped[int] = mapped_column(Integer, default=0)
     has_paid: Mapped[bool] = mapped_column(Integer, default=0)
-    status: Mapped[MemberStatus] = mapped_column(
-        Enum(MemberStatus), nullable=False, default=MemberStatus.CONFIRMED
+    status: Mapped[EventMemberStatus] = mapped_column(
+        Enum(EventMemberStatus), nullable=False, default=EventMemberStatus.CONFIRMED
     )
     joined_date: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.now(timezone.utc)

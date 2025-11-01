@@ -124,3 +124,22 @@ def build_relative_datetime(days: int, hours: int, tz_str: str | None) -> dateti
         tz = timezone.utc
 
     return offset_dt.astimezone(tz)
+
+
+def get_ordinal_suffix(day: int) -> str:
+    """Get the ordinal suffix for a day number.
+
+    Parameters
+    ----------
+    day : int
+        The day of the month (1-31)
+
+    Returns
+    -------
+    str
+        The ordinal suffix (st, nd, rd, or th)
+    """
+    if 10 <= day % 100 <= 20:
+        return "th"
+    else:
+        return {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")

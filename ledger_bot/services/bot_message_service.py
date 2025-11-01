@@ -9,8 +9,11 @@ from discord.interactions import InteractionMessage
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ledger_bot.core import Config
-from ledger_bot.errors import BotMessageInvalidTransactionError
-from ledger_bot.models import BotMessage, MessageType, Transaction
+from ledger_bot.errors import (
+    BotMessageInvalidEventError,
+    BotMessageInvalidTransactionError,
+)
+from ledger_bot.models import BotMessage, BotMessageType, Event, Transaction
 from ledger_bot.storage import BotMessageStorage
 
 from .service_helpers import ServiceHelpers
@@ -93,9 +96,61 @@ class BotMessageService(ServiceHelpers):
             message_id=message.id,
             channel_id=message.channel.id,
             guild_id=message.guild.id if message.guild else "",
-            message_type=MessageType.TRANSACTION,
+            message_type=BotMessageType.TRANSACTION,
             transaction_id=transaction.id,
             event_id=None,
+            creation_date=datetime.now(timezone.utc),
+            bot_id=self.config.bot_id,
+        )
+
+        log.debug(f"Storing bot_message: {bot_message}")
+        async with self._get_session(session) as session:
+            bot_message = await self.bot_message_storage.add_bot_message(
+                bot_message=bot_message, session=session
+            )
+            await session.commit()
+            return bot_message
+
+    async def save_event_bot_message(
+        self,
+        message: Message | InteractionMessage,
+        event: Event,
+        session: AsyncSession | None = None,
+    ) -> BotMessage:
+        """Save the message into a bot_message for a given transaction.
+
+        Parameters
+        ----------
+        message : Message | InteractionMessage
+            The message
+        event : Event
+            The event
+        session : AsyncSession | None, optional
+            An optional session, by default None
+
+        Returns
+        -------
+        BotMessage
+            The saved bot_message
+
+        Raises
+        ------
+        BotMessageInvalidTransactionError
+            Transaction doesn't have a record id
+        """
+        if event.id is None:
+            log.info("Event doesn't have a record id. Can't store message. Skipping...")
+            raise BotMessageInvalidEventError(event=event)
+
+        log.info(f"Saving bot message({message.id}) for event {event.id}")
+
+        bot_message = BotMessage(
+            message_id=message.id,
+            channel_id=message.channel.id,
+            guild_id=message.guild.id if message.guild else "",
+            message_type=BotMessageType.EVENT,
+            transaction_id=None,
+            event_id=event.id,
             creation_date=datetime.now(timezone.utc),
             bot_id=self.config.bot_id,
         )
@@ -161,6 +216,19 @@ class BotMessageService(ServiceHelpers):
         async with self._get_session(session) as session:
             messages = await self.bot_message_storage.list_bot_message(
                 BotMessage.transaction_id == transaction_id,
+                session=session,
+            )
+            return messages
+
+    async def get_bot_messages_by_event_id(
+        self, event_id: int, session: AsyncSession | None = None
+    ) -> List[BotMessage] | None:
+        """Get all the bot messages for a given event id."""
+        log.debug(f"Getting bot messages for event {event_id}")
+
+        async with self._get_session(session) as session:
+            messages = await self.bot_message_storage.list_bot_message(
+                BotMessage.event_id == event_id,
                 session=session,
             )
             return messages

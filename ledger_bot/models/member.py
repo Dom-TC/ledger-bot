@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from .reminder import Reminder
     from .transaction import Transaction
 
-from .event_member import MemberStatus
+from .event_member import EventMemberStatus
 
 log = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ class Member(Base):
         secondary="event_members",
         primaryjoin=lambda: and_(
             Member.id == foreign(EventMember.member_id),
-            foreign(EventMember.status) == MemberStatus.HOST,
+            foreign(EventMember.status) == EventMemberStatus.HOST,
         ),
         secondaryjoin=lambda: foreign(EventMember.event_id) == foreign(Event.id),
         viewonly=True,

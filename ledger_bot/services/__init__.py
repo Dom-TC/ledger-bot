@@ -3,7 +3,9 @@
 from . import (
     bot_message_service,
     currency_service,
+    event_member_service,
     event_region_service,
+    event_service,
     member_service,
     reaction_role_service,
     reminder_service,
@@ -23,3 +25,5 @@ StatsService = stats_service.StatsService
 CurrencyService = currency_service.CurrencyService
 
 EventRegionService = event_region_service.EventRegionService
+EventService = event_service.EventService
+EventMemberService = event_member_service.EventMemberService

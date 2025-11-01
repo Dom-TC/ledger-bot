@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-class MessageType(enum.Enum):
+class BotMessageType(enum.Enum):
     TRANSACTION = "transaction"
     EVENT = "event"
 
@@ -39,7 +39,9 @@ class BotMessage(Base):
     channel_id: Mapped[int] = mapped_column(Integer, nullable=False)
     guild_id: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    message_type: Mapped[MessageType] = mapped_column(Enum(MessageType), nullable=False)
+    message_type: Mapped[BotMessageType] = mapped_column(
+        Enum(BotMessageType), nullable=False
+    )
 
     # Only one of these will be set, dictated by message_type
     transaction_id: Mapped[Optional[int]] = mapped_column(

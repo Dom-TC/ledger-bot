@@ -19,12 +19,13 @@ Member = member.Member
 
 Transaction = transaction.Transaction
 BotMessage = bot_message.BotMessage
-MessageType = bot_message.MessageType
+BotMessageType = bot_message.BotMessageType
 Reminder = reminder.Reminder
 ReminderStatus = reminder.ReminderStatus
 
 Event = event.Event
 EventMember = event_member.EventMember
+EventMemberStatus = event_member.EventMemberStatus
 EventWine = event_wine.EventWine
 EventRegion = event_region.EventRegion
 

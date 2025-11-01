@@ -3,15 +3,16 @@
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import DateTime, Integer, String, Text, and_
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, and_
 from sqlalchemy.orm import Mapped, foreign, mapped_column, relationship
 
 from .base import Base
-from .event_member import EventMember, MemberStatus
+from .event_member import EventMember, EventMemberStatus
 from .event_wine import EventWine
 
 if TYPE_CHECKING:
     from .bot_message import BotMessage
+    from .event_region import EventRegion
 
 
 class Event(Base):
@@ -29,8 +30,16 @@ class Event(Base):
     creation_date: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.now(timezone.utc)
     )
-    channel_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    channel_id: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True, unique=True
+    )
     bot_id: Mapped[Optional[str]] = mapped_column(String)
+    region_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("event_regions.id"), nullable=False
+    )
+    is_ongoing: Mapped[bool] = mapped_column(Integer, default=0)
+    is_private: Mapped[bool] = mapped_column(Integer, default=0)
+    channel_jump_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     # Relationships
     members: Mapped[List["EventMember"]] = relationship(
@@ -40,7 +49,7 @@ class Event(Base):
         "EventMember",
         primaryjoin=lambda: and_(
             Event.id == foreign(EventMember.event_id),
-            EventMember.status == MemberStatus.WAITLIST,
+            EventMember.status == EventMemberStatus.WAITLIST,
         ),
         viewonly=True,
         order_by="EventMember.joined_date",
@@ -51,7 +60,7 @@ class Event(Base):
         "EventMember",
         primaryjoin=lambda: and_(
             Event.id == foreign(EventMember.event_id),
-            EventMember.status == MemberStatus.CONFIRMED,
+            EventMember.status == EventMemberStatus.CONFIRMED,
         ),
         viewonly=True,
         order_by="EventMember.joined_date",
@@ -62,7 +71,7 @@ class Event(Base):
         "EventMember",
         primaryjoin=lambda: and_(
             Event.id == foreign(EventMember.event_id),
-            EventMember.status == MemberStatus.HOST,
+            EventMember.status == EventMemberStatus.HOST,
         ),
         viewonly=True,
         order_by="EventMember.joined_date",
@@ -79,4 +88,7 @@ class Event(Base):
         foreign_keys="BotMessage.event_id",
         primaryjoin="and_(Event.id == BotMessage.event_id, BotMessage.message_type == 'event')",
         cascade="all, delete-orphan",
+    )
+    region: Mapped["EventRegion"] = relationship(
+        "EventRegion", foreign_keys=[region_id], back_populates="events", lazy="joined"
     )

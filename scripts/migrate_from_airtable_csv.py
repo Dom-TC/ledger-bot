@@ -18,8 +18,8 @@ from sqlalchemy.orm import sessionmaker
 
 from ledger_bot.models import (
     BotMessage,
+    BotMessageType,
     Member,
-    MessageType,
     ReactionRole,
     Reminder,
     Transaction,
@@ -445,7 +445,7 @@ def load_bot_message(csv_path: Path) -> Generator[MigrationBotMessage]:
                 message_id=int(row["bot_message_id"]),
                 channel_id=int(row["channel_id"]),
                 guild_id=int(row["guild_id"]),
-                message_type=MessageType.TRANSACTION,
+                message_type=BotMessageType.TRANSACTION,
                 transaction_id=transaction_old_to_new_ids.get(
                     int(row["transaction_id"]), 999
                 ),
@@ -480,7 +480,7 @@ def migrate_bot_messages(csv_folder: str):
                     message_id=bot_message.message_id,
                     channel_id=bot_message.channel_id,
                     guild_id=bot_message.guild_id,
-                    message_type=MessageType.TRANSACTION,
+                    message_type=BotMessageType.TRANSACTION,
                     transaction_id=bot_message.transaction_id,
                     creation_date=bot_message.creation_date,
                     bot_id=bot_message.bot_id,

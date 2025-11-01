@@ -1,6 +1,6 @@
 """Errors relating to services."""
 
-from ledger_bot.models import Member, Transaction
+from ledger_bot.models import Event, Member, Transaction
 
 
 class ServiceError(Exception):
@@ -94,6 +94,17 @@ class BotMessageInvalidTransactionError(BotMessageServiceError):
 
     def __str__(self) -> str:
         return f"The specified transaction {self.transaction} is invalid."
+
+
+class BotMessageInvalidEventError(BotMessageServiceError):
+    """The specified event is invalid."""
+
+    def __init__(self, event: Event, *args: object):
+        self.event = event
+        super().__init__(event, *args)
+
+    def __str__(self) -> str:
+        return f"The specified event {self.event} is invalid."
 
 
 class InvalidRoleError(StatsServiceError):

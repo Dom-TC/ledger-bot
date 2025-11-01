@@ -286,16 +286,12 @@ def setup_slash(  # noqa C901
     @app_commands.describe(
         event_name="The name of the event.",
         region="The region for the event.",
-        description="Description of the event",
-        location="The location of the event",
     )
     @app_commands.autocomplete(region=region_autocomplete)
     async def new_event(
         interaction: discord.Interaction[Any],
         event_name: str,
         region: int,
-        description: str | None = None,
-        location: str | None = None,
     ) -> None:
         log.info(f"Recognised command: /new_event from {interaction.user.name}")
         await command_new_event(
@@ -303,6 +299,4 @@ def setup_slash(  # noqa C901
             interaction=interaction,
             event_name=event_name,
             region=region,
-            description=description,
-            location=location,
         )
