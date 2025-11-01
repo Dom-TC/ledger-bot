@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
 
 from ledger_bot.core import Config
-from ledger_bot.models import EventMember
+from ledger_bot.models import EventMember, EventMemberStatus
 from ledger_bot.storage import EventMemberStorage
 
 from .service_helpers import ServiceHelpers
@@ -210,3 +210,121 @@ class EventMemberService(ServiceHelpers):
                 f"Updated event member {event_member.id} (event_id: {event_member.event_id}, member_id: {event_member.member_id})"
             )
             return updated_event_member
+
+    async def get_hosts_for_event(
+        self, event_id: int, session: AsyncSession | None = None
+    ) -> List[EventMember]:
+        """Get all hosts for a given event.
+
+        Parameters
+        ----------
+        event_id : int
+            The id of the event
+        session : AsyncSession | None, optional
+            An optional session, by default None
+
+        Returns
+        -------
+        List[EventMember]
+            All the host event members for the specified event, empty if none exist
+        """
+        async with self._get_session(session) as session:
+            log.info(f"Listing all hosts for event {event_id}")
+            event_member_list = await self.event_member_storage.list_event_members(
+                EventMember.event_id == event_id,
+                EventMember.status == EventMemberStatus.HOST,
+                session=session,
+                options=[
+                    selectinload(EventMember.event),
+                    selectinload(EventMember.member),
+                    selectinload(EventMember.wines),
+                ],
+            )
+
+            # If no event members found, return an empty list rather than None
+            if not event_member_list:
+                event_member_list = []
+
+            log.info(f"Found {len(event_member_list)} hosts for event {event_id}")
+
+            return event_member_list
+
+    async def get_confirmed_for_event(
+        self, event_id: int, session: AsyncSession | None = None
+    ) -> List[EventMember]:
+        """Get all confirmed members for a given event.
+
+        Parameters
+        ----------
+        event_id : int
+            The id of the event
+        session : AsyncSession | None, optional
+            An optional session, by default None
+
+        Returns
+        -------
+        List[EventMember]
+            All the confirmed event members for the specified event, empty if none exist
+        """
+        async with self._get_session(session) as session:
+            log.info(f"Listing all confirmed members for event {event_id}")
+            event_member_list = await self.event_member_storage.list_event_members(
+                EventMember.event_id == event_id,
+                EventMember.status == EventMemberStatus.CONFIRMED,
+                session=session,
+                options=[
+                    selectinload(EventMember.event),
+                    selectinload(EventMember.member),
+                    selectinload(EventMember.wines),
+                ],
+            )
+
+            # If no event members found, return an empty list rather than None
+            if not event_member_list:
+                event_member_list = []
+
+            log.info(
+                f"Found {len(event_member_list)} confirmed members for event {event_id}"
+            )
+
+            return event_member_list
+
+    async def get_waitlisted_for_event(
+        self, event_id: int, session: AsyncSession | None = None
+    ) -> List[EventMember]:
+        """Get all waitlisted members for a given event.
+
+        Parameters
+        ----------
+        event_id : int
+            The id of the event
+        session : AsyncSession | None, optional
+            An optional session, by default None
+
+        Returns
+        -------
+        List[EventMember]
+            All the waitlisted event members for the specified event, empty if none exist
+        """
+        async with self._get_session(session) as session:
+            log.info(f"Listing all waitlisted members for event {event_id}")
+            event_member_list = await self.event_member_storage.list_event_members(
+                EventMember.event_id == event_id,
+                EventMember.status == EventMemberStatus.WAITLIST,
+                session=session,
+                options=[
+                    selectinload(EventMember.event),
+                    selectinload(EventMember.member),
+                    selectinload(EventMember.wines),
+                ],
+            )
+
+            # If no event members found, return an empty list rather than None
+            if not event_member_list:
+                event_member_list = []
+
+            log.info(
+                f"Found {len(event_member_list)} waitlisted members for event {event_id}"
+            )
+
+            return event_member_list

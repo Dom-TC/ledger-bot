@@ -15,6 +15,7 @@ from .command_hello import command_hello
 from .command_help import command_help
 from .command_list import command_list
 from .command_lookup import command_lookup
+from .command_manage import command_manage
 from .command_new_event import command_new_event
 from .command_new_sale import command_new_sale
 from .command_new_split import command_new_split
@@ -299,4 +300,15 @@ def setup_slash(  # noqa C901
             interaction=interaction,
             event_name=event_name,
             region=region,
+        )
+
+    @client.tree.command(
+        guild=client.guild, name="manage", description="Manage an event."
+    )
+    async def manage(interaction: discord.Interaction[Any]) -> None:
+        """Manage an event in the current event channel."""
+        log.info(f"Recognised command: /manage from {interaction.user.name}")
+        await command_manage(
+            client=client,
+            interaction=interaction,
         )

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 import discord
 
-from ledger_bot.models import Event, EventMemberStatus, Member
+from ledger_bot.models import Event, Member
 from ledger_bot.utils import build_datetime, is_valid_timezone
 
 if TYPE_CHECKING:
@@ -85,24 +85,17 @@ class ManageEventButton(discord.ui.View):
                 interaction.user, session=session
             )
 
-            # Get all event members for this event
-            event_members = (
-                await self.client.service.event_member.list_event_members_by_event(
-                    event_id=self.event.id,
-                    session=session,
-                )
+            # Get all hosts for this event
+            event_hosts = await self.client.service.event_member.get_hosts_for_event(
+                event_id=self.event.id,
+                session=session,
             )
 
-            # Find this specific member in the event members list
-            user_event_member = next(
-                (em for em in event_members if em.member_id == member.id), None
-            )
+            # Check if the user is a host
+            user_is_host = any(host.member_id == member.id for host in event_hosts)
 
             # Verify user is a host
-            if (
-                user_event_member is None
-                or user_event_member.status != EventMemberStatus.HOST
-            ):
+            if not user_is_host:
                 await interaction.followup.send(
                     content="Only event hosts can manage this event.",
                     ephemeral=True,
