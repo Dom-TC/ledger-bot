@@ -12,6 +12,7 @@ from .event_wine import EventWine
 
 if TYPE_CHECKING:
     from .bot_message import BotMessage
+    from .currency import Currency
     from .event_region import EventRegion
 
 
@@ -40,6 +41,9 @@ class Event(Base):
     is_ongoing: Mapped[bool] = mapped_column(Integer, default=0)
     is_private: Mapped[bool] = mapped_column(Integer, default=0)
     channel_jump_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    currency_code: Mapped[str] = mapped_column(
+        String, ForeignKey("currencies.code"), default="GBP"
+    )
 
     # Relationships
     members: Mapped[List["EventMember"]] = relationship(
@@ -91,4 +95,7 @@ class Event(Base):
     )
     region: Mapped["EventRegion"] = relationship(
         "EventRegion", foreign_keys=[region_id], back_populates="events", lazy="joined"
+    )
+    currency: Mapped["Currency"] = relationship(
+        "Currency", foreign_keys=[currency_code], lazy="joined"
     )

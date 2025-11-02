@@ -281,12 +281,12 @@ class EventClient(ExtendedClient):
                 f"Event {event.id} has no date/ongoing status, using 'tbd' prefix"
             )
 
-        channel_name = event.event_name
+        channel_name = event.event_name.lower()
         channel_name = channel_name.replace(" ", "-")
         channel_name = re.sub(r"[^a-z0-9\-_]", "", channel_name)
         channel_name = re.sub(r"-+", "-", channel_name)
         channel_name = channel_name.strip("-")
-        channel_name = f"{prefix}-{channel_name}".lower()
+        channel_name = f"{prefix}-{channel_name}"
 
         # Limit to 80 characters
         if len(channel_name) > 80:
@@ -442,4 +442,112 @@ class EventClient(ExtendedClient):
             raise EventChannelError(
                 event, f"Failed to update event with channel_id: {e}"
             ) from e
+        return channel
+
+    async def update_channel_name(self, event: Event) -> discord.TextChannel | None:
+        """Update the name of a Discord channel to match the event's current name.
+
+        Generates a new channel name based on the event's current properties
+        (event_name, event_date, is_ongoing) and renames the associated Discord
+        channel. After renaming, repositions the channel within its category
+        according to event priority rules.
+
+        Parameters
+        ----------
+        event : Event
+            The event whose channel should be renamed
+
+        Returns
+        -------
+        discord.TextChannel | None
+            The updated Discord TextChannel object if successful, None otherwise
+
+        Raises
+        ------
+        EventChannelError
+            If event.channel_id is None
+            If the Discord channel cannot be found
+            If channel rename fails due to permissions or other Discord errors
+        """
+        log.info(
+            f"Attempting to update channel name for event {event.id} ({event.event_name})"
+        )
+
+        # Validate event has a channel_id
+        if event.channel_id is None:
+            log.error(f"Event {event.id} has no channel_id, cannot update channel name")
+            raise EventChannelError(event, "Event has no associated channel")
+
+        # Get the channel from Discord
+        channel = await self.get_or_fetch_channel(event.channel_id)
+        if channel is None:
+            log.error(
+                f"Could not find Discord channel with id {event.channel_id} for event {event.id}"
+            )
+            raise EventChannelError(
+                event, f"Discord channel {event.channel_id} not found"
+            )
+
+        if not isinstance(channel, discord.TextChannel):
+            log.error(
+                f"Channel {event.channel_id} is not a TextChannel, it's a {type(channel).__name__}"
+            )
+            raise EventChannelError(
+                event,
+                f"Channel {event.channel_id} is not a text channel",
+            )
+
+        # Generate the new channel name
+        new_channel_name = self.generate_channel_name(event)
+
+        # Check if the name is already correct
+        if channel.name == new_channel_name:
+            log.info(
+                f"Channel {channel.id} already has the correct name '{new_channel_name}', skipping update"
+            )
+            return channel
+
+        # Rename the channel
+        try:
+            log.info(
+                f"Renaming channel {channel.id} from '{channel.name}' to '{new_channel_name}'"
+            )
+            await channel.edit(name=new_channel_name)
+            log.info(
+                f"Successfully renamed channel {channel.id} to '{new_channel_name}'"
+            )
+
+        except discord.Forbidden as e:
+            log.exception(
+                f"Permission denied when renaming channel {channel.id} for event {event.id}"
+            )
+            raise EventChannelError(
+                event, f"Permission denied to rename channel: {e}"
+            ) from e
+
+        except discord.HTTPException as e:
+            log.exception(
+                f"Discord API error when renaming channel {channel.id} for event {event.id}"
+            )
+            raise EventChannelError(
+                event, f"Discord API error when renaming channel: {e}"
+            ) from e
+
+        # Reposition the channel if it has a category
+        if channel.category is not None:
+            try:
+                log.info(
+                    f"Repositioning channel {channel.id} after rename in category {channel.category.id}"
+                )
+                await self.position_event_channel(
+                    channel=channel, category=channel.category
+                )
+            except (discord.Forbidden, discord.HTTPException) as e:
+                # Log the error but don't fail - the rename succeeded
+                log.warning(
+                    f"Failed to reposition channel {channel.id} after rename: {e}"
+                )
+        else:
+            log.debug(f"Channel {channel.id} has no category, skipping repositioning")
+
         return channel

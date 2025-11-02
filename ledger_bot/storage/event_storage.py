@@ -151,16 +151,19 @@ class EventStorage:
         Event
             The updated event object.
         """
-        # Attach the event object to the session
-        db_event: Event = await session.merge(event)
-
         if fields:
+            # Get the existing event from the database
+            db_event = await session.get(Event, event.id)
+            if db_event is None:
+                raise ValueError(f"Event with id {event.id} not found")
+
             # Only update the specified fields
             for field in fields:
                 setattr(db_event, field, getattr(event, field))
             log.info(f"Updating event {db_event.id} fields: {fields}")
         else:
-            # Full update: merge already updates all fields
+            # Full update: merge the entire object including relationships
+            db_event = await session.merge(event)
             log.info(f"Updating all fields for event {db_event.id}")
 
         await session.flush()

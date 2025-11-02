@@ -88,9 +88,7 @@ async def command_manage(
 
         # User is a valid host in a valid event channel, show the management buttons
         management_view = views.CreateEventManagementButtons(
-            client=client,
-            requestor=member,
-            feedback=None,
+            client=client, requestor=member, feedback=None, event=event
         )
 
         await interaction.followup.send(
