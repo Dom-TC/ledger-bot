@@ -221,7 +221,7 @@ class ReminderManager:
 
             # Build Transaction object from provided data
             reminder = Reminder(
-                date=date,
+                reminder_date=date,
                 member_id=member_record.id,
                 transaction_id=transaction.id,
                 category=status,
