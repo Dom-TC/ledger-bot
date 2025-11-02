@@ -165,6 +165,7 @@ def mock_config():
         maintainer_ids=[123456789],
         run_cleanup_time=JobSchedule(hour=3, minute=0, second=0),
         reaction_role_refresh_time=JobSchedule(hour=4, minute=0, second=0),
+        reminder_refresh_time=JobSchedule(hour=1, minute=0, second=0),
         name="Test Bot",
         delete_previous_bot_messages=False,
     )
