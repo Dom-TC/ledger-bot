@@ -67,10 +67,42 @@ async def generate_event_detail_message(event: Event, client: "EventClient") -> 
             f"Location: {event.event_location}\n" if event.event_location else ""
         )
 
-        guests_string = (
-            f"{event.guest_count} / {event.max_guests}"
+        guest_count_string = (
+            f"Attendees: {event.guest_count} / {event.max_guests}"
             if event.max_guests
             else f"{event.guest_count}"
+        )
+
+        host_count_string = f"Hosts: {len(event.hosts)}\n" if len(event.hosts) else ""
+        confirmed_count_string = (
+            f"Confirmed: {len(event.confirmed_members)}\n"
+            if len(event.confirmed_members)
+            else ""
+        )
+        waitlist_count_string = (
+            f"Waitlist: {len(event.waitlisted_members)}\n"
+            if len(event.waitlisted_members)
+            else ""
+        )
+        invited_count_string = (
+            f"Invited: {len(event.invited_members)}\n"
+            if len(event.invited_members)
+            else ""
+        )
+        cancelled_count_string = (
+            f"Cancelled: {len(event.cancelled_members)}\n"
+            if len(event.cancelled_members)
+            else ""
+        )
+
+        attendees_section = (
+            "## Attendees\n"
+            f"{guest_count_string}\n"
+            f"{host_count_string}"
+            f"{confirmed_count_string}"
+            f"{waitlist_count_string}"
+            f"{invited_count_string}"
+            f"{cancelled_count_string}"
         )
 
         deposit_string = (
@@ -92,9 +124,8 @@ async def generate_event_detail_message(event: Event, client: "EventClient") -> 
         f"{pluralise_word(len(event.hosts), "Host")}: {hosts}\n"
         f"Date: {date_string}\n"
         f"{location_string}"
-        "\n"
         f"{deposit_string}"
-        f"Attendees: {guests_string}\n"
+        f"{attendees_section}"
         "\n"
         f"{is_private_string}"
     )

@@ -47,7 +47,7 @@ class EventStorage:
             query = query.options(*options)
 
         result = await session.execute(query)
-        return result.scalar_one_or_none()
+        return result.unique().scalar_one_or_none()
 
     async def add_event(self, event: Event, session: AsyncSession) -> Event:
         """Add an event to the database.

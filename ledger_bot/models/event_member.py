@@ -26,6 +26,7 @@ class EventMemberStatus(enum.Enum):
     HOST = "host"
     CONFIRMED = "confirmed"
     WAITLIST = "waitlist"
+    INVITED = "invited"
     CANCELLED = "cancelled"
 
 

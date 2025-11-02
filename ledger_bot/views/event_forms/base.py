@@ -118,6 +118,8 @@ class BaseEventFieldModal(discord.ui.Modal):
 
                 feedback = "**Failed to update.**\nAn unexpected error occurred."
 
+        await self.client.update_event_posts(event=self.event)
+
         await interaction.response.edit_message(
             view=CreateEventManagementButtons(
                 client=self.client,

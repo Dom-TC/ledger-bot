@@ -43,13 +43,17 @@ class TestBotMessageType:
         """Test BotMessageType.TRANSACTION value."""
         assert BotMessageType.TRANSACTION.value == "transaction"
 
-    def test_bot_message_type_event(self):
-        """Test BotMessageType.EVENT value."""
-        assert BotMessageType.EVENT.value == "event"
+    def test_bot_message_type_event_detail(self):
+        """Test BotMessageType.EVENT_DETAIL value."""
+        assert BotMessageType.EVENT_DETAIL.value == "event_detail"
+
+    def test_bot_message_type_event_signup(self):
+        """Test BotMessageType.EVENT_DETAIL value."""
+        assert BotMessageType.EVENT_SIGNUP.value == "event_signup"
 
     def test_bot_message_type_all_values(self):
         """Test all BotMessageType enum members exist."""
-        expected = {"TRANSACTION", "EVENT"}
+        expected = {"TRANSACTION", "EVENT_DETAIL", "EVENT_SIGNUP"}
         actual = {msg_type.name for msg_type in BotMessageType}
         assert actual == expected
 

@@ -111,7 +111,7 @@ class BotMessageService(ServiceHelpers):
             await session.commit()
             return bot_message
 
-    async def save_event_bot_message(
+    async def save_event_detail_bot_message(
         self,
         message: Message | InteractionMessage,
         event: Event,
@@ -148,7 +148,59 @@ class BotMessageService(ServiceHelpers):
             message_id=message.id,
             channel_id=message.channel.id,
             guild_id=message.guild.id if message.guild else "",
-            message_type=BotMessageType.EVENT,
+            message_type=BotMessageType.EVENT_DETAIL,
+            transaction_id=None,
+            event_id=event.id,
+            creation_date=datetime.now(timezone.utc),
+            bot_id=self.config.bot_id,
+        )
+
+        log.debug(f"Storing bot_message: {bot_message}")
+        async with self._get_session(session) as session:
+            bot_message = await self.bot_message_storage.add_bot_message(
+                bot_message=bot_message, session=session
+            )
+            await session.commit()
+            return bot_message
+
+    async def save_event_signup_bot_message(
+        self,
+        message: Message | InteractionMessage,
+        event: Event,
+        session: AsyncSession | None = None,
+    ) -> BotMessage:
+        """Save the message into a bot_message for a given transaction.
+
+        Parameters
+        ----------
+        message : Message | InteractionMessage
+            The message
+        event : Event
+            The event
+        session : AsyncSession | None, optional
+            An optional session, by default None
+
+        Returns
+        -------
+        BotMessage
+            The saved bot_message
+
+        Raises
+        ------
+        BotMessageInvalidTransactionError
+            Transaction doesn't have a record id
+        """
+        if event.id is None:
+            log.info("Event doesn't have a record id. Can't store message. Skipping...")
+            raise BotMessageInvalidEventError(event=event)
+
+        log.info(f"Saving bot message({message.id}) for event {event.id}")
+
+        bot_message = BotMessage(
+            message_id=message.id,
+            channel_id=message.channel.id,
+            guild_id=message.guild.id if message.guild else "",
+            message_type=BotMessageType.EVENT_SIGNUP,
             transaction_id=None,
             event_id=event.id,
             creation_date=datetime.now(timezone.utc),

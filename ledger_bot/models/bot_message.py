@@ -19,7 +19,8 @@ log = logging.getLogger(__name__)
 
 class BotMessageType(enum.Enum):
     TRANSACTION = "transaction"
-    EVENT = "event"
+    EVENT_SIGNUP = "event_signup"
+    EVENT_DETAIL = "event_detail"
 
 
 class BotMessage(Base):

@@ -9,7 +9,7 @@ from ledger_bot import views
 from ledger_bot.core import register_help_command
 from ledger_bot.errors import EventChannelError
 from ledger_bot.LedgerBot import LedgerBot
-from ledger_bot.models import Event, EventMember, EventMemberStatus
+from ledger_bot.models import BotMessageType, Event, EventMember, EventMemberStatus
 
 log = logging.getLogger(__name__)
 
@@ -107,6 +107,13 @@ async def command_new_event(
         )
 
         await client.service.event_member.add_event_member(raw_host_em, session=session)
+
+        await client.create_event_post(
+            event=event,
+            channel=event_channel,
+            message_type=BotMessageType.EVENT_DETAIL,
+            should_pin=True,
+        )
 
         # Post event management post in channel
         manage_event_view = views.ManageEventButton(

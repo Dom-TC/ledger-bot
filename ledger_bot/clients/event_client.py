@@ -2,6 +2,7 @@
 
 import logging
 import re
+from typing import List
 
 import arrow
 import discord
@@ -11,7 +12,11 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ledger_bot.core import Config
 from ledger_bot.errors import EventChannelError
-from ledger_bot.models import Event, EventRegion
+from ledger_bot.message_generators import (
+    generate_event_detail_message,
+    generate_event_signup_message,
+)
+from ledger_bot.models import BotMessage, BotMessageType, Event, EventRegion
 from ledger_bot.services import Service
 from ledger_bot.utils import get_ordinal_suffix
 
@@ -448,11 +453,6 @@ class EventClient(ExtendedClient):
     async def update_channel_name(self, event: Event) -> discord.TextChannel | None:
         """Update the name of a Discord channel to match the event's current name.
 
-        Generates a new channel name based on the event's current properties
-        (event_name, event_date, is_ongoing) and renames the associated Discord
-        channel. After renaming, repositions the channel within its category
-        according to event priority rules.
-
         Parameters
         ----------
         event : Event
@@ -471,7 +471,7 @@ class EventClient(ExtendedClient):
             If channel rename fails due to permissions or other Discord errors
         """
         log.info(
-            f"Attempting to update channel name for event {event.id} ({event.event_name})"
+            f"Attempting to update channel name for event {event.event_name} ({event.id})"
         )
 
         # Validate event has a channel_id
@@ -552,3 +552,214 @@ class EventClient(ExtendedClient):
             log.debug(f"Channel {channel.id} has no category, skipping repositioning")
 
         return channel
+
+    async def update_event_posts(self, event: Event) -> List[discord.Message] | None:
+        """Update the posts for a given event.
+
+        Parameters
+        ----------
+        event : Event
+            The event whose posts should be updated
+
+        Returns
+        -------
+        discord.Message | None
+            The updated Discord Message object if successful, None otherwise
+
+        Raises
+        ------
+        EventChannelError
+            If event.id is None
+            If the Discord message cannot be found
+            If the edit fails due to permissions or other Discord errors
+            If the event id and the bot_message event id don't match
+            If message_type is not EVENT_DETAIL or EVENT_SIGNUP
+        """
+        log.info(
+            f"Attempting to update event posts for event {event.event_name} ({event.id})"
+        )
+
+        if event.id is None:
+            log.error(f"Event {event.id} has no id, cannot update event posts")
+            raise EventChannelError(event, "Event has no id")
+
+        bot_messages = await self.service.bot_message.get_bot_messages_by_event_id(
+            event_id=event.id
+        )
+
+        if not bot_messages:
+            log.info(f"Event {event.id} has no bot messages")
+            return None
+
+        edited_messages: List[discord.Message] = []
+
+        for bot_message in bot_messages:
+            if bot_message.event_id is not event.id:
+                log.exception(
+                    f"event.id ({event.id}) does not match bot_message.id ({bot_message.message_id})"
+                )
+                raise EventChannelError(
+                    event, "Event.id and BotMessage.message_id don't match"
+                )
+
+            try:
+                channel = await self.get_or_fetch_channel(bot_message.channel_id)
+
+                if not isinstance(channel, discord.TextChannel):
+                    log.error(
+                        f"Channel {bot_message.channel_id} is not a text channel: {type(channel)}"
+                    )
+                    raise EventChannelError(event, "Channel is not a text channel")
+
+                message = await channel.fetch_message(bot_message.message_id)
+
+                if bot_message.message_type is BotMessageType.EVENT_DETAIL:
+                    contents = await generate_event_detail_message(
+                        event=event, client=self
+                    )
+                elif bot_message.message_type is BotMessageType.EVENT_SIGNUP:
+                    contents = await generate_event_signup_message(
+                        event=event, client=self
+                    )
+                else:
+                    log.error(
+                        f"BotMessage.message_type {bot_message.message_type} is not BotMessageType.EVENT_DETAIL or BotMessageType.EVENT_SIGNUP"
+                    )
+                    raise EventChannelError(
+                        event,
+                        "BotMessage.message_type is not BotMessageType.EVENT_DETAIL or BotMessageType.EVENT_SIGNUP",
+                    )
+
+                message = await message.edit(content=contents)
+                edited_messages.append(message)
+
+            except discord.NotFound:
+                log.info(f"Message {bot_message.message_id} does not exist, skipping.")
+                break
+
+            except discord.Forbidden as e:
+                log.exception(
+                    f"Permission denied to edit message {bot_message.message_id} for event {event.id}"
+                )
+                raise EventChannelError(
+                    event, f"Permission denied to edit message: {e}"
+                ) from e
+
+            except discord.HTTPException as e:
+                log.exception(
+                    f"Discord API error when editing message {bot_message.message_id} for event {event.id}"
+                )
+                raise EventChannelError(
+                    event, f"Discord API error when editing message: {e}"
+                ) from e
+
+            return edited_messages
+
+    async def create_event_post(
+        self,
+        event: Event,
+        channel: discord.TextChannel | int,
+        message_type: BotMessageType,
+        should_pin: bool = False,
+    ) -> BotMessage:
+        """Update the posts for a given event.
+
+        Parameters
+        ----------
+        event : Event
+            The event whose posts should be updated
+        channel: discord.TextChannel | int
+            The channel the message should be posted in
+        message_type: BotMessageType
+            The message type. EVENT_DETAIL or EVENT_SIGNUP
+
+        Returns
+        -------
+        BotMessage
+            The BotMessage object of the created message
+
+        Raises
+        ------
+        EventChannelError
+            If event.id is None
+            If the message creation fails due to permissions or other Discord errors
+            If message_type is not EVENT_DETAIL or EVENT_SIGNUP
+        """
+        log.info(
+            f"Attempting to create event {message_type} post for event {event.event_name} ({event.id})"
+        )
+
+        if event.id is None:
+            log.error(f"Event {event.id} has no id, cannot create event post")
+            raise EventChannelError(event, "Event has no id")
+
+        if message_type is BotMessageType.EVENT_DETAIL:
+            contents = await generate_event_detail_message(event=event, client=self)
+        elif message_type is BotMessageType.EVENT_SIGNUP:
+            contents = await generate_event_signup_message(event=event, client=self)
+        else:
+            log.error(
+                f"message_type {message_type} is not BotMessageType.EVENT_DETAIL or BotMessageType.EVENT_SIGNUP"
+            )
+            raise EventChannelError(
+                event,
+                "message_type is not BotMessageType.EVENT_DETAIL or BotMessageType.EVENT_SIGNUP",
+            )
+
+        try:
+            if isinstance(channel, int):
+                discord_channel = await self.get_or_fetch_channel(channel)
+
+                if not isinstance(discord_channel, discord.TextChannel):
+                    log.error(
+                        f"Channel {channel} is not a text channel: {type(discord_channel)}"
+                    )
+                    raise EventChannelError(event, "Channel is not a text channel")
+                else:
+                    channel = discord_channel
+
+            message = await channel.send(content=contents)
+
+            if should_pin:
+                await message.pin()
+
+            if message_type is BotMessageType.EVENT_DETAIL:
+                bm = await self.service.bot_message.save_event_detail_bot_message(
+                    message=message, event=event
+                )
+            elif message_type is BotMessageType.EVENT_SIGNUP:
+                bm = await self.service.bot_message.save_event_signup_bot_message(
+                    message=message, event=event
+                )
+
+            return bm
+
+        except discord.NotFound as e:
+            log.exception(
+                f"Not found error when creating message in {channel} for event {event.id}"
+            )
+            raise EventChannelError(
+                event, f"Permission denied to create message: {e}"
+            ) from e
+
+        except discord.Forbidden as e:
+            log.exception(
+                f"Permission denied to create message in {channel} for event {event.id}"
+            )
+            raise EventChannelError(
+                event, f"Permission denied to create message: {e}"
+            ) from e
+
+        except discord.HTTPException as e:
+            log.exception(
+                f"Discord API error when creating message in {channel} for event {event.id}"
+            )
+            raise EventChannelError(
+                event, f"Discord API error when creating message: {e}"
+            ) from e
+
+        except (ValueError, TypeError) as e:
+            log.exception(
+                f"Error when creating message in {channel} for event {event.id}"
+            )
+            raise EventChannelError(event, f"Error when creating message: {e}") from e

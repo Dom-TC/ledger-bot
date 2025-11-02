@@ -61,17 +61,16 @@ class Event(Base):
     members: Mapped[List["EventMember"]] = relationship(
         back_populates="event", cascade="all, delete-orphan", lazy="joined"
     )
-    waitlisted_members: Mapped[List["EventMember"]] = relationship(
+    hosts: Mapped[List["EventMember"]] = relationship(
         "EventMember",
         primaryjoin=lambda: and_(
             Event.id == foreign(EventMember.event_id),
-            EventMember.status == EventMemberStatus.WAITLIST,
+            EventMember.status == EventMemberStatus.HOST,
         ),
         viewonly=True,
         order_by="EventMember.joined_date",
         lazy="joined",
     )
-
     confirmed_members: Mapped[List["EventMember"]] = relationship(
         "EventMember",
         primaryjoin=lambda: and_(
@@ -82,12 +81,31 @@ class Event(Base):
         order_by="EventMember.joined_date",
         lazy="joined",
     )
-
-    hosts: Mapped[List["EventMember"]] = relationship(
+    waitlisted_members: Mapped[List["EventMember"]] = relationship(
         "EventMember",
         primaryjoin=lambda: and_(
             Event.id == foreign(EventMember.event_id),
-            EventMember.status == EventMemberStatus.HOST,
+            EventMember.status == EventMemberStatus.WAITLIST,
+        ),
+        viewonly=True,
+        order_by="EventMember.joined_date",
+        lazy="joined",
+    )
+    invited_members: Mapped[List["EventMember"]] = relationship(
+        "EventMember",
+        primaryjoin=lambda: and_(
+            Event.id == foreign(EventMember.event_id),
+            EventMember.status == EventMemberStatus.INVITED,
+        ),
+        viewonly=True,
+        order_by="EventMember.joined_date",
+        lazy="joined",
+    )
+    cancelled_members: Mapped[List["EventMember"]] = relationship(
+        "EventMember",
+        primaryjoin=lambda: and_(
+            Event.id == foreign(EventMember.event_id),
+            EventMember.status == EventMemberStatus.CANCELLED,
         ),
         viewonly=True,
         order_by="EventMember.joined_date",
@@ -140,7 +158,6 @@ class Event(Base):
 
     @property
     def is_full(self) -> bool:
-        # No limit means the event can never be "full"
         if self.max_guests is None:
             return False
 

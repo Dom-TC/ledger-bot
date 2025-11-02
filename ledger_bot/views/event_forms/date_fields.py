@@ -139,6 +139,7 @@ class SetDateModal(BaseEventFieldModal):
                 f"{result.error_message}\n"
                 f"Please use DD-MM-YYYY for date and HH:MM for time."
             )
+
             await interaction.response.edit_message(
                 view=CreateEventManagementButtons(
                     client=self.client,

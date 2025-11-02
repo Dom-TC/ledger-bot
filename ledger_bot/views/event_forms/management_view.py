@@ -26,55 +26,12 @@ from .member_management import (
     AddHostButton,
     AddMemberButton,
 )
+from .toggle_buttons import ToggleIsPrivateButton
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
 
 log = logging.getLogger(__name__)
-
-
-class ToggleIsPrivateButton(discord.ui.Button):
-    """Button to toggle event privacy status."""
-
-    event: Event
-
-    def _label(self):
-        return "Make Event Public" if self.event.is_private else "Make Event Private"
-
-    def _style(self):
-        return (
-            discord.ButtonStyle.success
-            if not self.event.is_private
-            else discord.ButtonStyle.red
-        )
-
-    async def callback(self, interaction: discord.Interaction):
-        self.event.is_private = not self.event.is_private
-
-        self.event = await self.client.service.event.update_event(
-            self.event, ["is_private"]
-        )
-
-        self.label = self._label()
-        self.style = self._style()
-
-        await interaction.response.edit_message(view=self.view)
-
-    def __init__(
-        self,
-        client: "LedgerBot",
-        requestor: Member,
-        event: Event,
-    ) -> None:
-        self.client = client
-        self.requestor = requestor
-        self.event = event
-
-        super().__init__(
-            label=self._label(),
-            style=self._style(),
-            custom_id="ToggleIsPrivateButton",
-        )
 
 
 class CreateEventManagementButtons(discord.ui.LayoutView):
