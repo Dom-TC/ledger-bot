@@ -155,12 +155,18 @@ def mock_config():
             reminder="🔔",
             thinking="⏳",
             unknown_version="❓",
+            status_confirmed="✅",
+            status_unconfirmed="❌",
+            status_part_confirmed="⚠️",
+            status_cancelled="🚫",
         ),
         channels=ChannelsConfig(include=["wine-sales"], exclude=[]),
         admin_role=111222333,
-        maintainer_ids=[],
+        maintainer_ids=[123456789],
         run_cleanup_time=JobSchedule(hour=3, minute=0, second=0),
         reaction_role_refresh_time=JobSchedule(hour=4, minute=0, second=0),
+        name="Test Bot",
+        delete_previous_bot_messages=False,
     )
 
 
@@ -259,7 +265,42 @@ def sample_seller():
 
 
 @pytest.fixture
-def sample_transaction(sample_buyer, sample_seller):
+def bot_id():
+    """Provide a bot ID for testing."""
+    return "123456789012345678"
+
+
+@pytest.fixture
+def sample_currency():
+    """Provide a sample Currency for testing."""
+    from ledger_bot.models import Currency
+
+    currency = Mock(spec=Currency)
+    currency.code = "GBP"
+    currency.symbol = "£"
+    currency.rate = 1.0
+    return currency
+
+
+@pytest.fixture
+def sample_bot_message(sample_transaction):
+    """Provide a sample BotMessage for testing."""
+    from ledger_bot.models import BotMessage
+
+    bot_message = Mock(spec=BotMessage)
+    bot_message.id = 1
+    bot_message.message_id = 111222333444555666
+    bot_message.channel_id = 999888777666555444
+    bot_message.guild_id = 777666555444333222
+    bot_message.transaction_id = sample_transaction.id
+    bot_message.transaction = sample_transaction
+    # Add this bot message to the transaction's bot_messages list
+    sample_transaction.bot_messages = [bot_message]
+    return bot_message
+
+
+@pytest.fixture
+def sample_transaction(sample_buyer, sample_seller, sample_currency, bot_id):
     """Provide a sample Transaction for testing."""
     from ledger_bot.models import Transaction
 
@@ -271,11 +312,55 @@ def sample_transaction(sample_buyer, sample_seller):
     transaction.buyer = sample_buyer
     transaction.seller = sample_seller
     transaction.wine = "Test Wine"
-    transaction.price = 100.0
-    transaction.currency_code = "GBP"
+    transaction.price = 99.99
+    transaction.currency_code = sample_currency.code
+    transaction.currency = sample_currency
+    transaction.bot_id = bot_id
     transaction.cancelled = False
-    transaction.approved = False
-    transaction.paid = False
-    transaction.delivered = False
+    transaction.sale_approved = False
+    transaction.buyer_paid = False
+    transaction.seller_paid = False
+    transaction.buyer_delivered = False
+    transaction.seller_delivered = False
     transaction.bot_messages = []
     return transaction
+
+
+@pytest.fixture
+def approved_transaction(sample_buyer, sample_seller, sample_currency, bot_id):
+    """Provide an approved Transaction for testing."""
+    from ledger_bot.models import Transaction
+
+    transaction = Mock(spec=Transaction)
+    transaction.id = 2
+    transaction.display_id = 101
+    transaction.buyer_id = sample_buyer.id
+    transaction.seller_id = sample_seller.id
+    transaction.buyer = sample_buyer
+    transaction.seller = sample_seller
+    transaction.wine = "Approved Wine"
+    transaction.price = 149.99
+    transaction.currency_code = sample_currency.code
+    transaction.currency = sample_currency
+    transaction.bot_id = bot_id
+    transaction.cancelled = False
+    transaction.sale_approved = True
+    transaction.buyer_paid = False
+    transaction.seller_paid = False
+    transaction.buyer_delivered = False
+    transaction.seller_delivered = False
+    transaction.bot_messages = []
+    return transaction
+
+
+@pytest.fixture
+def sample_member():
+    """Provide a sample Member for general testing."""
+    from ledger_bot.models import Member
+
+    member = Mock(spec=Member)
+    member.id = 3
+    member.discord_id = 555666777
+    member.discord_name = "test_user"
+    member.display_name = "Test User"
+    return member
