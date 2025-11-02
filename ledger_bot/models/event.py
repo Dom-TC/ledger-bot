@@ -1,10 +1,22 @@
 """The event model."""
 
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, cast
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, and_
+from sqlalchemy import (
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    and_,
+    func,
+    select,
+)
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, foreign, mapped_column, relationship
+from sqlalchemy.sql import FromClause
 
 from .base import Base
 from .event_member import EventMember, EventMemberStatus
@@ -99,3 +111,37 @@ class Event(Base):
     currency: Mapped["Currency"] = relationship(
         "Currency", foreign_keys=[currency_code], lazy="joined"
     )
+
+    # Properties
+    @hybrid_property
+    def guest_count(self) -> int:
+        return sum(
+            1 + m.guests
+            for m in self.members
+            if m.status in {EventMemberStatus.CONFIRMED, EventMemberStatus.HOST}
+        )
+
+    @guest_count.expression
+    def _guest_count_expression(cls):  # noqa: N805
+        return (
+            select(func.coalesce(func.sum(1 + EventMember.guests), 0))
+            .where(
+                EventMember.event_id == cls.id,
+                EventMember.status.in_(
+                    [
+                        EventMemberStatus.CONFIRMED,
+                        EventMemberStatus.HOST,
+                    ]
+                ),
+            )
+            .correlate(cast(FromClause, cls))
+            .scalar_subquery()
+        )
+
+    @property
+    def is_full(self) -> bool:
+        # No limit means the event can never be "full"
+        if self.max_guests is None:
+            return False
+
+        return self.guest_count >= self.max_guests

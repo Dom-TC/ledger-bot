@@ -1,6 +1,6 @@
 """Views."""
 
-from .event_management_form import CreateEventManagementButtons, ManageEventButton
+from .event_forms import CreateEventManagementButtons, ManageEventButton
 from .reminder_form import CreateReminderButton
 from .settings_form import CreateSettingsButtons
 

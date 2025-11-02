@@ -4,17 +4,9 @@ import logging
 
 from ledger_bot.models import Stats
 
+from .helpers import is_or_are, pluralise_word
+
 log = logging.getLogger(__name__)
-
-
-def _is_or_are(qty: int) -> str:
-    """Returns is or are depending on whether qty is > 1."""
-    return "are" if qty != 1 else "is"
-
-
-def _pluralise_word(qty: int, word: str) -> str:
-    """Returns a pluralised version of word if needed."""
-    return f"{word}s" if qty != 1 else word
 
 
 def generate_stats_message(stats: Stats) -> str:
@@ -36,78 +28,78 @@ def generate_stats_message(stats: Stats) -> str:
         output += "**Personal Stats**\n"
 
     if stats.purchase and stats.sale:
-        output += f"You've made {stats.purchase.total_count} {_pluralise_word(stats.purchase.total_count, 'purchase')} and {stats.sale.total_count} {_pluralise_word(stats.sale.total_count, 'sale')}.\n"
+        output += f"You've made {stats.purchase.total_count} {pluralise_word(stats.purchase.total_count, 'purchase')} and {stats.sale.total_count} {pluralise_word(stats.sale.total_count, 'sale')}.\n"
         output += "\n"
     elif stats.purchase:
-        output += f"You've made {stats.purchase.total_count} {_pluralise_word(stats.purchase.total_count, 'purchase')}.\n"
+        output += f"You've made {stats.purchase.total_count} {pluralise_word(stats.purchase.total_count, 'purchase')}.\n"
         output += "\n"
     elif stats.sale:
-        output += f"You've made {stats.sale.total_count} {_pluralise_word(stats.sale.total_count, 'sale')}.\n"
+        output += f"You've made {stats.sale.total_count} {pluralise_word(stats.sale.total_count, 'sale')}.\n"
         output += "\n"
 
     if stats.purchase:
-        output += f"Of your {stats.purchase.total_count} {_pluralise_word(stats.purchase.total_count, 'purchase')}:\n"
+        output += f"Of your {stats.purchase.total_count} {pluralise_word(stats.purchase.total_count, 'purchase')}:\n"
         output += (
-            f"- {stats.purchase.unapproved} {_is_or_are(stats.purchase.unapproved)} unapproved\n"
+            f"- {stats.purchase.unapproved} {is_or_are(stats.purchase.unapproved)} unapproved\n"
             if stats.purchase.unapproved > 0
             else ""
         )
         output += (
-            f"- {stats.purchase.approved} {_is_or_are(stats.purchase.approved)} approved\n"
+            f"- {stats.purchase.approved} {is_or_are(stats.purchase.approved)} approved\n"
             if stats.purchase.approved > 0
             else ""
         )
         output += (
-            f"- {stats.purchase.paid} {_is_or_are(stats.purchase.paid)} paid\n"
+            f"- {stats.purchase.paid} {is_or_are(stats.purchase.paid)} paid\n"
             if stats.purchase.paid > 0
             else ""
         )
         output += (
-            f"- {stats.purchase.delivered} {_is_or_are(stats.purchase.delivered)} delivered\n"
+            f"- {stats.purchase.delivered} {is_or_are(stats.purchase.delivered)} delivered\n"
             if stats.purchase.delivered > 0
             else ""
         )
         output += (
-            f"- {stats.purchase.completed} {_is_or_are(stats.purchase.completed)} completed\n"
+            f"- {stats.purchase.completed} {is_or_are(stats.purchase.completed)} completed\n"
             if stats.purchase.completed > 0
             else ""
         )
         output += (
-            f"- {stats.purchase.cancelled} {_is_or_are(stats.purchase.cancelled)} cancelled\n"
+            f"- {stats.purchase.cancelled} {is_or_are(stats.purchase.cancelled)} cancelled\n"
             if stats.purchase.cancelled > 0
             else ""
         )
         output += "\n"
 
     if stats.sale:
-        output += f"Of your {stats.sale.total_count} {_pluralise_word(stats.sale.total_count, 'purchase')}:\n"
+        output += f"Of your {stats.sale.total_count} {pluralise_word(stats.sale.total_count, 'purchase')}:\n"
         output += (
-            f"- {stats.sale.unapproved} {_is_or_are(stats.sale.unapproved)} unapproved\n"
+            f"- {stats.sale.unapproved} {is_or_are(stats.sale.unapproved)} unapproved\n"
             if stats.sale.unapproved > 0
             else ""
         )
         output += (
-            f"- {stats.sale.approved} {_is_or_are(stats.sale.approved)} approved\n"
+            f"- {stats.sale.approved} {is_or_are(stats.sale.approved)} approved\n"
             if stats.sale.approved > 0
             else ""
         )
         output += (
-            f"- {stats.sale.paid} {_is_or_are(stats.sale.paid)} paid\n"
+            f"- {stats.sale.paid} {is_or_are(stats.sale.paid)} paid\n"
             if stats.sale.paid > 0
             else ""
         )
         output += (
-            f"- {stats.sale.delivered} {_is_or_are(stats.sale.delivered)} delivered\n"
+            f"- {stats.sale.delivered} {is_or_are(stats.sale.delivered)} delivered\n"
             if stats.sale.delivered > 0
             else ""
         )
         output += (
-            f"- {stats.sale.completed} {_is_or_are(stats.sale.completed)} completed\n"
+            f"- {stats.sale.completed} {is_or_are(stats.sale.completed)} completed\n"
             if stats.sale.completed > 0
             else ""
         )
         output += (
-            f"- {stats.sale.cancelled} {_is_or_are(stats.sale.cancelled)} cancelled\n"
+            f"- {stats.sale.cancelled} {is_or_are(stats.sale.cancelled)} cancelled\n"
             if stats.sale.cancelled > 0
             else ""
         )

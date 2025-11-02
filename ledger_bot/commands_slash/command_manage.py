@@ -8,6 +8,7 @@ import discord
 from ledger_bot import views
 from ledger_bot.core import register_help_command
 from ledger_bot.LedgerBot import LedgerBot
+from ledger_bot.message_generators import generate_event_detail_message
 
 log = logging.getLogger(__name__)
 
@@ -88,7 +89,11 @@ async def command_manage(
 
         # User is a valid host in a valid event channel, show the management buttons
         management_view = views.CreateEventManagementButtons(
-            client=client, requestor=member, feedback=None, event=event
+            client=client,
+            requestor=member,
+            feedback=None,
+            event=event,
+            description=await generate_event_detail_message(event, client),
         )
 
         await interaction.followup.send(
