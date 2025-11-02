@@ -6,6 +6,7 @@ from freezegun import freeze_time
 from ledger_bot.utils.time_utils import (
     build_datetime,
     build_relative_datetime,
+    get_ordinal_suffix,
     resolve_timezone,
 )
 
@@ -118,3 +119,33 @@ def test_build_relative_datetime_invalid_tz(monkeypatch, caplog):
     dt = build_relative_datetime(days=1, hours=1, tz_str="BAD")
     assert dt.tzinfo == timezone.utc
     assert any("Invalid timezone" in msg for msg in caplog.messages)
+
+
+def test_get_ordinal_suffix_st():
+    """Should return 'st' for 1st, 21st, 31st."""
+    assert get_ordinal_suffix(1) == "st"
+    assert get_ordinal_suffix(21) == "st"
+    assert get_ordinal_suffix(31) == "st"
+
+
+def test_get_ordinal_suffix_nd():
+    """Should return 'nd' for 2nd, 22nd."""
+    assert get_ordinal_suffix(2) == "nd"
+    assert get_ordinal_suffix(22) == "nd"
+
+
+def test_get_ordinal_suffix_rd():
+    """Should return 'rd' for 3rd, 23rd."""
+    assert get_ordinal_suffix(3) == "rd"
+    assert get_ordinal_suffix(23) == "rd"
+
+
+def test_get_ordinal_suffix_th():
+    """Should return 'th' for 4-20 and other values."""
+    assert get_ordinal_suffix(4) == "th"
+    assert get_ordinal_suffix(10) == "th"
+    assert get_ordinal_suffix(11) == "th"
+    assert get_ordinal_suffix(12) == "th"
+    assert get_ordinal_suffix(13) == "th"
+    assert get_ordinal_suffix(20) == "th"
+    assert get_ordinal_suffix(24) == "th"
