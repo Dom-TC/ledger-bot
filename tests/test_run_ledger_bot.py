@@ -6,6 +6,19 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 
+def _close_coroutine(coro):
+    """Close a coroutine to prevent 'coroutine was never awaited' warnings.
+
+    This helper is used in tests that mock run_until_complete to ensure
+    coroutines are properly closed instead of being left dangling.
+    """
+    try:
+        coro.close()
+    except (AttributeError, StopIteration):
+        pass
+    return None
+
+
 @pytest.mark.asyncio
 async def test_run_bot(mock_config):
     """Test _run_bot function."""
@@ -121,7 +134,9 @@ def test_start_bot_creates_storage(
     with patch("ledger_bot.run_ledger_bot.LedgerBot"):
         with patch("ledger_bot.run_ledger_bot.setup_slash"):
             with patch("ledger_bot.run_ledger_bot.asyncio.get_event_loop") as mock_loop:
-                mock_loop.return_value.run_until_complete = Mock()
+                mock_loop.return_value.run_until_complete = Mock(
+                    side_effect=_close_coroutine
+                )
 
                 start_bot()
 
@@ -156,7 +171,9 @@ def test_start_bot_creates_services(
     with patch("ledger_bot.run_ledger_bot.LedgerBot"):
         with patch("ledger_bot.run_ledger_bot.setup_slash"):
             with patch("ledger_bot.run_ledger_bot.asyncio.get_event_loop") as mock_loop:
-                mock_loop.return_value.run_until_complete = Mock()
+                mock_loop.return_value.run_until_complete = Mock(
+                    side_effect=_close_coroutine
+                )
 
                 start_bot()
 
@@ -194,7 +211,9 @@ def test_start_bot_creates_scheduler(
     with patch("ledger_bot.run_ledger_bot.LedgerBot"):
         with patch("ledger_bot.run_ledger_bot.setup_slash"):
             with patch("ledger_bot.run_ledger_bot.asyncio.get_event_loop") as mock_loop:
-                mock_loop.return_value.run_until_complete = Mock()
+                mock_loop.return_value.run_until_complete = Mock(
+                    side_effect=_close_coroutine
+                )
 
                 start_bot()
 
@@ -223,7 +242,9 @@ def test_start_bot_creates_reminder_manager(
     with patch("ledger_bot.run_ledger_bot.LedgerBot"):
         with patch("ledger_bot.run_ledger_bot.setup_slash"):
             with patch("ledger_bot.run_ledger_bot.asyncio.get_event_loop") as mock_loop:
-                mock_loop.return_value.run_until_complete = Mock()
+                mock_loop.return_value.run_until_complete = Mock(
+                    side_effect=_close_coroutine
+                )
 
                 start_bot()
 
@@ -258,7 +279,7 @@ def test_start_bot_windows_no_signal_handlers(
             with patch("ledger_bot.run_ledger_bot.asyncio.get_event_loop") as mock_loop:
                 mock_event_loop = Mock()
                 mock_event_loop.add_signal_handler = Mock()
-                mock_event_loop.run_until_complete = Mock()
+                mock_event_loop.run_until_complete = Mock(side_effect=_close_coroutine)
                 mock_loop.return_value = mock_event_loop
 
                 start_bot()
@@ -294,7 +315,9 @@ def test_scheduler_timezone_utc(mock_reminder_manager, mock_zoneinfo, mock_confi
                         with patch(
                             "ledger_bot.run_ledger_bot.AsyncIOScheduler"
                         ) as mock_scheduler:
-                            mock_loop.return_value.run_until_complete = Mock()
+                            mock_loop.return_value.run_until_complete = Mock(
+                                side_effect=_close_coroutine
+                            )
 
                             start_bot()
 
@@ -328,7 +351,7 @@ def test_start_bot_signal_handlers_unix(
             with patch("ledger_bot.run_ledger_bot.asyncio.get_event_loop") as mock_loop:
                 mock_event_loop = Mock()
                 mock_event_loop.add_signal_handler = Mock()
-                mock_event_loop.run_until_complete = Mock()
+                mock_event_loop.run_until_complete = Mock(side_effect=_close_coroutine)
                 mock_loop.return_value = mock_event_loop
 
                 start_bot()
@@ -361,7 +384,9 @@ def test_start_bot_passes_client_to_reminder_manager(
 
         with patch("ledger_bot.run_ledger_bot.setup_slash"):
             with patch("ledger_bot.run_ledger_bot.asyncio.get_event_loop") as mock_loop:
-                mock_loop.return_value.run_until_complete = Mock()
+                mock_loop.return_value.run_until_complete = Mock(
+                    side_effect=_close_coroutine
+                )
 
                 start_bot()
 
@@ -546,7 +571,9 @@ def test_scheduler_fallback_to_utc_on_zoneinfo_error(
                 with patch(
                     "ledger_bot.run_ledger_bot.AsyncIOScheduler"
                 ) as mock_scheduler:
-                    mock_loop.return_value.run_until_complete = Mock()
+                    mock_loop.return_value.run_until_complete = Mock(
+                        side_effect=_close_coroutine
+                    )
 
                     start_bot()
 
@@ -588,7 +615,9 @@ def test_start_bot_passes_config_to_services(
                     with patch(
                         "ledger_bot.run_ledger_bot.asyncio.get_event_loop"
                     ) as mock_loop:
-                        mock_loop.return_value.run_until_complete = Mock()
+                        mock_loop.return_value.run_until_complete = Mock(
+                            side_effect=_close_coroutine
+                        )
 
                         start_bot()
 
@@ -628,7 +657,9 @@ def test_start_bot_passes_session_factory_to_services(
                     with patch(
                         "ledger_bot.run_ledger_bot.asyncio.get_event_loop"
                     ) as mock_loop:
-                        mock_loop.return_value.run_until_complete = Mock()
+                        mock_loop.return_value.run_until_complete = Mock(
+                            side_effect=_close_coroutine
+                        )
 
                         start_bot()
 
@@ -667,7 +698,9 @@ def test_start_bot_passes_scheduler_to_client(
                 ) as mock_scheduler_class:
                     mock_scheduler = Mock()
                     mock_scheduler_class.return_value = mock_scheduler
-                    mock_loop.return_value.run_until_complete = Mock()
+                    mock_loop.return_value.run_until_complete = Mock(
+                        side_effect=_close_coroutine
+                    )
 
                     start_bot()
 
@@ -698,7 +731,9 @@ def test_start_bot_passes_reminder_manager_to_client(
     with patch("ledger_bot.run_ledger_bot.LedgerBot") as mock_ledger_bot:
         with patch("ledger_bot.run_ledger_bot.setup_slash"):
             with patch("ledger_bot.run_ledger_bot.asyncio.get_event_loop") as mock_loop:
-                mock_loop.return_value.run_until_complete = Mock()
+                mock_loop.return_value.run_until_complete = Mock(
+                    side_effect=_close_coroutine
+                )
 
                 start_bot()
 
@@ -732,7 +767,9 @@ def test_start_bot_passes_client_to_setup_slash(
 
         with patch("ledger_bot.run_ledger_bot.setup_slash") as mock_setup_slash:
             with patch("ledger_bot.run_ledger_bot.asyncio.get_event_loop") as mock_loop:
-                mock_loop.return_value.run_until_complete = Mock()
+                mock_loop.return_value.run_until_complete = Mock(
+                    side_effect=_close_coroutine
+                )
 
                 start_bot()
 

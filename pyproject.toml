@@ -115,3 +115,9 @@ skips = ["B404"]
 exclude_also = [
     "if TYPE_CHECKING:",
     ]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    # Ignore coroutine warnings from mocked event loops in tests
+    "ignore:coroutine.*_run_bot.*was never awaited:RuntimeWarning",
+]

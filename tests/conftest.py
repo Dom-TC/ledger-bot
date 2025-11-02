@@ -82,6 +82,18 @@ def mock_message():
     return MockMessage()
 
 
+@pytest.fixture
+def mock_discord_seller():
+    """Provide a mock Discord Member for seller in integration tests."""
+    return MockMember(id=111222333, name="seller_user")
+
+
+@pytest.fixture
+def mock_discord_buyer():
+    """Provide a mock Discord Member for buyer in integration tests."""
+    return MockMember(id=999888777, name="buyer_user")
+
+
 # Factory Fixtures
 # These fixtures return factory functions for creating multiple instances
 
@@ -172,8 +184,8 @@ def mock_config():
 
 
 @pytest_asyncio.fixture
-async def db_session():
-    """Provide an in-memory async database session for testing."""
+async def db_engine():
+    """Provide an in-memory async database engine for testing."""
     engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
 
     from ledger_bot.models.base import Base
@@ -181,14 +193,22 @@ async def db_session():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    async_session = async_sessionmaker(
-        engine, class_=AsyncSession, expire_on_commit=False
-    )
-
-    async with async_session() as session:
-        yield session
+    yield engine
 
     await engine.dispose()
+
+
+@pytest_asyncio.fixture
+async def db_session_factory(db_engine):
+    """Provide an async session factory for testing."""
+    return async_sessionmaker(db_engine, class_=AsyncSession, expire_on_commit=False)
+
+
+@pytest_asyncio.fixture
+async def db_session(db_session_factory):
+    """Provide an in-memory async database session for testing."""
+    async with db_session_factory() as session:
+        yield session
 
 
 @pytest.fixture
@@ -242,26 +262,43 @@ def bot_message_service():
 
 
 @pytest.fixture
-def sample_buyer():
+def currency_service():
+    """Provide a mock CurrencyService for testing."""
+    service = Mock()
+    service.get_or_add_currency = AsyncMock()
+    service.update_rate = AsyncMock()
+    return service
+
+
+@pytest_asyncio.fixture
+async def sample_buyer(db_session):
     """Provide a sample buyer Member for testing."""
     from ledger_bot.models import Member
 
-    buyer = Mock(spec=Member)
-    buyer.id = 1
-    buyer.discord_id = 999888777
-    buyer.username = "buyer_user"
+    buyer = Member(
+        discord_id=999888777,
+        username="buyer_user",
+        nickname="Buyer User",
+    )
+    db_session.add(buyer)
+    await db_session.commit()
+    await db_session.refresh(buyer)
     return buyer
 
 
-@pytest.fixture
-def sample_seller():
+@pytest_asyncio.fixture
+async def sample_seller(db_session):
     """Provide a sample seller Member for testing."""
     from ledger_bot.models import Member
 
-    seller = Mock(spec=Member)
-    seller.id = 2
-    seller.discord_id = 111222333
-    seller.username = "seller_user"
+    seller = Member(
+        discord_id=111222333,
+        username="seller_user",
+        nickname="Seller User",
+    )
+    db_session.add(seller)
+    await db_session.commit()
+    await db_session.refresh(seller)
     return seller
 
 
@@ -271,15 +308,19 @@ def bot_id():
     return "123456789012345678"
 
 
-@pytest.fixture
-def sample_currency():
+@pytest_asyncio.fixture
+async def sample_currency(db_session):
     """Provide a sample Currency for testing."""
     from ledger_bot.models import Currency
 
-    currency = Mock(spec=Currency)
-    currency.code = "GBP"
-    currency.symbol = "£"
-    currency.rate = 1.0
+    currency = Currency(
+        code="GBP",
+        symbol="£",
+        rate=1.0,
+    )
+    db_session.add(currency)
+    await db_session.commit()
+    await db_session.refresh(currency)
     return currency
 
 
