@@ -73,13 +73,17 @@ class TestEventMemberStatus:
         """Test EventMemberStatus.WAITLIST value."""
         assert EventMemberStatus.WAITLIST.value == "waitlist"
 
+    def test_event_member_status_invited(self):
+        """Test EventMemberStatus.INVITED value."""
+        assert EventMemberStatus.INVITED.value == "invited"
+
     def test_event_member_status_cancelled(self):
         """Test EventMemberStatus.CANCELLED value."""
         assert EventMemberStatus.CANCELLED.value == "cancelled"
 
     def test_event_member_status_all_values(self):
         """Test all EventMemberStatus enum members exist."""
-        expected = {"HOST", "CONFIRMED", "WAITLIST", "CANCELLED"}
+        expected = {"HOST", "CONFIRMED", "WAITLIST", "INVITED", "CANCELLED"}
         actual = {status.name for status in EventMemberStatus}
         assert actual == expected
 

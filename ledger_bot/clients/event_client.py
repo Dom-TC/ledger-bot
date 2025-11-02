@@ -653,7 +653,7 @@ class EventClient(ExtendedClient):
                     event, f"Discord API error when editing message: {e}"
                 ) from e
 
-            return edited_messages
+        return edited_messages
 
     async def create_event_post(
         self,
