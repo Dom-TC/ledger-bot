@@ -207,8 +207,9 @@ class EventClient(ExtendedClient):
         # Count how many channels should come before the target
         position = 0
         for ch_data in channel_data:
+
             ch_sort_key = get_sort_key(
-                ch_data["type"], ch_data["date"], ch_data["name"]
+                str(ch_data["type"]), str(ch_data["date"]), str(ch_data["name"])
             )
             if ch_sort_key < target_sort_key:
                 position += 1

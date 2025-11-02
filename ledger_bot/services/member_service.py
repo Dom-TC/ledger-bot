@@ -12,7 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from ledger_bot.core import Config
 from ledger_bot.models import Member, MemberTransactionSummary
 from ledger_bot.storage import MemberStorage
-from ledger_bot.utils import is_valid_timezone, resolve_timezone
+from ledger_bot.utils import resolve_timezone
+from ledger_bot.validators import is_valid_timezone
 
 from .service_helpers import ServiceHelpers
 

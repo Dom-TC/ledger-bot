@@ -110,6 +110,11 @@ class CurrencyValidator(Validator[tuple[float, str]]):
                 "Currency code must be 3 uppercase letters (e.g., GBP, USD, EUR)"
             )
 
+        if not amount_result.value:
+            return ValidationResult.failure(
+                f"Amount must be a valid float: {amount_result.value}, type: {type(amount_result.value)}."
+            )
+
         return ValidationResult.success((amount_result.value, currency_code))
 
 

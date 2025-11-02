@@ -80,13 +80,14 @@ def test_debug_handles_exceptions(caplog):
 
 
 def test_debug_with_mixed_args(caplog):
-    @debug
-    def combine(a, b=2, *, c=3):
-        return a + b + c
+    with caplog.at_level(logging.DEBUG):
 
-    caplog.set_level(logging.DEBUG)
-    result = combine(1, b=5, c=7)
+        @debug
+        def combine(a, b=2, *, c=3):
+            return a + b + c
 
-    assert result == 13
-    assert "Calling combine(1, b=5, c=7)" in caplog.text
-    assert "combine() returned 13" in caplog.text
+        result = combine(1, b=5, c=7)
+
+        assert result == 13
+        assert "Calling combine(1, b=5, c=7)" in caplog.text
+        assert "combine() returned 13" in caplog.text

@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING
 import discord
 
 from ledger_bot.models import Member
-from ledger_bot.utils import build_datetime, is_valid_timezone
+from ledger_bot.utils import build_datetime
+from ledger_bot.validators import is_valid_timezone
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot

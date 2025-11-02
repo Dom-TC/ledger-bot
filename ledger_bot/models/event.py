@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, and_
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, and_
 from sqlalchemy.orm import Mapped, foreign, mapped_column, relationship
 
 from .base import Base
@@ -27,7 +27,7 @@ class Event(Base):
     event_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     event_location: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     max_guests: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    deposit_value: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    deposit_value: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     creation_date: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.now(timezone.utc)
     )
