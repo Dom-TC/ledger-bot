@@ -21,7 +21,7 @@ class AuthenticationConfig(BaseModel):
     exchangerate_api: str = ""
 
     def __repr__(self):
-        fields = ", ".join(f"{f}='****'" for f in self.model_fields)
+        fields = ", ".join(f"{f}='****'" for f in self.__class__.model_fields)
         return f"<{self.__class__.__name__}({fields})>"
 
 
