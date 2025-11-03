@@ -13,6 +13,8 @@ from ledger_bot.utils import (
 )
 from ledger_bot.validators import is_valid_date, is_valid_time, is_valid_timezone
 
+from .base import BaseLayoutView
+
 log = logging.getLogger(__name__)
 
 
@@ -330,7 +332,7 @@ class RelativeReminderModal(discord.ui.Modal, title="Create relative reminder"):
         )
 
 
-class CreateReminderButton(discord.ui.LayoutView):
+class CreateReminderButton(BaseLayoutView):
     def __init__(
         self,
         service: Service,

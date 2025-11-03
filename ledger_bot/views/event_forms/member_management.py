@@ -14,6 +14,7 @@ from ledger_bot.models import (
     EventMemberStatus,
     Member,
 )
+from ledger_bot.views.base import BaseView
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
@@ -110,7 +111,7 @@ class AddMemberButton(discord.ui.Button):
         )
 
 
-class AddMemberView(discord.ui.View):
+class AddMemberView(BaseView):
     """View with user select to add a member to the event."""
 
     def __init__(
@@ -241,7 +242,7 @@ class AddHostButton(discord.ui.Button):
         )
 
 
-class AddHostView(discord.ui.View):
+class AddHostView(BaseView):
     """View with user select to add a host to the event."""
 
     def __init__(

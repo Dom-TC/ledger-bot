@@ -7,6 +7,7 @@ import discord
 
 from ledger_bot.message_generators import generate_event_detail_message
 from ledger_bot.models import Event, Member
+from ledger_bot.views.base import BaseLayoutView, BaseView
 
 from .basic_fields import (
     SetDescriptionButton,
@@ -31,7 +32,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-class CreateEventManagementButtons(discord.ui.LayoutView):
+class CreateEventManagementButtons(BaseLayoutView):
     """Main event management interface with all editing options."""
 
     def __init__(
@@ -140,7 +141,7 @@ class CreateEventManagementButtons(discord.ui.LayoutView):
         self.add_item(event_management_container)
 
 
-class ManageEventButton(discord.ui.View):
+class ManageEventButton(BaseView):
     """A simple view with a 'Manage Event' button that shows management options to hosts."""
 
     def __init__(
@@ -150,7 +151,7 @@ class ManageEventButton(discord.ui.View):
     ) -> None:
         self.client = client
         self.event = event
-        super().__init__(timeout=None)  # Persistent view, no timeout
+        super().__init__()
 
     @discord.ui.button(label="Manage Event", style=discord.ButtonStyle.primary)
     async def manage_event_button(

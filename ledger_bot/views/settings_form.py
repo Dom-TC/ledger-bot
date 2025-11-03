@@ -10,6 +10,8 @@ from ledger_bot.models import Member
 from ledger_bot.utils import build_datetime
 from ledger_bot.validators import is_valid_timezone
 
+from .base import BaseLayoutView
+
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
 
@@ -142,7 +144,7 @@ class SetTimezoneModal(discord.ui.Modal, title="Set your timezone"):
         )
 
 
-class CreateSettingsButtons(discord.ui.LayoutView):
+class CreateSettingsButtons(BaseLayoutView):
     def __init__(
         self,
         client: "LedgerBot",
