@@ -21,7 +21,7 @@ from .core import Config
 from .database import setup_database
 from .errors import SignalHaltError
 from .LedgerBot import LedgerBot
-from .reminder_manager import ReminderManager
+from .managers import ReminderManager
 from .services import (
     BotMessageService,
     CurrencyService,

@@ -9,13 +9,13 @@ import discord
 from apscheduler import events
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from .core import Config
-from .message_generators import generate_reminder_status_message
-from .models import Reminder, Transaction
-from .services import Service
+from ..core import Config
+from ..message_generators import generate_reminder_status_message
+from ..models import Reminder, Transaction
+from ..services import Service
 
 if TYPE_CHECKING:
-    from .LedgerBot import LedgerBot
+    from ..LedgerBot import LedgerBot
 
 log = logging.getLogger(__name__)
 

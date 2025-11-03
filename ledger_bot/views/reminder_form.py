@@ -1,11 +1,11 @@
 """Views and Modals for interacting with reminders."""
 
 import logging
+from typing import TYPE_CHECKING
 
 import discord
 
 from ledger_bot.models import Member, Reminder, ReminderStatus, Transaction
-from ledger_bot.reminder_manager import ReminderManager
 from ledger_bot.services import Service
 from ledger_bot.utils import (
     build_datetime,
@@ -14,6 +14,9 @@ from ledger_bot.utils import (
 from ledger_bot.validators import is_valid_date, is_valid_time, is_valid_timezone
 
 from .base import BaseLayoutView
+
+if TYPE_CHECKING:
+    from ledger_bot.managers import ReminderManager
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +28,7 @@ class FixedReminderModal(discord.ui.Modal, title="Create fixed reminder"):
         transaction: Transaction,
         user: discord.Member,
         member_record: Member,
-        reminders: ReminderManager,
+        reminders: "ReminderManager",
     ) -> None:
         self.service = service
         self.transaction = transaction
@@ -202,7 +205,7 @@ class RelativeReminderModal(discord.ui.Modal, title="Create relative reminder"):
         transaction: Transaction,
         user: discord.Member,
         member_record: Member,
-        reminders: ReminderManager,
+        reminders: "ReminderManager",
     ) -> None:
         self.service = service
         self.transaction = transaction
@@ -340,7 +343,7 @@ class CreateReminderButton(BaseLayoutView):
         user: discord.Member,
         buyer_user: discord.Member | discord.User,
         seller_user: discord.Member | discord.User,
-        reminders: ReminderManager,
+        reminders: "ReminderManager",
     ) -> None:
         self.service = service
         self.transaction = transaction

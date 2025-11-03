@@ -14,8 +14,8 @@ from .clients import (
 )
 from .commands_dm import is_dm, process_dm
 from .core import Config
+from .managers import ReminderManager
 from .process_message import process_message
-from .reminder_manager import ReminderManager
 from .services import Service
 
 log = logging.getLogger(__name__)

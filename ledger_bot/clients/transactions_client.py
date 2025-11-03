@@ -14,11 +14,11 @@ from ledger_bot.errors import (
     TransactionInvalidBuyerError,
     TransactionInvalidSellerError,
 )
+from ledger_bot.managers import ReminderManager
 from ledger_bot.message_generators import (
     generate_transaction_status_message,
     send_message,
 )
-from ledger_bot.reminder_manager import ReminderManager
 from ledger_bot.services import Service
 from ledger_bot.utils import add_reaction, remove_reaction
 from ledger_bot.views import CreateReminderButton

@@ -7,8 +7,8 @@ import pytest
 from apscheduler import events
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from ledger_bot.managers import ReminderManager
 from ledger_bot.models import Reminder, ReminderStatus
-from ledger_bot.reminder_manager import ReminderManager
 
 
 @pytest.fixture
@@ -39,7 +39,7 @@ def mock_service():
 @pytest.fixture
 def reminder_manager(mock_config, mock_scheduler, mock_service):
     """Create a ReminderManager instance."""
-    with patch("ledger_bot.reminder_manager.arrow") as mock_arrow:
+    with patch("ledger_bot.managers.reminder_manager.arrow") as mock_arrow:
         mock_now = Mock()
         mock_now.shift.return_value.datetime = datetime(
             2025, 1, 1, 12, 1, 0, tzinfo=timezone.utc
@@ -69,7 +69,7 @@ def test_reminder_manager_schedules_refresh_on_init(
     mock_scheduler, mock_service, mock_config
 ):
     """Test that ReminderManager schedules refresh job on initialization."""
-    with patch("ledger_bot.reminder_manager.arrow") as mock_arrow:
+    with patch("ledger_bot.managers.reminder_manager.arrow") as mock_arrow:
         mock_now = Mock()
         mock_now.shift.return_value.datetime = datetime(
             2025, 1, 1, 12, 1, 0, tzinfo=timezone.utc
@@ -93,7 +93,7 @@ def test_reminder_manager_adds_scheduler_listener(
     mock_scheduler, mock_service, mock_config
 ):
     """Test that ReminderManager adds listener for missed jobs."""
-    with patch("ledger_bot.reminder_manager.arrow"):
+    with patch("ledger_bot.managers.reminder_manager.arrow"):
         manager = ReminderManager(
             config=mock_config,
             scheduler=mock_scheduler,
@@ -319,7 +319,7 @@ async def test_send_reminder_skip_if_completed(reminder_manager, mock_service):
 
 
 @pytest.mark.asyncio
-@patch("ledger_bot.reminder_manager.generate_reminder_status_message")
+@patch("ledger_bot.managers.reminder_manager.generate_reminder_status_message")
 async def test_send_reminder_success(
     mock_generate_message, reminder_manager, mock_service
 ):
@@ -378,7 +378,7 @@ async def test_send_reminder_success(
 
 
 @pytest.mark.asyncio
-@patch("ledger_bot.reminder_manager.generate_reminder_status_message")
+@patch("ledger_bot.managers.reminder_manager.generate_reminder_status_message")
 async def test_send_reminder_includes_message_link(
     mock_generate_message, reminder_manager, mock_service
 ):
