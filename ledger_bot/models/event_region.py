@@ -22,7 +22,7 @@ class EventRegion(Base):
     )
     region_name: Mapped[str] = mapped_column(String, unique=True)
     new_event_category: Mapped[int] = mapped_column(Integer)
-    event_post_channel: Mapped[int] = mapped_column(Integer)
+    event_signup_channel: Mapped[int] = mapped_column(Integer)
     bot_id: Mapped[Optional[str]] = mapped_column(String)
     events: Mapped[List["Event"]] = relationship(
         "Event",

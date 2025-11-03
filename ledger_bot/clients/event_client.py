@@ -61,10 +61,10 @@ class EventClient(ExtendedClient):
             region = EventRegion(
                 region_name=raw_region.region_name,
                 new_event_category=raw_region.new_event_category,
-                event_post_channel=raw_region.event_post_channel,
+                event_signup_channel=raw_region.event_signup_channel,
             )
 
-            region = await self.service.event_region.add_region(region)
+            region = await self.service.event_region.add_or_update_region(region)
 
             if region.id:
                 log.info(
@@ -661,7 +661,7 @@ class EventClient(ExtendedClient):
         channel: discord.TextChannel | int,
         message_type: BotMessageType,
         should_pin: bool = False,
-    ) -> BotMessage:
+    ) -> BotMessage | None:
         """Update the posts for a given event.
 
         Parameters
@@ -675,7 +675,7 @@ class EventClient(ExtendedClient):
 
         Returns
         -------
-        BotMessage
+        BotMessage | None
             The BotMessage object of the created message
 
         Raises
@@ -697,6 +697,10 @@ class EventClient(ExtendedClient):
             contents = await generate_event_detail_message(event=event, client=self)
         elif message_type is BotMessageType.EVENT_SIGNUP:
             contents = await generate_event_signup_message(event=event, client=self)
+
+            if event.is_private:
+                log.info("Event is private. Skipping signup post")
+                return None
         else:
             log.error(
                 f"message_type {message_type} is not BotMessageType.EVENT_DETAIL or BotMessageType.EVENT_SIGNUP"

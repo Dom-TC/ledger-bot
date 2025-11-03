@@ -221,8 +221,13 @@ REACTIONROLE
 
 ## TODO
 
-1. Move to single `MessageGenerators` class? At least switch to just passing in Transaction object. Ensure all messages are split by length. Include /lookup output
-2. Consolidate dm and slash commands?
-3. Implement events system
-4. Add schedule to automatically delete events channels. Post one month after event date giving two weeks notice. Let user react or comment to stop. If no response, delete in a further two weeks
-5. Split command: option to create a split channel and automatically add members
+1. Events System
+   1. Add signup flow
+   2. Add invite flow
+   3. Add wine flow
+   4. Add waitlist flow
+   5. Add cancellation flow
+   6. Add channel deletion flow
+2. Move to single `MessageGenerators` class? At least switch to just passing in Transaction object. Ensure all messages are split by length. Include /lookup output
+3. Consolidate dm and slash commands?
+4. Split command: option to create a split channel and automatically add members

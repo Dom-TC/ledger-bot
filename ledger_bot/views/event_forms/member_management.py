@@ -5,13 +5,81 @@ from typing import TYPE_CHECKING
 
 import discord
 
+from ledger_bot.errors import EventChannelError
 from ledger_bot.message_generators import generate_event_detail_message
-from ledger_bot.models import Event, EventMember, EventMemberStatus, Member
+from ledger_bot.models import (
+    BotMessageType,
+    Event,
+    EventMember,
+    EventMemberStatus,
+    Member,
+)
 
 if TYPE_CHECKING:
     from ledger_bot.LedgerBot import LedgerBot
 
 log = logging.getLogger(__name__)
+
+
+class PostSignupButton(discord.ui.Button):
+    """Button to post a signup message for the event."""
+
+    def __init__(
+        self,
+        client: "LedgerBot",
+        requestor: Member,
+        event: Event,
+    ) -> None:
+        self.client = client
+        self.requestor = requestor
+        self.event = event
+
+        super().__init__(
+            label="Create Signup Post" if not event.has_signup else "Bump Signup Post",
+            style=(
+                discord.ButtonStyle.success
+                if not event.has_signup
+                else discord.ButtonStyle.primary
+            ),
+            custom_id="PostSignupButton",
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        # Import here to avoid circular dependency
+        from ledger_bot.views.event_forms.management_view import (
+            CreateEventManagementButtons,
+        )
+
+        bot_message = await self.client.create_event_post(
+            event=self.event,
+            channel=self.event.region.event_signup_channel,
+            message_type=BotMessageType.EVENT_SIGNUP,
+        )
+
+        if not bot_message:
+            feedback = "Failed to post message."
+        else:
+            channel = await self.client.get_or_fetch_channel(bot_message.channel_id)
+            if not isinstance(channel, discord.TextChannel):
+                log.error(
+                    f"Channel {bot_message.channel_id} is not a text channel: {type(channel)}"
+                )
+                raise EventChannelError(self.event, "Channel is not a text channel")
+
+            message = await channel.fetch_message(bot_message.message_id)
+
+            feedback = f"Successfully created signup post at {message.jump_url}"
+        await interaction.response.edit_message(
+            view=CreateEventManagementButtons(
+                client=self.client,
+                requestor=self.requestor,
+                feedback=feedback,
+                event=self.event,
+                description=await generate_event_detail_message(
+                    self.event, self.client
+                ),
+            ),
+        )
 
 
 class AddMemberButton(discord.ui.Button):

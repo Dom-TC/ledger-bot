@@ -241,7 +241,18 @@ class EventService(ServiceHelpers):
         """
         async with self._get_session(session) as session:
             updated_event = await self.event_storage.update_event(
-                event, fields=fields, session=session
+                event,
+                fields=fields,
+                session=session,
+                options=[
+                    selectinload(Event.members),
+                    selectinload(Event.waitlisted_members),
+                    selectinload(Event.confirmed_members),
+                    selectinload(Event.hosts),
+                    selectinload(Event.wines),
+                    selectinload(Event.bot_messages),
+                    selectinload(Event.region),
+                ],
             )
 
             await session.commit()

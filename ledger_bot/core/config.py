@@ -28,7 +28,7 @@ class AuthenticationConfig(BaseModel):
 class EventRegionConfig(BaseModel):
     region_name: str = ""
     new_event_category: int = 0
-    event_post_channel: int = 0
+    event_signup_channel: int = 0
 
 
 class ChannelsConfig(BaseModel):

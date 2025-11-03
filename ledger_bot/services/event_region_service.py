@@ -135,3 +135,60 @@ class EventRegionService(ServiceHelpers):
                 log.debug(f"EventRegion saved with id {region.id}")
                 self._list_all_regions_cache.clear()
             return region
+
+    async def add_or_update_region(
+        self,
+        region: EventRegion,
+        session: AsyncSession | None = None,
+    ) -> EventRegion:
+        """Add a new region or update an existing one by region_name.
+
+        If a region with the same region_name exists, update it with the new data.
+        Otherwise, add it as a new region.
+
+        Parameters
+        ----------
+        region : EventRegion
+            The region to add or update
+        session : AsyncSession | None, optional
+            An optional session, by default None
+
+        Returns
+        -------
+        EventRegion
+            The added or updated region
+        """
+        log.info(f"Adding or updating region {region.region_name}")
+        region.bot_id = self.config.bot_id
+
+        async with self._get_session(session) as session:
+            # Check if a region with this name already exists
+            regions = await self.event_region_storage.list_regions(
+                EventRegion.region_name == region.region_name, session=session
+            )
+
+            if regions and len(regions) > 0:
+                existing_region = regions[0]
+                log.info(
+                    f"Region {region.region_name} exists with id {existing_region.id}, updating it"
+                )
+                # Update the existing region's fields
+                existing_region.new_event_category = region.new_event_category
+                existing_region.event_signup_channel = region.event_signup_channel
+                existing_region.bot_id = region.bot_id
+
+                updated_region = await self.event_region_storage.update_region(
+                    region=existing_region, session=session
+                )
+                await session.commit()
+                self._list_all_regions_cache.clear()
+                return updated_region
+            else:
+                log.info(f"Region {region.region_name} does not exist, adding it")
+                # Add as a new region
+                region = await self.event_region_storage.add_region(
+                    region=region, session=session
+                )
+                await session.commit()
+                self._list_all_regions_cache.clear()
+                return region

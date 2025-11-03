@@ -19,6 +19,7 @@ from sqlalchemy.orm import Mapped, foreign, mapped_column, relationship
 from sqlalchemy.sql import FromClause
 
 from .base import Base
+from .bot_message import BotMessageType
 from .event_member import EventMember, EventMemberStatus
 from .event_wine import EventWine
 
@@ -120,7 +121,7 @@ class Event(Base):
         "BotMessage",
         back_populates="event",
         foreign_keys="BotMessage.event_id",
-        primaryjoin="and_(Event.id == BotMessage.event_id, BotMessage.message_type == 'event')",
+        primaryjoin="and_(Event.id == BotMessage.event_id, BotMessage.message_type.in_(['event_signup', 'event_detail']))",
         cascade="all, delete-orphan",
     )
     region: Mapped["EventRegion"] = relationship(
@@ -162,3 +163,9 @@ class Event(Base):
             return False
 
         return self.guest_count >= self.max_guests
+
+    @property
+    def has_signup(self) -> bool:
+        return any(
+            msg.message_type == BotMessageType.EVENT_SIGNUP for msg in self.bot_messages
+        )

@@ -22,10 +22,7 @@ from .financial_fields import (
     SetDepositValueButton,
     SetMaxGuestsButton,
 )
-from .member_management import (
-    AddHostButton,
-    AddMemberButton,
-)
+from .member_management import AddHostButton, AddMemberButton, PostSignupButton
 from .toggle_buttons import ToggleIsPrivateButton
 
 if TYPE_CHECKING:
@@ -106,6 +103,10 @@ class CreateEventManagementButtons(discord.ui.LayoutView):
             client=client, requestor=requestor, event=event
         )
 
+        post_signup_button = PostSignupButton(
+            client=client, requestor=requestor, event=event
+        )
+
         # Add buttons to row
         set_details_row.add_item(set_name_button)
         set_details_row.add_item(set_description_button)
@@ -122,6 +123,8 @@ class CreateEventManagementButtons(discord.ui.LayoutView):
         set_members_row.add_item(add_host_button)
 
         set_status_row.add_item(toggle_is_private_button)
+        if not event.is_private:
+            set_status_row.add_item(post_signup_button)
 
         # Add rows to containers
         event_management_container.add_item(set_details_row)

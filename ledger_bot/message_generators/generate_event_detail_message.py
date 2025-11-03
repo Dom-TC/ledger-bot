@@ -43,7 +43,6 @@ async def generate_event_detail_message(event: Event, client: "EventClient") -> 
         )
 
         # Create comma seperated list, with "and" before final element
-        log.debug(event)
         if len(event.hosts) > 1:
             hosts = (
                 "<@"

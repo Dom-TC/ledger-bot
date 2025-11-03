@@ -111,7 +111,7 @@ class EventStorage:
             query = query.options(*options)
         try:
             result = await session.execute(query)
-            events = list(result.scalars().all())
+            events = list(result.unique().scalars().all())
             log.info(f"Found {len(events)} events")
             return events if events else None
         except SQLAlchemyError as e:
@@ -133,7 +133,11 @@ class EventStorage:
         await session.flush()
 
     async def update_event(
-        self, event: Event, session: AsyncSession, fields: Optional[List[str]] = None
+        self,
+        event: Event,
+        session: AsyncSession,
+        fields: Optional[List[str]] = None,
+        options: Optional[List] = None,
     ) -> Event:
         """Update an event in the database.
 
@@ -145,6 +149,8 @@ class EventStorage:
             The session to be used
         fields : Optional[List[str]], optional
             The optional list of fields to update. If None, updates full model, by default None
+        options : Optional[List], optional
+            Optional SQLAlchemy query options for eager loading, by default None
 
         Returns
         -------
@@ -167,5 +173,15 @@ class EventStorage:
             log.info(f"Updating all fields for event {db_event.id}")
 
         await session.flush()
-        await session.refresh(db_event)
+
+        # If options are provided, refresh with eager loading
+        if options:
+            await session.refresh(db_event, attribute_names=None)
+            # Re-fetch with eager loading options
+            query = select(Event).where(Event.id == db_event.id).options(*options)
+            result = await session.execute(query)
+            db_event = result.unique().scalar_one()
+        else:
+            await session.refresh(db_event)
+
         return db_event

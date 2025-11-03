@@ -260,19 +260,19 @@ def test_event_region_config_defaults():
 
     assert region.region_name == ""
     assert region.new_event_category == 0
-    assert region.event_post_channel == 0
+    assert region.event_signup_channel == 0
 
 
 def test_event_region_config_with_values():
     region = EventRegionConfig(
         region_name="Europe",
         new_event_category=123456,
-        event_post_channel=789012,
+        event_signup_channel=789012,
     )
 
     assert region.region_name == "Europe"
     assert region.new_event_category == 123456
-    assert region.event_post_channel == 789012
+    assert region.event_signup_channel == 789012
 
 
 # Tests for ChannelsConfig
@@ -303,12 +303,12 @@ def test_channels_config_with_event_regions():
             {
                 "region_name": "Europe",
                 "new_event_category": 100,
-                "event_post_channel": 200,
+                "event_signup_channel": 200,
             },
             {
                 "region_name": "Asia",
                 "new_event_category": 300,
-                "event_post_channel": 400,
+                "event_signup_channel": 400,
             },
         ]
     }
@@ -320,7 +320,7 @@ def test_channels_config_with_event_regions():
     assert channels.event_regions[0].region_name == "Europe"
     assert channels.event_regions[0].new_event_category == 100
     assert channels.event_regions[1].region_name == "Asia"
-    assert channels.event_regions[1].event_post_channel == 400
+    assert channels.event_regions[1].event_signup_channel == 400
 
 
 # Tests for EmojiConfig
