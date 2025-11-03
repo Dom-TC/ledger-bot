@@ -8,8 +8,10 @@ from .management_view import (
     CreateEventManagementButtons,
     ManageEventButton,
 )
+from .signup_view import CreateSignupView
 
 __all__ = [
     "CreateEventManagementButtons",
     "ManageEventButton",
+    "CreateSignupView",
 ]

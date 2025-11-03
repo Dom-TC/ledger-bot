@@ -176,7 +176,6 @@ class AddMemberView(BaseView):
                 )
             )
 
-            # Check if member is already in the event
             is_already_member = any(
                 em.member_id == member.id for em in existing_members
             )
@@ -184,12 +183,11 @@ class AddMemberView(BaseView):
             if is_already_member:
                 feedback = f"**{user.display_name} is already a member of this event.**"
             else:
-                # Add the member to the event
                 event_member = EventMember(
                     event_id=self.event.id,
                     member_id=member.id,
                     status=EventMemberStatus.CONFIRMED,
-                    bot_id=self.client.guild.id,
+                    bot_id=self.client.config.bot_id,
                 )
                 await self.client.service.event_member.add_event_member(
                     event_member=event_member, session=session
@@ -294,7 +292,6 @@ class AddHostView(BaseView):
             )
             return
 
-        # Get or create the member record
         async with self.client.session_factory() as session:
             member = await self.client.service.member.get_or_add_member(
                 user, session=session
@@ -307,7 +304,6 @@ class AddHostView(BaseView):
                 )
             )
 
-            # Check if member is already in the event
             existing_event_member = next(
                 (em for em in existing_members if em.member_id == member.id), None
             )
