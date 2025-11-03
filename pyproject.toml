@@ -15,7 +15,7 @@ version = "0.1.0"
 [tool.poetry.dependencies]
 python = "^3.11"
 discord-py = "^2.4.0"
-python-dotenv = "^1.0.1"
+python-dotenv = "^1.2.1"
 apscheduler = "^3.11.0"
 cachetools = "^5.5.0"
 asyncache = "^0.3.1"
